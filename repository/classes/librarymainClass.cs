@@ -1,0 +1,209 @@
+﻿using library_management.Models;
+using library_management.repository.internalinterface;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.Extensions.DependencyModel;
+using Mono.TextTemplating;
+using System.Data;
+
+namespace library_management.repository.classes
+{
+    public class librarymainClass : libraryInterface
+    {
+        private readonly dbConnect _connect;
+        private readonly IWebHostEnvironment _environment;
+        private readonly EmailSenderInterface _emailSender;
+
+        public librarymainClass(dbConnect connect , IWebHostEnvironment environment,EmailSenderInterface emailSender)
+        {
+            _connect = connect;
+            _environment = environment;
+            _emailSender = emailSender;
+        }
+        public async Task<object> AddmemberAsync(Member user) 
+        {
+            try
+            {
+                //member model details
+                if (user.profilefile != null)
+                {
+                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+
+                    // Maximum allowed file size (5 MB in bytes)
+                    const long maxFileSize = 5 * 1024 * 1024;
+
+                    // Get file extension and check if it is allowed
+                    string fileExtension = Path.GetExtension(user.profilefile.FileName).ToLower();
+                    if (!allowedExtensions.Contains(fileExtension))
+                    {
+                        return new { success = false, message = "Invalid file type. Only .jpg, .jpeg, .png, and .gif are allowed." };
+                    }
+
+                    // Check file size
+                    if (user.profilefile.Length > maxFileSize)
+                    {
+                        return new { success = false, message = "File size exceeds the maximum allowed size of 5 MB." };
+                    }
+
+                    string uploadFolder = Path.Combine(_environment.WebRootPath, "images");
+                    Directory.CreateDirectory(uploadFolder); // Ensure directory exists
+
+                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(user.profilefile.FileName);
+                    string filePath = Path.Combine(uploadFolder, uniqueFileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await user.profilefile.CopyToAsync(stream);
+                    }
+                    user.Picture = "/images/" + uniqueFileName;
+                }
+
+                
+                // Hash the password
+                user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
+                // user.Confirmpassword = BCrypt.Net.BCrypt.HashPassword(user.Confirmpassword);
+                user.Otp = _emailSender.GenerateOtp();
+                user.Otpexpiry = DateTime.Now.AddMinutes(5);
+                string subj = "OTP Verification!!";
+                await _emailSender.SendEmailAsync(user.Email, subj, user.Otp);
+
+                user.VerificationStatus = "Pending";
+
+                // Save user to database
+                await _connect.Members.AddAsync(user);
+                await _connect.SaveChangesAsync();
+                bool redirect = false;
+
+                return new { success = true, message = "Registration successful. Please check your email to verify your account."};
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return new { success = false, message = "An error occurred while adding the user." };
+            }
+        }
+
+
+
+        public async Task<bool> IsVerified(string cred)
+        {
+            var user = await _connect.Members.FirstOrDefaultAsync(x => x.Email == cred || x.Name == cred);
+            return user.IsEmailVerified;
+        }
+
+        public async Task<object> AddLibraryAsync(Models.Library library, int id)
+        {
+            try
+            {
+                //library model details
+                if (library.libraryfile != null)
+                {
+                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+
+                    // Maximum allowed file size (5 MB in bytes)
+                    const long maxFileSize = 5 * 1024 * 1024;
+
+                    // Get file extension and check if it is allowed
+                    string fileExtension = Path.GetExtension(library.libraryfile.FileName).ToLower();
+                    if (!allowedExtensions.Contains(fileExtension))
+                    {
+                        return new { success = false, message = "Invalid file type. Only .jpg, .jpeg, .png, and .gif are allowed." };
+                    }
+
+                    // Check file size
+                    if (library.libraryfile.Length > maxFileSize)
+                    {
+                        return new { success = false, message = "File size exceeds the maximum allowed size of 5 MB." };
+                    }
+
+                    string uploadFolder = Path.Combine(_environment.WebRootPath, "images");
+                    Directory.CreateDirectory(uploadFolder); // Ensure directory exists
+
+                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(library.libraryfile.FileName);
+                    string filePath = Path.Combine(uploadFolder, uniqueFileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await library.libraryfile.CopyToAsync(stream);
+                    }
+                    library.LibraryImagePath = "/libraryimages/" + uniqueFileName;
+                }
+
+
+                library.AdminId = id;
+                // Save user to database
+                await _connect.Libraries.AddAsync(library);
+                await _connect.SaveChangesAsync();
+               
+                return new { success = true, message = "Registration successful." };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return new { success = false, message = "An error occurred while adding the user." };
+            }
+        }
+
+        public async Task<bool> GetAdmindetails(int id)
+        {
+            bool res = await _connect.Libraries.AnyAsync(x => x.AdminId == id);
+            return res;
+        }
+
+        public async Task<int?> GetUserIdByEmail(string email)
+        {
+            return await _connect.Members
+                .Where(u => u.Email == email)
+                .Select(u => (int?)u.Id)
+                .FirstOrDefaultAsync(); // Retrieves the first match or null
+        }
+
+
+        public async Task<string> fetchEmail(string cred)
+        {
+            return await _connect.Members
+                .Where(u => u.Email == cred || u.Name == cred)
+                .Select(u => u.Email)
+                .FirstOrDefaultAsync();
+        }
+
+
+        public async Task<Member> GetUserDataByEmail(string email)
+        {
+            return await _connect.Members.FirstOrDefaultAsync(x => x.Email == email);
+        }
+
+
+
+        public async Task<bool> isemailexitsAsync(string Email)
+        {
+            return await _connect.Members.AnyAsync(x => x.Email == Email);
+        }
+
+        public async Task<bool> ismembernameexitsAsync(string Membername)
+        {
+            return await _connect.Members.AnyAsync(x => x.Name == Membername);
+        }
+        public async Task<bool> OtpVerification(string otp)
+        {
+            return await _connect.Members.AnyAsync(x => x.Otp == otp && x.Otpexpiry > DateTime.Now);
+        }
+
+        public async Task<object> updateStatus(string Email)
+        {
+            var user = await _connect.Members.FirstOrDefaultAsync(x => x.Email == Email);
+            if (user != null)
+            {
+                user.IsEmailVerified = true;
+                await _connect.SaveChangesAsync();
+                return new { success = true, message = "Email verified successfully" };
+            }
+            return new { success = false, message = "Email not found" };
+        }
+
+       
+    }
+}
+    

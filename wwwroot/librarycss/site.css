@@ -1,0 +1,40 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+label.error {
+    color: red; /* Set the error message color to red */
+    font-size: 14px; /* Optional: Set the font size for error messages */
+    font-weight: bold; /* Optional: Make the error messages bold */
+}
+
+/* Optional: Change the border color of the invalid input fields */
+input.error, select.error {
+    border-color: red;
+}
+
+    /* Optional: Highlight the label for the input fields with errors */
+    input.error + label, select.error + label {
+        color: red;
+    }
+
+//code for red colour error

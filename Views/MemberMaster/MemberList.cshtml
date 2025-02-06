@@ -1,0 +1,131 @@
+﻿@model IEnumerable<library_management.Models.Member>
+
+@{
+    Layout = "/Views/Shared/_mainLayout.cshtml";
+    ViewData["Title"] = "Member List";
+}
+<link href="~/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+<link href="~/assets/css/sb-admin-2.min.css" rel="stylesheet">
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 text-center ">
+        <h2 class="m-0 font-weight-bold text-primary">Member List</h2>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="dataTable" width="80%" cellspacing="0" style="margin: 0 auto; font-size: 14px;">
+             <thead>
+                    <tr>
+                        <th>Profile Image</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Joining Date</th>
+                        <th>Verification Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var member in Model)
+                    {
+                        <tr>
+                            <td>
+                                <img src="@member.Picture" alt="img" class="img-fluid rounded-circle" style="width: 50px; height: 50px;">
+                            </td>
+                            <td>@member.Name</td>
+                            <td>@member.Email</td>
+                            <td>@member.Joiningdate</td>
+                            @if (member.VerificationStatus == "Pending")
+                            {
+                                <td><span class="badges bg-warning">@member.VerificationStatus</span></td>
+                            }
+                            else if (member.VerificationStatus == "Accepted")
+                            {
+                                <td><span class="badges bg-lightgreen">@member.VerificationStatus</span></td>
+                            }
+                            else if (member.VerificationStatus == "Rejected")
+                            {
+                                <td><span class="badges bg-danger">@member.VerificationStatus</span></td>
+                            }
+                            <td>
+                                <a class="me-3 btn btn-primary details-btn" href="@Url.Action("Details", "MemberMaster", new { id = member.Id })">Details</a>
+                                <a class="me-3 btn btn-primary Edit-btn" href="@Url.Action("AddMember", "MemberMaster", new { id = member.Id })">Edit</a>
+                                @* <button class="me-3 btn delete-btn" data-id="@member.Id">Delete</button> *@
+                                <button class="me-3 btn btn-primary delete-btn" data-id="@member.Id">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+
+@section Scripts {
+    @* <script src="~/libraryjs/login.js"></script> *@
+
+    <!-- Include SweetAlert2 & delete.js -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/libraryjs/Delete.js"></script>
+
+    <!-- Initialize Delete Buttons with Dynamic URL -->
+    <script>
+        $(document).ready(function () {
+             initializeDeleteButtons('@Url.Action("DeleteUser", "MemberMaster")');
+        });
+    </script>
+    <script src="~/assets/vendor/jquery/jquery.min.js"></script>
+    <script src="~/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="~/assets/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="~/assets/js/sb-admin-2.min.js"></script>
+
+    
+    <!-- Page level plugins -->
+    <script src="~/assets/vendor/datatables/jquery.dataTables.min.js"></script>
+    <script src="~/assets/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+
+    <!-- Page level custom scripts -->
+    <script src="~/assets/js/demo/datatables-demo.js"></script>
+}
+
+
+@* perivous code *@
+@* @foreach (var admin in Model) *@
+@* { *@
+@* <tr> *@
+@*     <td> *@
+@*         <img src="@admin.Picture" alt="img" class="img-fluid rounded-circle" style="width: 50px; height: 50px;"> *@
+@*     </td> *@
+@*     <td>@admin.Name</td> *@
+@*     <td>@admin.Email</td> *@
+@*     <td>@admin.Phoneno</td> *@
+@*     <td>@admin.Joiningdate</td> *@
+@*         @if (admin.VerificationStatus == "Pending") *@
+@*         { *@
+@*         <td><span class="badges bg-warning">@admin.VerificationStatus</span></td> *@
+@*         } *@
+@*         else if (admin.VerificationStatus == "Approved") *@
+@*         { *@
+@*         <td><span class="badges bg-lightgreen">@admin.VerificationStatus</span></td> *@
+@*         } *@
+@*         else if (admin.VerificationStatus == "Rejected") *@
+@*         { *@
+@*         <td><span class="badges bg-danger">@admin.VerificationStatus</span></td> *@
+@*         } *@
+@*     <td> *@
+@*         <a class="me-3" href="editexpense.html"> *@
+@*             <img src="~/assets/img/icons/edit.svg" alt="img"> *@
+@*         </a> *@
+@*         <a class="me-3 confirm-text" href="javascript:void(0);"> *@
+@*             <img src="~/assets/img/icons/delete.svg" alt="img"> *@
+@*         </a> *@
+@*     </td> *@
+@* </tr> *@
+@* } *@
+
+

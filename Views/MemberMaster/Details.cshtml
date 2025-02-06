@@ -1,0 +1,106 @@
+﻿@model library_management.Models.Member
+
+<div class="page-wrapper">
+    <div class="content">
+        <div class="content">
+            <div class="page-header">
+                <h6>Full details of a Owners/Admins Registered</h6>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8 col-sm-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="col-lg-4 col-sm-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Personal Information</h5>
+                                    <div class="row">
+                                        <div class="form-group align-center">
+                                            <img src="@Model.Picture" alt="img" class="img-fluid rounded-circle border border-black" style="width: 100px; height: 100px; border-width: 3px;">
+
+                                        </div>
+                                        <div class="align-center">
+                                            <label class="col-form-label">@Model.Name</label>
+                                        </div>
+
+                                        <div class="productdetails">
+                                            <ul class="product-bar">
+                                                <li>
+                                                    <h4>Name</h4>
+                                                    <h6>@Model.Name</h6>
+                                                </li>
+                                                <li>
+                                                    <h4>Email</h4>
+                                                    <h6>@Model.Email</h6>
+                                                </li>
+                                                <li>
+                                                    <h4>Contact</h4>
+                                                    <h6>@Model.Phoneno</h6>
+                                                </li>
+                                                <li>
+                                                    <h4>Gender</h4>
+                                                    <h6>@Model.Gender</h6>
+                                                </li>
+                                                <li>
+                                                    <h4>Address</h4>
+                                                    <h6>@Model.Address</h6>
+                                                </li>
+                                                <li>
+                                                    <h4>State</h4>
+                                                    <h6>@Model.State</h6>
+                                                </li>
+                                                <li>
+                                                    <h4>City</h4>
+                                                    <h6>@Model.City</h6>
+                                                </li>
+                                                <li>
+                                                    <h4>Joiningdate</h4>
+                                                    <h6>@Model.Joiningdate</h6>
+                                                </li>
+                                                <li>
+                                                    <h4>Role </h4>
+                                                    <h6>@ViewBag.RoleName</h6>
+                                                </li>
+                                            </ul>
+                                            <input hidden readonly id="Id" value="@Model.Id" />
+                                            <div class="align-center mt-2 justify-content-around">
+
+                                                @if (Model.VerificationStatus == "Pending")
+                                                {
+                                                            <div class="mx-3">
+                                                                <button type="submit" class="badges bg-lightgreen" id="btnAccept"><span class="spinner-border spinner-border-sm d-none" id="btnLoader" role="status" aria-hidden="true"></span>Accept</button>
+
+                                                                <button type="submit" class="badges bg-danger" id="btnReject"><span class="spinner-border spinner-border-sm d-none" id="btnLoader" role="status" aria-hidden="true"></span>Reject</button>
+                                                            </div>
+                                                }
+                                                else
+                                                {
+
+                                                    if (Model.VerificationStatus == "Rejected")
+                                                    {
+                                                        <h6 class="badges bg-danger">@Model.VerificationStatus</h6> <button type="submit" class="badges bg-lightgreen" id="btnAccept"><span class="spinner-border spinner-border-sm d-none" id="btnLoader" role="status" aria-hidden="true"></span>Accepted Application?</button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <h6 class="badges bg-lightgreen">@Model.VerificationStatus</h6> <button type="submit" class="badges bg-danger" id="btnReject"><span class="spinner-border spinner-border-sm d-none" id="btnLoader" role="status" aria-hidden="true"></span>Remove Approval?</button>
+                                                    }
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+            <script src="~/libraryjs/memberstatus.js"></script>
+}

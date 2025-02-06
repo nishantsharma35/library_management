@@ -1,0 +1,269 @@
+﻿@model library_management.Models.Member
+
+@{
+    ViewData["Title"] = "Registration";
+}
+<link href="~/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+<link href="~/assets/css/sb-admin-2.min.css" rel="stylesheet">
+
+
+@* <h1 class="text-center my-4">Member Registration</h1> *@
+
+@* <h4 class="text-muted text-center mb-4">Join Our Library</h4> *@
+@* <hr class="mb-4" /> *@
+@* <img src="#" id="imagePreview" class="img-fluid rounded" alt="Signup Graphic" style="display:none"> *@
+@* <div class="container"> *@
+@*     <div class="row justify-content-center"> *@
+@*         <div class="col-md-6"> *@
+@*             <div class="card shadow-lg"> *@
+@*                 <div class="card-body"> *@
+@*                     <form id="Register" enctype="multipart/form-data"> *@
+@*                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div> *@
+
+@*                         <div class="form-group mb-3"> *@
+@*                             <label asp-for="Name" class="form-label">Full Name</label> *@
+@*                             <input asp-for="Name" class="form-control rounded-pill" placeholder="Enter your full name" /> *@
+@*                         </div> *@
+
+@*                         <div class="form-group mb-3"> *@
+@*                             <label asp-for="profilefile" class="form-label">Profile Picture</label> *@
+@*                             <input asp-for="profilefile" type="file" class="form-control rounded-pill" /> *@
+@*                         </div> *@
+
+@*                         <div class="form-group mb-3"> *@
+@*                             <label asp-for="Email" class="form-label">Email</label> *@
+@*                             <input asp-for="Email" type="email" class="form-control rounded-pill" placeholder="Enter your email" /> *@
+@*                         </div> *@
+
+@*                         <div class="form-group mb-3"> *@
+@*                             <label asp-for="Gender" class="form-label">Gender</label> *@
+@*                             <div> *@
+@*                                 <input asp-for="Gender" type="radio" id="male" value="Male" /> Male *@
+@*                                 <input asp-for="Gender" type="radio" id="female" value="Female" class="ms-3" /> Female *@
+@*                             </div> *@
+@*                         </div> *@
+
+@*                         <div class="form-group mb-3"> *@
+@*                             <label asp-for="Phoneno" class="form-label">Phone Number</label> *@
+@*                             <input asp-for="Phoneno" type="tel" class="form-control rounded-pill" placeholder="Enter your phone number" /> *@
+@*                         </div> *@
+
+@*                         <div class="form-group mb-3"> *@
+@*                             <label asp-for="Address" class="form-label">Address</label> *@
+@*                             <input asp-for="Address" class="form-control rounded-pill" placeholder="Enter your address" /> *@
+@*                         </div> *@
+
+@*                         <div class="form-group mb-3"> *@
+@*                             <label asp-for="State" class="form-label">State</label> *@
+@*                             <select asp-for="State" class="form-control rounded-pill"> *@
+@*                                 <option value="" disabled selected>Select State</option> *@
+@*                             </select> *@
+@*                         </div> *@
+
+@*                         <div class="form-group mb-3"> *@
+@*                             <label for="City" class="form-label">City</label> *@
+@*                             <select asp-for="City" class="form-control rounded-pill"> *@
+@*                                 <option value="" disabled selected> Select City</option> *@
+@*                             </select> *@
+@*                         </div> *@
+
+@*                         <div  class="form-group mb-3"> *@
+@*                             <label asp-for="Joiningdate" class="form-label">Joining Date</label> *@
+@*                             <input asp-for="Joiningdate" type="date" class="form-control rounded-pill" /> *@
+@*                         </div> *@
+
+@*                         <div class="form-group"> *@
+@*                             <label for="Memberpassword">Password</label> *@
+@*                             <input type="password" asp-for="Password" class="form-control" /> *@
+@*                         </div> *@
+@*                         <div class="form-group"> *@
+@*                             <label for="Confirmpassword">Confirm Password</label> *@
+@*                             <input type="password" asp-for="Confirmpassword" class="form-control" /> *@
+@*                         </div> *@
+@*                         <div class="form-check"> *@
+@*                             <input type="checkbox" id="showPasswordCheckbox" class="form-check-input" /> *@
+@*                             <label class="form-check-label" for="showPasswordCheckbox">Show Password</label> *@
+@*                         </div> *@
+
+@*                         <div class="form-group mb-3"> *@
+@*                             <label for="RoleId" class="form-label">Role</label> *@
+@*                             <select asp-for="RoleId" class="form-control rounded-pill"> *@
+@*                                 <option value="" disabled selected> Select Role</option> *@
+@*                                 <option value="2">Admin</option> *@
+@*                                 <option value="3">Member</option> *@
+@*                             </select> *@
+@*                         </div> *@
+
+
+@*                         <div class="form-group text-center"> *@
+@*                             <input type="submit" value="Create" class="btn btn-primary px-4 py-2 rounded-pill shadow" /> *@
+@*                         </div> *@
+@*                     </form> *@
+@*                 </div> *@
+@*             </div> *@
+@*         </div> *@
+@*     </div> *@
+@* </div> *@
+
+
+@* <div class="text-center mt-4"> *@
+@*     <a asp-action="login" class="text-decoration-none">Already Have A Account/Login</a> *@
+@* </div> *@
+
+<div class="container">
+    <div class="card o-hidden border-0 shadow-lg my-5">
+        <div class="card-body p-0">
+            <!-- Nested Row within Card Body -->
+            <div class="row">
+                <div class="col-lg-5 d-none d-lg-block bg-register-image"></div>
+                <div class="col-lg-7">
+                    <div class="p-5">
+                        <div class="text-center">
+                            <h1 class="h4 text-gray-900 mb-4">Library Member Registration</h1>
+                        </div>
+                        <form  id="Register" enctype="multipart/form-data">
+                            <!-- Name and Profile Picture -->
+                            <div class="form-group row">
+                                <div class="col-sm-6 mb-3 mb-sm-0">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                        <input type="text" class="form-control" asp-for="Name" placeholder="Full Name">
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label for="ProfileFile" class="small">Profile Picture</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-image"></i></span>
+                                        <input type="file" class="form-control" asp-for="profilefile">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Email and Gender -->
+                            <div class="form-group row">
+                                <div class="col-sm-6 mb-3 mb-sm-0">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                        <input type="email" class="form-control " asp-for="Email" placeholder="Email Address">
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label for="Gender" class="small">Gender</label>
+                                    <div class="form-control">
+                                        <input type="radio" id="male" asp-for="Gender" value="Male"> Male
+                                        <input type="radio" id="female" asp-for="Gender" value="Female" class="ms-3"> Female
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Phone Number and Address -->
+                            <div class="form-group row">
+                                <div class="col-sm-6">
+                                    @* <div class="input-group">  *@
+                                         @* <span class="input-group-text"><i class="fas fa-phone"></i></span> *@
+                                        <input type="tel" class="form-control form-control-user" asp-for="Phoneno">
+                                    @* </div> *@
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                        <input type="text" class="form-control" asp-for="Address" placeholder="Address">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- State and City -->
+                            <div class="form-group row">
+                                <div class="col-sm-6 mb-3 mb-sm-0">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-location-arrow"></i></span>
+                                        <select class="form-control" asp-for="State">
+                                            <option value="" disabled selected>Select State</option>
+                                            <option value="State1">State 1</option>
+                                            <option value="State2">State 2</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-city"></i></span>
+                                        <select class="form-control" asp-for="City">
+                                            <option value="" disabled selected>Select City</option>
+                                            <option value="City1">City 1</option>
+                                            <option value="City2">City 2</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Joining Date and Role ID -->
+                            <div class="form-group row">
+                                <div class="col-sm-6 mb-3 mb-sm-0">
+                                    <label for="JoiningDate" class="small">Joining Date</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                                        <input type="date" class="form-control" asp-for="Joiningdate">
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-user-tag"></i></span>
+                                        <select class="form-control" asp-for="RoleId">
+                                            <option value="" disabled selected>Select Role</option>
+                                            <option value="2">Admin</option>
+                                            <option value="3">Member</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Password and Confirm Password -->
+                            <div class="form-group row">
+                                <div class="col-sm-6 mb-3 mb-sm-0">
+                                    <div class="input-group input-wrap">
+                                        <span class="input-group-text"><i class="toggle-password fas fa-lock" id="passwordIcon"></i></span>
+                                        <input type="password" asp-for="Password" class="form-control pass-input" id="passwordField" autocomplete="off" placeholder="Password" required />
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="input-group input-wrap">
+                                        <span class="input-group-text"><i class="toggle-password fas fa-lock" id="passwordIcon"></i></span>
+                                        <input type="password" class="form-control pass-input" asp-for="Confirmpassword" placeholder="Confirm Password">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <button type="submit" class="btn btn-primary btn-user btn-block">
+                                Register Account
+                            </button>
+                            <hr>
+                        </form>
+
+                        <div class="text-center">
+                            <a class="small" asp-action="login">Already have an account? Login!</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    @* <script src="~/js/register.js"></script> *@
+    <script src="~/libraryjs/register.js" ></script>
+    <script src="~/assets/vendor/jquery/jquery.min.js"></script>
+    <script src="~/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="~/assets/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="~/assets/js/sb-admin-2.min.js"></script>
+
+}
+

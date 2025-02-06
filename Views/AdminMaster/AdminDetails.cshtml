@@ -1,0 +1,106 @@
+﻿@model library_management.Models.Library
+
+<div class="page-wrapper">
+    <div class="content">
+        <div class="content">
+            <div class="page-header">
+                <h6>Full details of a Owners/Admins Registered</h6>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8 col-sm-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="col-lg-4 col-sm-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Library Information</h5>
+                                    <div class="row">
+                                        <div class="form-group align-center">
+                                            <img src="@Model.LibraryImagePath" alt="img" class="img-fluid rounded-circle border border-black" style="width: 100px; height: 100px; border-width: 3px;">
+
+                                        </div>
+                                        <div class="align-center">
+                                            <label class="col-form-label">@Model.Libraryname</label>
+                                        </div>
+
+                                        <div class="productdetails">
+                                            <ul class="product-bar">
+                                                <li>
+                                                    <h4>Library name</h4>
+                                                    <h6>@Model.Libraryname</h6>
+                                                </li>
+                                                <li>
+                                                    <h4>Admin Id</h4>
+                                                    <h6>@Model.AdminId</h6>
+                                                </li>
+                                                <li>
+                                                    <h4>Created At</h4>
+                                                    <h6>@Model.CreatedAt</h6>
+                                                </li>
+                                                <li>
+                                                    <h4>Pincode</h4>
+                                                    <h6>@Model.Pincode</h6>
+                                                </li>
+                                                <li>
+                                                    <h4>Address</h4>
+                                                    <h6>@Model.Address</h6>
+                                                </li>
+                                                <li>
+                                                    <h4>State</h4>
+                                                    <h6>@Model.State</h6>
+                                                </li>
+                                                <li>
+                                                    <h4>City</h4>
+                                                    <h6>@Model.City</h6>
+                                                </li>
+                                                <li>
+                                                    <h4>Starting time</h4>
+                                                    <h6>@Model.StartTime</h6>
+                                                </li>
+                                                <li>
+                                                    <h4>Closing time</h4>
+                                                    <h6>@Model.ClosingTime</h6>
+                                                </li>
+                                            </ul>
+                                            <input hidden readonly id="Id" value="@Model.LibraryId" />
+                                            <div class="align-center mt-2 justify-content-around">
+
+                                                @* @if (Model.VerificationStatus == "Pending") *@
+                                                @* { *@
+                                                @*                 <div class="mx-3"> *@
+                                                @*                     <button type="submit" class="badges bg-lightgreen" id="btnAccept"><span class="spinner-border spinner-border-sm d-none" id="btnLoader" role="status" aria-hidden="true"></span>Accept</button> *@
+
+                                                @*                     <button type="submit" class="badges bg-danger" id="btnReject"><span class="spinner-border spinner-border-sm d-none" id="btnLoader" role="status" aria-hidden="true"></span>Reject</button> *@
+                                                @*                 </div> *@
+                                                @* } *@
+                                                @* else *@
+                                                @* { *@
+
+                                                @*     if (Model.VerificationStatus == "Rejected") *@
+                                                @*     { *@
+                                                @*                 <h6 class="badges bg-danger">@Model.VerificationStatus</h6> <button type="submit" class="badges bg-lightgreen" id="btnAccept"><span class="spinner-border spinner-border-sm d-none" id="btnLoader" role="status" aria-hidden="true"></span>Accepted Application?</button> *@
+                                                @*     } *@
+                                                @*     else *@
+                                                @*     { *@
+                                                @*                 <h6 class="badges bg-lightgreen">@Model.VerificationStatus</h6> <button type="submit" class="badges bg-danger" id="btnReject"><span class="spinner-border spinner-border-sm d-none" id="btnLoader" role="status" aria-hidden="true"></span>Remove Approval?</button> *@
+                                                @*     } *@
+                                                @* } *@
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+                @* <script src="~/libraryjs/memberstatus.js"></script> *@
+}
