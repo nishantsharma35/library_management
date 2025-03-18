@@ -15,13 +15,25 @@ public partial class dbConnect : DbContext
     {
     }
 
+    public virtual DbSet<Book> Books { get; set; }
+
+    public virtual DbSet<Borrow> Borrows { get; set; }
+
+    public virtual DbSet<Fine> Fines { get; set; }
+
+    public virtual DbSet<Genre> Genres { get; set; }
+
     public virtual DbSet<Library> Libraries { get; set; }
+
+    public virtual DbSet<LibraryBook> LibraryBooks { get; set; }
 
     public virtual DbSet<Member> Members { get; set; }
 
-    public virtual DbSet<Role> tblRoles { get; set; }
+    public virtual DbSet<Membership> Memberships { get; set; }
 
     public virtual DbSet<TblPermission> TblPermissions { get; set; }
+
+    public virtual DbSet<TblRole> TblRoles { get; set; }
 
     public virtual DbSet<TblTab> TblTabs { get; set; }
 
@@ -31,6 +43,113 @@ public partial class dbConnect : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Book>(entity =>
+        {
+            entity.HasKey(e => e.BookId).HasName("PK__Books__3DE0C227A9C2D6D7");
+
+            entity.HasIndex(e => e.Isbn, "UQ__Books__447D36EA7297204E").IsUnique();
+
+            entity.Property(e => e.BookId).HasColumnName("BookID");
+            entity.Property(e => e.Author).HasMaxLength(255);
+            entity.Property(e => e.bookimagepath)
+                .IsUnicode(false)
+                .HasColumnName("bookimagepath");
+            entity.Property(e => e.GenreId).HasColumnName("GenreID");
+            entity.Property(e => e.Isbn)
+                .HasMaxLength(50)
+                .HasColumnName("ISBN");
+            entity.Property(e => e.Publisher).HasMaxLength(255);
+            entity.Property(e => e.Title).HasMaxLength(255);
+
+            entity.Property(e => e.Edition)
+        .HasMaxLength(20)
+        .HasColumnName("Edition")
+        .HasDefaultValue("1st Edition");
+
+            entity.Property(e => e.Language)
+                .HasMaxLength(50)
+                .HasColumnName("Language")
+                .HasDefaultValue("English");
+
+
+
+            entity.HasOne(d => d.Genre).WithMany(p => p.Books)
+                .HasForeignKey(d => d.GenreId)
+                .HasConstraintName("FK__Books__GenreID__09746778");
+        });
+
+        modelBuilder.Entity<Borrow>(entity =>
+        {
+            entity.HasKey(e => e.BorrowId).HasName("PK__Borrow__4295F83FB200794E");
+
+            entity.ToTable("Borrow");
+
+            entity.Property(e => e.DueDate).HasColumnType("datetime");
+            entity.Property(e => e.IssueDate).HasColumnType("datetime");
+            entity.Property(e => e.LibraryId).HasColumnName("libraryID");
+            entity.Property(e => e.ReturnDate).HasColumnType("datetime");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+
+            //entity.HasOne(d => d.Book).WithMany(p => p.Borrows)
+            //    .HasForeignKey(d => d.BookId)
+            //    .OnDelete(DeleteBehavior.ClientSetNull)
+            //    .HasConstraintName("FK_Borrow_Book");
+            modelBuilder.Entity<Borrow>()
+      .HasOne(b => b.Book)
+      .WithMany(b => b.Borrows)  // ✅ Correct Navigation
+      .HasForeignKey(b => b.BookId)
+      .OnDelete(DeleteBehavior.Restrict); // ✅ 
+
+            entity.HasOne(d => d.Library).WithMany(p => p.Borrows)
+                .HasForeignKey(d => d.LibraryId)
+                .HasConstraintName("FK_Borrow_Library");
+
+            entity.HasOne(d => d.Member).WithMany(p => p.Borrows)
+                .HasForeignKey(d => d.MemberId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Borrow_Member");
+        });
+
+        modelBuilder.Entity<Fine>(entity =>
+        {
+            entity.HasKey(e => e.FineId).HasName("PK__Fine__9D4A9B2C4A6664FE");
+
+            entity.ToTable("Fine");
+
+            entity.HasIndex(e => e.BorrowId, "UQ__Fine__4295F83E69EFAAFF").IsUnique();
+
+            entity.Property(e => e.FineAmount).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.LibraryId).HasColumnName("libraryId");
+            entity.Property(e => e.PaidAmount)
+                .HasDefaultValue(0m)
+                .HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.PaymentDate).HasColumnType("datetime");
+            entity.Property(e => e.PaymentStatus)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.Borrow).WithOne(p => p.Fine)
+                .HasForeignKey<Fine>(d => d.BorrowId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Fine_Borrow");
+
+            entity.HasOne(d => d.Library).WithMany(p => p.Fines)
+                .HasForeignKey(d => d.LibraryId)
+                .HasConstraintName("FK_Fine_Library");
+        });
+
+        modelBuilder.Entity<Genre>(entity =>
+        {
+            entity.HasKey(e => e.GenreId).HasName("PK__Genres__0385055E9C44FD92");
+
+            entity.HasIndex(e => e.GenreName, "UQ__Genres__BBE1C339541D4257").IsUnique();
+
+            entity.Property(e => e.GenreId).HasColumnName("GenreID");
+            entity.Property(e => e.GenreName).HasMaxLength(100);
+        });
+
         modelBuilder.Entity<Library>(entity =>
         {
             entity.HasKey(e => e.LibraryId).HasName("PK__library__95E69ECE930D6FA6");
@@ -40,9 +159,11 @@ public partial class dbConnect : DbContext
             entity.Property(e => e.LibraryId).HasColumnName("libraryID");
             entity.Property(e => e.Address).IsUnicode(false);
             entity.Property(e => e.AdminId).HasColumnName("AdminID");
+            entity.Property(e => e.LibraryFineAmount).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.City)
                 .HasMaxLength(30)
                 .IsUnicode(false);
+            entity.Property(e => e.ClosingTime).HasPrecision(0);
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
@@ -51,9 +172,25 @@ public partial class dbConnect : DbContext
                 .HasMaxLength(20)
                 .IsUnicode(false)
                 .HasColumnName("libraryname");
+            entity.Property(e => e.StartTime).HasPrecision(0);
             entity.Property(e => e.State)
-                .HasMaxLength(50)
+                .HasMaxLength(20)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<LibraryBook>(entity =>
+        {
+            entity.HasKey(e => e.LibraryBookId).HasName("PK__LibraryB__86922193F10061A4");
+
+            entity.Property(e => e.LibraryId).HasColumnName("libraryID");
+
+            entity.HasOne(d => d.Book).WithMany(p => p.LibraryBooks)
+                .HasForeignKey(d => d.BookId)
+                .HasConstraintName("FK__LibraryBo__BookI__6225902D");
+
+            entity.HasOne(d => d.Library).WithMany(p => p.LibraryBooks)
+                .HasForeignKey(d => d.LibraryId)
+                .HasConstraintName("FK__LibraryBo__libra__6319B466");
         });
 
         modelBuilder.Entity<Member>(entity =>
@@ -102,45 +239,78 @@ public partial class dbConnect : DbContext
                 .HasColumnName("state");
             entity.Property(e => e.VerificationStatus)
                 .HasMaxLength(30)
-                .IsUnicode(false)
-                .HasColumnName("VerificationStatus");
+                .IsUnicode(false);
         });
 
-        modelBuilder.Entity<Role>(entity =>
+        modelBuilder.Entity<Membership>(entity =>
         {
-            entity.HasKey(e => e.RoleId).HasName("PK__tblroles__8AFACE1A3FD59A23");
+            entity.HasKey(e => e.MembershipId).HasName("PK__Membersh__92A78679C1671559");
 
-            entity.ToTable("tblroles");
+            entity.ToTable("Membership");
 
-            entity.Property(e => e.RoleName)
-                .HasMaxLength(20)
-                .IsUnicode(false);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.IsDeleted).HasDefaultValue(false);
+
+            entity.HasOne(d => d.Library).WithMany(p => p.Memberships)
+                .HasForeignKey(d => d.LibraryId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__Membershi__Libra__5224328E");
+
+            entity.HasOne(d => d.Member).WithMany(p => p.Memberships)
+                .HasForeignKey(d => d.MemberId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__Membershi__Membe__51300E55");
         });
 
         modelBuilder.Entity<TblPermission>(entity =>
         {
-            entity.HasKey(e => e.PermissionId).HasName("PK__tblPermi__EFA6FB2FAFFCD3CC");
+            entity.HasKey(e => e.PermissionId).HasName("PK__tblPermi__EFA6FB2FD1838DB9");
 
             entity.ToTable("tblPermissions");
+
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.PermissionType)
+                .HasMaxLength(100)
+                .IsUnicode(false);
 
             entity.HasOne(d => d.Tab).WithMany(p => p.TblPermissions)
                 .HasForeignKey(d => d.TabId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__tblPermis__TabId__2EDAF651");
+                .HasConstraintName("FK__tblPermis__TabId__498EEC8D");
+        });
+
+        modelBuilder.Entity<TblRole>(entity =>
+        {
+            entity.HasKey(e => e.RoleId).HasName("PK__tblRoles__8AFACE1AD1F4FB79");
+
+            entity.ToTable("tblRoles");
+
+            entity.Property(e => e.CreateAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.Description)
+                .HasMaxLength(255)
+                .IsUnicode(false);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.RoleName)
+                .HasMaxLength(30)
+                .IsUnicode(false);
         });
 
         modelBuilder.Entity<TblTab>(entity =>
         {
-            entity.HasKey(e => e.TabId).HasName("PK__tblTabs__80E37C18E881AD13");
+            entity.HasKey(e => e.TabId).HasName("PK__tblTabs__80E37C1845059C53");
 
             entity.ToTable("tblTabs");
 
             entity.Property(e => e.IconPath).IsUnicode(false);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.SortOrder).HasDefaultValue(1);
             entity.Property(e => e.TabName)
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.TabUrl)
-                .HasMaxLength(50)
+                .HasMaxLength(255)
                 .IsUnicode(false);
         });
 

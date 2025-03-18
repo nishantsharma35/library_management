@@ -4,17 +4,27 @@
     Layout = "/Views/Shared/_mainLayout.cshtml";
     ViewData["Title"] = "Member List";
 }
+
 <link href="~/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
 <link href="~/assets/css/sb-admin-2.min.css" rel="stylesheet">
+<link href="~/assets/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
 
 <div class="card shadow mb-4">
-    <div class="card-header py-3 text-center ">
+    <div class="card-header py-3 text-center">
         <h2 class="m-0 font-weight-bold text-primary">Member List</h2>
     </div>
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <a href="@Url.Action("PendingMemberships", "AdminMaster")" class="btn btn-warning mb-3">
+            Manage Membership Approvals
+        </a>
+        @* <button class="btn btn-warning" id="manageApprovalsBtn">Manage Membership Approvals</button> *@
+        <input type="text" id="customSearchBox" class="form-control w-25" placeholder="Search Members...">
+    </div>
+
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table table-bordered" id="dataTable" width="80%" cellspacing="0" style="margin: 0 auto; font-size: 14px;">
-             <thead>
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
                     <tr>
                         <th>Profile Image</th>
                         <th>Name</th>
@@ -27,33 +37,40 @@
                 <tbody>
                     @foreach (var member in Model)
                     {
-                        <tr>
+                        <tr class="member-row" data-status="@member.VerificationStatus">
                             <td>
                                 <img src="@member.Picture" alt="img" class="img-fluid rounded-circle" style="width: 50px; height: 50px;">
                             </td>
                             <td>@member.Name</td>
                             <td>@member.Email</td>
                             <td>@member.Joiningdate</td>
-                            @if (member.VerificationStatus == "Pending")
-                            {
-                                <td><span class="badges bg-warning">@member.VerificationStatus</span></td>
-                            }
-                            else if (member.VerificationStatus == "Accepted")
-                            {
-                                <td><span class="badges bg-lightgreen">@member.VerificationStatus</span></td>
-                            }
-                            else if (member.VerificationStatus == "Rejected")
-                            {
-                                <td><span class="badges bg-danger">@member.VerificationStatus</span></td>
-                            }
                             <td>
-                                <a class="me-3 btn btn-primary details-btn" href="@Url.Action("Details", "MemberMaster", new { id = member.Id })">Details</a>
-                                <a class="me-3 btn btn-primary Edit-btn" href="@Url.Action("AddMember", "MemberMaster", new { id = member.Id })">Edit</a>
-                                @* <button class="me-3 btn delete-btn" data-id="@member.Id">Delete</button> *@
-                                <button class="me-3 btn btn-primary delete-btn" data-id="@member.Id">Delete</button>
+                                <span class="badge @(member.VerificationStatus == "Pending" ? "badge-warning" : member.VerificationStatus == "Accepted" ? "badge-success" : "badge-danger")">
+                                    @member.VerificationStatus
+                                </span>
+                            </td>
+                            <td>
+                                @if (member.VerificationStatus == "Pending")
+                                {
+                                    <button class="btn btn-success btn-sm approve-btn" data-id="@member.Id">Approve</button>
+                                    <button class="btn btn-danger btn-sm reject-btn" data-id="@member.Id">Reject</button>
+                                }
+                                else
+                                {
+                                    <a class="btn btn-primary btn-sm" href="@Url.Action("Details", "MemberMaster", new { id = member.Id })">
+                                        <i class="fas fa-info-circle"></i> Details
+                                    </a>
+                                    <a class="btn btn-warning btn-sm" href="@Url.Action("AddMember", "MemberMaster", new { id = member.Id })">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                    <button class="btn btn-danger btn-sm delete-btn" data-id="@member.Id">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                }
                             </td>
                         </tr>
                     }
+                   
                 </tbody>
             </table>
         </div>
@@ -62,36 +79,318 @@
 
 
 
-@section Scripts {
-    @* <script src="~/libraryjs/login.js"></script> *@
 
-    <!-- Include SweetAlert2 & delete.js -->
+@section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="~/libraryjs/Delete.js"></script>
-
-    <!-- Initialize Delete Buttons with Dynamic URL -->
-    <script>
-        $(document).ready(function () {
-             initializeDeleteButtons('@Url.Action("DeleteUser", "MemberMaster")');
-        });
-    </script>
     <script src="~/assets/vendor/jquery/jquery.min.js"></script>
     <script src="~/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Core plugin JavaScript-->
     <script src="~/assets/vendor/jquery-easing/jquery.easing.min.js"></script>
-
-    <!-- Custom scripts for all pages-->
     <script src="~/assets/js/sb-admin-2.min.js"></script>
-
-    
-    <!-- Page level plugins -->
     <script src="~/assets/vendor/datatables/jquery.dataTables.min.js"></script>
     <script src="~/assets/vendor/datatables/dataTables.bootstrap4.min.js"></script>
 
-    <!-- Page level custom scripts -->
-    <script src="~/assets/js/demo/datatables-demo.js"></script>
+    <script>
+        $(document).ready(function () {
+            var table = $('#dataTable').DataTable({
+                "paging": true,
+                "searching": true,
+                "ordering": true,
+                "info": true,
+                "lengthChange": true
+            });
+
+            // Custom search box functionality
+            $('#customSearchBox').on('keyup', function () {
+                table.search(this.value).draw();
+            });
+
+            // Manage Membership Approvals Button (Filters Pending Requests)
+            $('#manageApprovalsBtn').on('click', function () {
+                var currentFilter = table.column(4).search();
+                if (currentFilter === 'Pending') {
+                    table.column(4).search('').draw();
+                    $(this).text('Manage Membership Approvals');
+                } else {
+                    table.column(4).search('Pending').draw();
+                    $(this).text('Show All Members');
+                }
+            });
+
+            // Approve Member
+            $(document).on('click', '.approve-btn', function () {
+                var memberId = $(this).data('id');
+                Swal.fire({
+                    title: "Approve Member?",
+                    text: "Are you sure you want to approve this member?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#28a745",
+                    cancelButtonColor: "#d33",
+                    confirmButtonText: "Yes, Approve!"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        console.log("Approved Member ID: " + memberId);
+                    }
+                });
+            });
+
+            // Reject Member
+            $(document).on('click', '.reject-btn', function () {
+                var memberId = $(this).data('id');
+                Swal.fire({
+                    title: "Reject Member?",
+                    text: "Are you sure you want to reject this member?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#dc3545",
+                    cancelButtonColor: "#d33",
+                    confirmButtonText: "Yes, Reject!"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        console.log("Rejected Member ID: " + memberId);
+                    }
+                });
+            });
+
+            initializeDeleteButtons('@Url.Action("DeleteUser", "MemberMaster")');
+        });
+    </script>
+   
+
 }
+
+
+
+@* @model IEnumerable<library_management.Models.Member> *@
+
+@* @{ *@
+@*     Layout = "/Views/Shared/_mainLayout.cshtml"; *@
+@*     ViewData["Title"] = "Member List"; *@
+@* } *@
+
+@* <link href="~/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css"> *@
+@* <link href="~/assets/css/sb-admin-2.min.css" rel="stylesheet"> *@
+@* <link href="~/assets/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet"> *@
+
+@* <a href="@Url.Action("PendingMemberships", "AdminMaster")" class="btn btn-warning mb-3">  *@
+@*      Manage Membership Approvals  *@
+@*  </a> *@
+
+@* <div class="card shadow mb-4"> *@
+@*     <div class="card-header py-3 text-center"> *@
+@*         <h2 class="m-0 font-weight-bold text-primary">Member List</h2> *@
+@*     </div> *@
+@*     <div class="card-body"> *@
+@*         <div class="d-flex justify-content-end mb-3"> *@
+@*             <input type="text" id="customSearchBox" class="form-control w-25" placeholder="Search Members..."> *@
+@*         </div> *@
+@*         <div class="table-responsive"> *@
+@*             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0"> *@
+@*                 <thead> *@
+@*                     <tr> *@
+@*                         <th>Profile Image</th> *@
+@*                         <th>Name</th> *@
+@*                         <th>Email</th> *@
+@*                         <th>Joining Date</th> *@
+@*                         <th>Verification Status</th> *@
+@*                         <th>Action</th> *@
+@*                     </tr> *@
+@*                 </thead> *@
+@*                 <tbody> *@
+@*                     @foreach (var member in Model) *@
+@*                     { *@
+@*                         <tr> *@
+@*                             <td> *@
+@*                                 <img src="@member.Picture" alt="img" class="img-fluid rounded-circle" style="width: 50px; height: 50px;"> *@
+@*                             </td> *@
+@*                             <td>@member.Name</td> *@
+@*                             <td>@member.Email</td> *@
+@*                             <td>@member.Joiningdate</td> *@
+@*                             <td> *@
+@*                                 <span class="badge @(member.VerificationStatus == "Pending" ? "badge-warning" : member.VerificationStatus == "Accepted" ? "badge-success" : "badge-danger")"> *@
+@*                                     @member.VerificationStatus *@
+@*                                 </span> *@
+@*                             </td> *@
+@*                             <td> *@
+@*                                 <a class="btn btn-primary btn-sm" href="@Url.Action("Details", "MemberMaster", new { id = member.Id })"> *@
+@*                                     <i class="fas fa-info-circle"></i> Details *@
+@*                                 </a> *@
+@*                                 <a class="btn btn-warning btn-sm" href="@Url.Action("AddMember", "MemberMaster", new { id = member.Id })"> *@
+@*                                     <i class="fas fa-edit"></i> Edit *@
+@*                                 </a> *@
+@*                                 <button class="btn btn-danger btn-sm delete-btn" data-id="@member.Id"> *@
+@*                                     <i class="fas fa-trash"></i> Delete *@
+@*                                 </button> *@
+@*                             </td> *@
+@*                         </tr> *@
+@*                     } *@
+@*                 </tbody> *@
+@*             </table> *@
+@*         </div> *@
+@*     </div> *@
+@* </div> *@
+
+@* @section Scripts { *@
+@*     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> *@
+@*     <script src="~/libraryjs/Delete.js"></script> *@
+@*     <script src="~/assets/vendor/jquery/jquery.min.js"></script> *@
+@*     <script src="~/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script> *@
+@*     <script src="~/assets/vendor/jquery-easing/jquery.easing.min.js"></script> *@
+@*     <script src="~/assets/js/sb-admin-2.min.js"></script> *@
+@*     <script src="~/assets/vendor/datatables/jquery.dataTables.min.js"></script> *@
+@*     <script src="~/assets/vendor/datatables/dataTables.bootstrap4.min.js"></script> *@
+
+@*     <script> *@
+@*         $(document).ready(function () { *@
+@*             var table = $('#dataTable').DataTable({ *@
+@*                 "paging": true, *@
+@*                 "searching": true, *@
+@*                 "ordering": true, *@
+@*                 "info": true, *@
+@*                 "lengthChange": true *@
+@*             }); *@
+
+@*             // Custom search box functionality *@
+@*             $('#customSearchBox').on('keyup', function () { *@
+@*                 table.search(this.value).draw(); *@
+@*             }); *@
+
+@*             initializeDeleteButtons('@Url.Action("DeleteUser", "MemberMaster")'); *@
+@*         }); *@
+@*     </script> *@
+@* } *@
+
+
+
+
+
+
+@* 5/3/25 *@
+@* @model IEnumerable<library_management.Models.Member> *@
+
+@* @{ *@
+@*     Layout = "/Views/Shared/_mainLayout.cshtml"; *@
+@*     ViewData["Title"] = "Member List"; *@
+@* } *@
+@* <link href="~/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css"> *@
+@* <link href="~/assets/css/sb-admin-2.min.css" rel="stylesheet"> *@
+
+@* <a href="@Url.Action("PendingMemberships", "AdminMaster", new { id = 1 })" class="btn btn-warning"> *@ 
+@*      Manage Membership Approvals *@ 
+@*  </a> *@
+
+@* <a href="@Url.Action("PendingMemberships", "AdminMaster")" class="btn btn-warning">  *@
+@*      Manage Membership Approvals  *@
+@*  </a> *@
+
+
+
+
+
+@* <div class="card shadow mb-4"> *@
+@*     <div class="card-header py-3 text-center "> *@
+@*         <h2 class="m-0 font-weight-bold text-primary">Member List</h2> *@
+@*     </div> *@
+@*     <div class="card-body"> *@
+@*         <div class="table-responsive"> *@
+@*             <!-- Topbar Search --> *@
+@*             <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search"> *@
+@*                 <div class="input-group"> *@
+@*                     <input type="text" class="form-control bg-light border-0 small" placeholder="Search for..." *@
+@*                            aria-label="Search" aria-describedby="basic-addon2"> *@
+@*                     <div class="input-group-append"> *@
+@*                         <button class="btn btn-primary" type="button"> *@
+@*                             <i class="fas fa-search fa-sm"></i> *@
+@*                         </button> *@
+@*                     </div> *@
+@*                 </div> *@
+@*             </form> *@
+@*             <table class="table table-bordered" id="dataTable" width="80%" cellspacing="0" style="margin: 0 auto; font-size: 14px;"> *@
+@*              <thead> *@
+@*                     <tr> *@
+@*                         <th>Profile Image</th> *@
+@*                         <th>Name</th> *@
+@*                         <th>Email</th> *@
+@*                         <th>Joining Date</th> *@
+@*                         <th>Verification Status</th> *@
+@*                         <th>Action</th> *@
+@*                     </tr> *@
+@*                 </thead> *@
+@*                 <tbody> *@
+@*                     @foreach (var member in Model) *@
+@*                     { *@
+@*                         <tr> *@
+@*                             <td> *@
+@*                                 <img src="@member.Picture" alt="img" class="img-fluid rounded-circle" style="width: 50px; height: 50px;"> *@
+@*                             </td> *@
+@*                             <td>@member.Name</td> *@
+@*                             <td>@member.Email</td> *@
+@*                             <td>@member.Joiningdate</td> *@
+@*                             @if (member.VerificationStatus == "Pending") *@
+@*                             { *@
+@*                                 <td><span class="badges bg-warning">@member.VerificationStatus</span></td> *@
+@*                             } *@
+@*                             else if (member.VerificationStatus == "Accepted") *@
+@*                             { *@
+@*                                 <td><span class="badges bg-lightgreen">@member.VerificationStatus</span></td> *@
+@*                             } *@
+@*                             else if (member.VerificationStatus == "Rejected") *@
+@*                             { *@
+@*                                 <td><span class="badges bg-danger">@member.VerificationStatus</span></td> *@
+@*                             } *@
+@*                             <td> *@
+@*                                 <a class="me-3 btn btn-primary details-btn" href="@Url.Action("Details", "MemberMaster", new { id = member.Id })"> *@
+@*                                     <i class="fas fa-info-circle"></i> *@
+@*                                 </a> *@
+
+@*                                 <a class="me-3 btn btn-warning Edit-btn" href="@Url.Action("AddMember", "MemberMaster", new { id = member.Id })"> *@
+@*                                     <i class="fas fa-edit"></i> *@
+@*                                 </a> *@
+
+@*                                 <button class="me-3 btn btn-danger delete-btn" data-id="@member.Id"> *@
+@*                                     <i class="fas fa-trash"></i> *@
+@*                                 </button> *@
+@*                             </td> *@
+@*                         </tr> *@
+@*                     } *@
+@*                 </tbody> *@
+@*             </table> *@
+@*         </div> *@
+@*     </div> *@
+@* </div> *@
+
+
+
+@* @section Scripts { *@
+
+@*     <!-- Include SweetAlert2 & delete.js --> *@
+@*     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> *@
+@*     <script src="~/libraryjs/Delete.js"></script> *@
+
+@*     <!-- Initialize Delete Buttons with Dynamic URL --> *@
+@*     <script> *@
+@*         $(document).ready(function () { *@
+@*              initializeDeleteButtons('@Url.Action("DeleteUser", "MemberMaster")'); *@
+@*         }); *@
+@*     </script> *@
+@*     <script src="~/assets/vendor/jquery/jquery.min.js"></script> *@
+@*     <script src="~/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script> *@
+
+@*     <!-- Core plugin JavaScript--> *@
+@*     <script src="~/assets/vendor/jquery-easing/jquery.easing.min.js"></script> *@
+
+@*     <!-- Custom scripts for all pages--> *@
+@*     <script src="~/assets/js/sb-admin-2.min.js"></script> *@
+
+    
+@*     <!-- Page level plugins --> *@
+@*     <script src="~/assets/vendor/datatables/jquery.dataTables.min.js"></script> *@
+@*     <script src="~/assets/vendor/datatables/dataTables.bootstrap4.min.js"></script> *@
+
+@*     <!-- Page level custom scripts --> *@
+@*     <script src="~/assets/js/demo/datatables-demo.js"></script> *@
+@* } *@
 
 
 @* perivous code *@

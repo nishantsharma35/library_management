@@ -1,0 +1,144 @@
+﻿@model List<Borrow>
+
+<h2>Borrowed Books</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Status</th>
+            <th>Fine</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var borrow in Model)
+        {
+            <tr>
+                <td>@borrow.Book.Title</td>
+                <td>@borrow.Book.Author</td>
+                <td>@borrow.Status</td>
+                <td>
+                    @{
+                        var fine = borrow.Fine?.FineAmount ?? 0;
+                        var paidAmount = borrow.Fine?.PaidAmount ?? 0;
+                        var paymentStatus = borrow.Fine?.PaymentStatus ?? "N/A";
+                        var paymentDate = borrow.Fine?.PaymentDate?.ToString("dd-MM-yyyy") ?? "N/A";
+                    }
+                    @if (fine > 0)
+                    {
+                        @if (paidAmount == 0)
+                        {
+                            <span class="text-danger">@fine ( Unpaid )</span>
+                        }
+                        else if (paidAmount > 0 && paidAmount < fine)
+                        {
+                            <span class="text-warning">@fine ( Partially Paid: @paidAmount )</span>
+                        }
+                        else
+                        {
+                            <span class="text-success">@fine ( Paid: @paidAmount on @paymentDate )</span>
+                        }
+                    }
+                    else
+                    {
+                        <span class="text-success">No Fine</span>
+                    }
+                </td>
+                <td>
+                    @if (borrow.Status == "Borrowed")
+                    {
+                        <form asp-action="RequestReturn" asp-controller="MyLibraryMaster" method="post">
+                            <input type="hidden" name="borrowId" value="@borrow.BorrowId" />
+                            <button type="submit" class="btn btn-warning">Request Return</button>
+                        </form>
+                    }
+                    else if (borrow.Status == "Returned" && fine > 0 && paymentStatus != "Paid")
+                    {
+                        <form asp-action="PayFine" asp-controller="MyLibraryMaster" method="post">
+                            <input type="hidden" name="fineId" value="@borrow.Fine?.FineId" />
+                            <input type="number" name="payAmount" placeholder="Enter Payment Amount" required />
+                            <button type="submit" class="btn btn-danger">Pay Fine</button>
+                        </form>
+                    }
+                    else if (borrow.Status == "Returned" && fine > 0 && paymentStatus == "Paid")
+                    {
+                        <span class="text-success">Fine Paid on @paymentDate</span>
+                    }
+                    else
+                    {
+                        <span class="text-success">Returned</span>
+                    }
+                </td>
+
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+
+@* @model List<Borrow> *@
+
+@* <h2>Borrowed Books</h2> *@
+
+@* <table class="table"> *@
+@*     <thead> *@
+@*         <tr> *@
+@*             <th>Title</th> *@
+@*             <th>Author</th> *@
+@*             <th>Status</th> *@
+@*             <th>Fine</th> *@
+@*             <th>Action</th> *@
+@*         </tr> *@
+@*     </thead> *@
+@*     <tbody> *@
+@*         @foreach (var borrow in Model) *@
+@*         { *@
+@*             <tr> *@
+@*                 <td>@borrow.Book.Title</td> *@
+@*                 <td>@borrow.Book.Author</td> *@
+@*                 <td>@borrow.Status</td> *@
+@*                 <td> *@
+@*                     @{ *@
+@*                         var fine = borrow.Fine?.FineAmount ?? 0; *@
+@*                         var paymentStatus = borrow.Fine?.PaymentStatus ?? "N/A"; *@
+@*                     } *@
+@*                     @if (fine > 0) *@
+@*                     { *@
+@*                         <span class="text-danger">@fine ( @paymentStatus )</span> *@
+@*                     } *@
+@*                     else *@
+@*                     { *@
+@*                         <span class="text-success">No Fine</span> *@
+@*                     } *@
+@*                 </td> *@
+@*                 <td> *@
+@*                     @if (borrow.Status == "Borrowed") *@
+@*                     { *@
+@*                         <form asp-action="RequestReturn" asp-controller="MyLibraryMaster" method="post"> *@
+@*                             <input type="hidden" name="borrowId" value="@borrow.BorrowId" /> *@
+@*                             <button type="submit" class="btn btn-warning">Request Return</button> *@
+@*                         </form> *@
+@*                     } *@
+@*                     else if (borrow.Status == "Pending Return") *@
+@*                     { *@
+@*                         <span class="text-info">Awaiting Approval</span> *@
+@*                     } *@
+@*                     else if (borrow.Status == "Returned" && fine > 0 && paymentStatus == "Pending") *@
+@*                     { *@
+@*                         <form asp-action="PayFine" asp-controller="Member" method="post"> *@
+@*                             <input type="hidden" name="borrowId" value="@borrow.BorrowId" /> *@
+@*                             <button type="submit" class="btn btn-danger">Pay Fine</button> *@
+@*                         </form> *@
+@*                     } *@
+@*                     else *@
+@*                     { *@
+@*                         <span class="text-success">Returned</span> *@
+@*                     } *@
+@*                 </td> *@
+@*             </tr> *@
+@*         } *@
+@*     </tbody> *@
+@* </table> *@

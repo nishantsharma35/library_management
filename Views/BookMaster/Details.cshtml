@@ -1,0 +1,42 @@
+﻿@model library_management.Models.Book
+
+@{
+    Layout = "/Views/Shared/_mainLayout.cshtml";
+    ViewData["Title"] = "Book Details";
+}
+
+<link href="~/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+<link href="~/assets/css/sb-admin-2.min.css" rel="stylesheet">
+
+<div class="container mt-4">
+    <div class="card shadow p-4">
+        <div class="row">
+            <!-- Book Image -->
+            <div class="col-md-4 text-center">
+                <img src="@Model.bookimagepath" alt="Book Cover" class="img-fluid rounded" style="width: 100%; max-width: 250px; height: auto;">
+            </div>
+
+            <!-- Book Details -->
+            <div class="col-md-8">
+                <h2 class="text-primary font-weight-bold">@Model.Title</h2>
+                <hr>
+                <p><strong>Author:</strong> @Model.Author</p>
+                <p><strong>ISBN:</strong> @Model.Isbn</p>
+                <p><strong>Publisher:</strong> @Model.Publisher</p>
+                <p><strong>Publication Year:</strong> @Model.PublicationYear</p>
+                <p><strong>Genre:</strong> @(Model.Genre != null ? Model.Genre.GenreName : "N/A")</p>
+                <p><strong>Stock Available:</strong> @Model.Stock</p>
+                <!-- Back Button -->
+                <a class="btn btn-secondary mt-3" href="@Url.Action("BookList", "BookMaster")">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+        <script src="~/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+        <script src="~/assets/vendor/jquery-easing/jquery.easing.min.js"></script>
+        <script src="~/assets/js/sb-admin-2.min.js"></script>
+}

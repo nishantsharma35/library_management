@@ -22,6 +22,14 @@ namespace library_management.repository.internalinterface
 
         Task<bool> IsVerified(string cred);
 
+        Task<List<Member>> GetAllMembersAsync();
+
+        Task<List<Member>> GetLibraryMembersAsync(int libraryId);
+
+        Task<int?> GetLibraryIdByMemberAsync(int memberId);
+
+        Task<bool> IsMemberInLibraryAsync(int memberId, int libraryId);
+
 
         //Task<List<string>> getallstate();
 

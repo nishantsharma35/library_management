@@ -1,0 +1,33 @@
+﻿@model library_management.Models.Fine
+
+<h2>Fine Details for Borrow @Model.BorrowId</h2>
+
+<table class="table">
+    <tr>
+        <th>Borrow ID</th>
+        <td>@Model.BorrowId</td>
+    </tr>
+    <tr>
+        <th>Fine Amount</th>
+        <td>@Model.FineAmount</td>
+    </tr>
+    <tr>
+        <th>Paid Amount</th>
+        <td>@Model.PaidAmount</td>
+    </tr>
+    <tr>
+        <th>Payment Status</th>
+        <td>@Model.PaymentStatus</td>
+    </tr>
+    <tr>
+        <th>Payment Date</th>
+        <td>@Model.PaymentDate?.ToString("dd/MM/yyyy")</td>
+    </tr>
+</table>
+
+@if (Model.PaymentStatus == "Pending")
+{
+    <form asp-action="PayFine" asp-route-fineId="@Model.FineId" method="post">
+        <button type="submit" class="btn btn-primary">Pay Fine</button>
+    </form>
+}

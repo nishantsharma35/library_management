@@ -11,10 +11,10 @@ public partial class Library
     public string? Libraryname { get; set; }
 
     public int AdminId { get; set; }
-    [NotMapped]
-    public IFormFile? libraryfile { get; set; }
 
     public string? LibraryImagePath { get; set; }
+    [NotMapped]
+    public IFormFile? libraryfile { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 
@@ -29,4 +29,15 @@ public partial class Library
     public TimeOnly? StartTime { get; set; }
 
     public TimeOnly? ClosingTime { get; set; }
+
+    public decimal LibraryFineAmount { get; set; }
+
+    public virtual ICollection<Borrow> Borrows { get; set; } = new List<Borrow>();
+
+    public virtual ICollection<LibraryBook> LibraryBooks { get; set; } = new List<LibraryBook>();
+
+    public virtual ICollection<Membership> Memberships { get; set; } = new List<Membership>();
+    
+    public virtual ICollection<Fine> Fines { get; set; } = new List<Fine>();
+
 }

@@ -1,0 +1,82 @@
+﻿@model List<Borrow>
+
+@{
+    ViewData["Title"] = "Pending Borrow Requests";
+}
+
+<!-- Page Wrapper -->
+<div id="wrapper">
+    <!-- Content Wrapper -->
+    <div id="content-wrapper" class="d-flex flex-column">
+        <!-- Main Content -->
+        <div id="content">
+            <!-- Begin Page Content -->
+            <div class="container-fluid">
+
+                <!-- Page Heading -->
+                <h1 class="h3 mb-4 text-gray-800">Pending Borrow Requests</h1>
+
+                @if (Model.Count == 0)
+                {
+                    <div class="alert alert-info text-center">
+                        📌 No Pending Borrow Requests!
+                    </div>
+                }
+                else
+                {
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Requests List</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="dataTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Member</th>
+                                            <th>Book</th>
+                                            <th>Issue Date</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var borrow in Model)
+                                        {
+                                            <tr>
+                                                <td>@borrow.Member.Name</td>
+                                                <td>@borrow.Book.Title</td>
+                                                <td>@borrow.IssueDate.ToShortDateString()</td>
+                                                <td>
+                                                    <button class="btn btn-success approve-btn" data-id="@borrow.BorrowId">
+                                                        <i class="fas fa-check"></i> Approve (@borrow.BorrowId)
+                                                    </button>
+
+                                                    <button class="btn btn-danger reject-btn" data-id="@borrow.BorrowId">
+                                                        <i class="fas fa-times"></i> Reject
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <!-- /.container-fluid -->
+        </div>
+        <!-- End of Main Content -->
+    </div>
+    <!-- End of Content Wrapper -->
+</div>
+<!-- End of Page Wrapper -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="~/memberportal/approverejectborrow.js" ></script>
+@* <script src="~/assets/vendor/jquery/jquery.min.js"></script> *@
+@* <script src="~/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script> *@
+@* <script src="~/assets/vendor/jquery-easing/jquery.easing.min.js"></script> *@
+@* <script src="~/assets/js/sb-admin-2.min.js"></script> *@
+@* <script src="~/assets/vendor/datatables/jquery.dataTables.min.js"></script> *@
+@* <script src="~/assets/vendor/datatables/dataTables.bootstrap4.min.js"></script> *@

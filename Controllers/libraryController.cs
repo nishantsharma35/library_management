@@ -3,6 +3,7 @@ using library_management.repository.internalinterface;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using NuGet.Protocol.Plugins;
 
 namespace library_management.Controllers
 {
@@ -42,12 +43,7 @@ namespace library_management.Controllers
                 model.RememberMe = true;
             }
 
-            //JIC, password is working fine and is being stored in the input field, but due to browser restrictions being type=pass, it can't autofill, changin pass field type=text fixes it.
-            //if (Request.Cookies.TryGetValue("RememberMe_Password", out string Passvalue))
-            //{
-            //    model.Password = Passvalue;
-            //    model.RememberMe = true;
-            //}
+            
 
             return View(model);
         }
@@ -104,10 +100,33 @@ namespace library_management.Controllers
 
                 string email = await _libraryInterface.fetchEmail(login.EmailOrName);
 
-                var data = await _libraryInterface.GetUserDataByEmail(email)
-;
+                var data = await _libraryInterface.GetUserDataByEmail(email);
+                var member = _db.Members.FirstOrDefault(m => m.Email == email);
+                if (member?.RoleId == 2) // Librarian Role
+                {
+                    var librarian = _db.Libraries.FirstOrDefault(l => l.AdminId == member.Id);
+                    if (librarian != null)
+                    {
+                        HttpContext.Session.SetInt32("LibraryId", librarian.LibraryId); // ✅ Int value set karo
+                    }
+                }
+
+                // Ye login method me set karna hai (e.g., AccountController me)
+                HttpContext.Session.SetInt32("MemberId", data.Id);
+                // ✅ Har kisi ka RoleId bhi session me store karo
                 HttpContext.Session.SetInt32("UserRoleId", data.RoleId);
-                // Clear login attempts
+
+
+                //if (member?.RoleId == 2) // Direct Role Check
+                //{
+                //    var librarian = _db.Libraries.FirstOrDefault(l => l.AdminId == member.Id);
+                //    if (librarian != null)
+                //    {
+                //        HttpContext.Session.SetString("LibraryId", librarian.LibraryId.ToString());
+                //    }
+                //}
+
+                //// Clear login attempts
                 HttpContext.Session.SetString("Cred", login.EmailOrName);
 
                 // Remember Me functionality
@@ -188,7 +207,7 @@ namespace library_management.Controllers
             {
                 if (await _libraryInterface.ismembernameexitsAsync(model.Name))
                 {
-                    return Json(new { success = false , message = "Membername Already Exits" });
+                    return Json(new { success = false, message = "Membername Already Exits" });
                 }
                 if (await _libraryInterface.isemailexitsAsync(model.Email))
                 {
@@ -203,6 +222,40 @@ namespace library_management.Controllers
 
                 throw;
             }
+            //        try
+            //{
+            //    // Check if member name already exists
+            //    if (await _libraryInterface.ismembernameexitsAsync(model.Name))
+            //    {
+            //        return Json(new { success = false, message = "Member name already exists" });
+            //    }
+
+            //    // Check if email already exists
+            //    if (await _libraryInterface.isemailexitsAsync(model.Email))
+            //    {
+            //        return Json(new { success = false, message = "Email already exists" });
+            //    }
+
+            //    // Register the member
+            //    var result = await _libraryInterface.AddmemberAsync(model);
+
+            //    if ((bool)result)
+            //    {
+            //        // Set session values only if registration is successful
+            //        HttpContext.Session.SetString("UserEmail", model.Email);
+            //        HttpContext.Session.SetInt32("RoleId", model.RoleId);
+            //    }
+
+            //    return Json(new {success = false,message = "Registered Successfully" }, result);
+            //}
+            //catch (Exception ex)
+            //{
+            //    // Log error for debugging
+            //    Console.WriteLine($"Error in Register method: {ex.Message}");
+
+            //    return Json(new { success = false, message = "An error occurred while processing your request." });
+            //}
+
         }
         public IActionResult libraryRegistration()
         {
@@ -349,6 +402,8 @@ namespace library_management.Controllers
         }
 
       
+
+
 
     }
 }

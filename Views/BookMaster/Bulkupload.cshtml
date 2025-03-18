@@ -1,0 +1,24 @@
+﻿@{
+    ViewData["Title"] = "Bulk Upload Books";
+}
+
+<h2>Bulk Upload Books</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<form asp-controller="BookMaster" asp-action="BulkUpload" method="post" enctype="multipart/form-data">
+    <div class="form-group">
+        <label>Select CSV File:</label>
+        <input type="file" name="csvfile" class="form-control" accept=".csv" required />
+    </div>
+    <button type="submit" class="btn btn-primary mt-2">Upload</button>
+</form>
+

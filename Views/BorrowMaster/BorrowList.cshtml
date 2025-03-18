@@ -1,0 +1,300 @@
+﻿@model IEnumerable<library_management.Models.Borrow>
+
+@{
+    Layout = "/Views/Shared/_mainLayout.cshtml";
+    ViewData["Title"] = "Borrow List";
+    var successMessage = TempData["Success"] as string;
+    var errorMessage = TempData["Error"] as string;
+}
+
+
+
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @successMessage
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @errorMessage
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 text-center">
+        <h2 class="m-0 font-weight-bold text-primary">Borrowers List</h2>
+    </div>
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <a asp-controller="BorrowMaster" asp-action="UpdateLibraryFine" class="btn btn-warning">Update Fine</a>
+        <a href="@Url.Action("PendingBorrows", "BorrowMaster")" class="btn btn-warning mb-3">
+            Manage Borrows Approvals
+        </a>
+        <a href="@Url.Action("PendingReturns", "BorrowMaster")" class="btn btn-warning mb-3">
+            Manage Returns Approvals
+        </a>
+        
+    </div>
+
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Member Name</th>
+                        <th>Book Title</th>
+                        <th>Issue Date</th>
+                        <th>Due Date</th>
+                        <th>Return Date</th>
+                        <th>Return Action</th>
+                        <th>Fine</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.Member.Name</td>
+                            <td>@item.Book.Title</td>
+                            <td>@item.IssueDate.ToShortDateString()</td>
+                            <td>@item.DueDate.ToShortDateString()</td>
+                            <td>@(item.IsReturned ? item.ReturnDate?.ToString("dd/MM/yyyy") : "Not Returned")</td>
+                            <td>@(item.IsReturned ? "Returned" : "Not Returned")</td>
+
+                            <td>
+                                @if (item.Fine != null)
+                                {
+                                    <span>Total Fine: ₹@item.Fine.FineAmount</span>
+                                    <br />
+                                    <span>Paid: ₹@item.Fine.PaidAmount</span>
+                                    <br />
+                                    <span>Remaining: ₹@(item.Fine.FineAmount - item.Fine.PaidAmount)</span>
+                                    <br />
+                                    <strong>Fine Status: @item.Fine.PaymentStatus</strong>
+                                    <br />
+
+                                    @if (item.Fine.PaymentStatus != "Paid" && (item.IsReturned || item.Status == "Returned"))
+                                    {
+                                        <form asp-action="PayFine" asp-controller="Fine" method="post">
+                                            <input type="hidden" name="fineId" value="@item.Fine.FineId" />
+                                            <input type="number" name="payAmount" min="1" max="@(item.Fine.FineAmount - item.Fine.PaidAmount)" required />
+                                            <button type="submit" class="btn btn-success">Pay Fine</button>
+                                        </form>
+                                    }
+                                }
+                                else
+                                {
+                                    <span>No Fine</span>
+                                }
+
+                                @if (!item.IsReturned && item.Status != "Returned")
+                                {
+                                    <form asp-action="ReturnBook" asp-controller="BorrowMaster" method="post">
+                                        <input type="hidden" name="borrowId" value="@item.BorrowId" />
+                                        <button type="submit" class="btn btn-primary">Return Book</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span>Book Returned</span>
+                                }
+                            </td>
+
+                            
+                            @* <td> *@
+                            @*     @if (item.Fine != null) *@
+                            @*     { *@
+                            @*         <span>Total Fine: ₹@item.Fine.FineAmount</span> *@
+
+                            @*         <br /> *@
+                            @*         <span>Paid: ₹@item.Fine.PaidAmount</span> *@
+
+                            @*         <br /> *@
+                            @*         <span>Remaining: ₹@(item.Fine.FineAmount - item.Fine.PaidAmount)</span> *@
+
+                            @*         <br /> *@
+                            @*         <strong>Fine Status: @item.Fine.PaymentStatus</strong>  <!-- Debugging --> *@
+                            @*         <br /> *@
+                            @*         @if (item.Fine.PaymentStatus != "Paid") *@
+                            @*         { *@
+                            @*             <form asp-action="PayFine" asp-controller="Fine" method="post"> *@
+                            @*                 <input type="hidden" name="fineId" value="@item.Fine.FineId" /> *@
+                            @*                 <input type="number" name="payAmount" min="1" max="@(item.Fine.FineAmount - item.Fine.PaidAmount)" required /> *@
+                            @*                 <button type="submit" class="btn btn-success">Pay Fine</button> *@
+                            @*             </form> *@
+                            @*         } *@
+                            @*     } *@
+                            @*     else *@
+                            @*     { *@
+                            @*         <span>No Fine</span> *@
+                            @*     } *@
+                            @*     @if (!item.IsReturned) *@
+                            @*     { *@
+                            @*         <form asp-action="ReturnBook" asp-controller="BorrowMaster" method="post"> *@
+                            @*             <input type="hidden" name="borrowId" value="@item.BorrowId" /> *@
+                            @*             <button type="submit" class="btn btn-primary">Return Book</button> *@
+                            @*         </form> *@
+                            @*     } *@
+                            @*     else *@
+                            @*     { *@
+                            @*         <span>Book Returned</span> *@
+                            @*     } *@
+                            @* </td> *@
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<!-- Add Bootstrap CSS in <head> section -->
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+<!-- Add Bootstrap JS and jQuery before </body> tag -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script>
+    $(document).ready(function () {
+        console.log("Initializing DataTable...");
+        if ($.fn.DataTable) {
+            $('#dataTable').DataTable({
+                "paging": true,          // ✅ Pagination enabled
+                "searching": true,       // ✅ Search box enabled
+                "ordering": true,        // ✅ Sorting enabled
+                "info": true,            // ✅ Show table info
+                "lengthMenu": [5, 10, 25, 50, 100], // ✅ Entries per page
+                "responsive": true
+            });
+            console.log("✅ DataTable Initialized Successfully!");
+        } else {
+            console.error("❌ DataTable function is not available.");
+        }
+    });
+</script>
+
+
+
+
+
+@* @model IEnumerable<library_management.Models.Borrow> *@
+
+@* <h2>Borrowed Books</h2> *@
+
+@* @{ *@
+@*     Layout = "/Views/Shared/_mainLayout.cshtml"; *@
+@*     ViewData["Title"] = "borrow List"; *@
+@*     var successMessage = TempData["Success"] as string; *@
+@*     var errorMessage = TempData["Error"] as string; *@
+@* } *@
+            
+@* @if (!string.IsNullOrEmpty(successMessage)) *@
+@* { *@
+@*     <div class="alert alert-success alert-dismissible fade show" role="alert"> *@
+@*         @successMessage *@
+@*         <button type="button" class="close" data-dismiss="alert" aria-label="Close"> *@
+@*             <span aria-hidden="true">&times;</span> *@
+@*         </button> *@
+@*     </div> *@
+@* } *@
+
+@* @if (!string.IsNullOrEmpty(errorMessage)) *@
+@* { *@
+@*     <div class="alert alert-danger alert-dismissible fade show" role="alert"> *@
+@*         @errorMessage *@
+@*         <button type="button" class="close" data-dismiss="alert" aria-label="Close"> *@
+@*             <span aria-hidden="true">&times;</span> *@
+@*         </button> *@
+@*     </div> *@
+@* } *@
+@* <a asp-controller="BorrowMaster" asp-action="UpdateLibraryFine">Update Fine</a> *@
+
+@* <table class="table"> *@
+@*     <thead> *@
+@*         <tr> *@
+@*             <th>Member Name</th> *@
+@*             <th>Book Title</th> *@
+@*             <th>Issue Date</th> *@
+@*             <th>Due Date</th> *@
+@*             <th>Return Date</th> *@
+@*             <th>Return Action</th> *@
+@*             <th>Fine</th> *@
+@*         </tr> *@
+@*     </thead> *@
+@*     <tbody> *@
+@*         @foreach (var item in Model) *@
+@*         { *@
+@*             <tr> *@
+@*                 <td>@item.Member.Name</td> *@
+@*                 <td>@item.Book.Title</td> *@
+@*                 <td>@item.IssueDate.ToShortDateString()</td> *@
+@*                 <td>@item.DueDate.ToShortDateString()</td> *@
+@*                 <td>@(item.IsReturned ? item.ReturnDate?.ToString("dd/MM/yyyy") : "Not Returned")</td> *@
+@*                 <td>@(item.IsReturned ? "Returned" : "Not Returned")</td> *@
+
+@*                 <td> *@
+@*                     @if (item.Fine != null) *@
+@*                     { *@
+@*                         <span>Total Fine: ₹@item.Fine.FineAmount</span> *@
+
+@*                         <br /> *@
+@*                         <span>Paid: ₹@item.Fine.PaidAmount</span> *@
+
+@*                         <br /> *@
+@*                         <span>Remaining: ₹@(item.Fine.FineAmount - item.Fine.PaidAmount)</span> *@
+
+@*                         <br /> *@
+
+@*                         @if (item.Fine.PaymentStatus != "Paid") *@
+@*                         { *@
+@*                             <form asp-action="PayFine" asp-controller="Fine" method="post"> *@
+@*                                 <input type="hidden" name="fineId" value="@item.Fine.FineId" /> *@
+@*                                 <input type="number" name="payAmount" min="1" max="@(item.Fine.FineAmount - item.Fine.PaidAmount)" required /> *@
+@*                                 <button type="submit" class="btn btn-success">Pay Fine</button> *@
+@*                             </form> *@
+@*                         } *@
+@*                     } *@
+@*                     else *@
+@*                     { *@
+@*                         <span>No Fine</span> *@
+@*                     } *@
+
+@*                     <!-- Return Book Button --> *@
+@*                     @if (!item.IsReturned) *@
+@*                     { *@
+@*                         <form asp-action="ReturnBook" asp-controller="BorrowMaster" method="post"> *@
+@*                             <input type="hidden" name="borrowId" value="@item.BorrowId" /> *@
+@*                             <button type="submit" class="btn btn-primary">Return Book</button> *@
+@*                         </form> *@
+@*                     } *@
+@*                     else *@
+@*                     { *@
+@*                         <span>Book Returned</span> *@
+@*                     } *@
+@*                 </td> *@
+
+@*             </tr> *@
+           
+@*         } *@
+@*     </tbody> *@
+@* </table> *@
+
+@* <script> *@
+@*     setTimeout(function () { *@
+@*         $(".alert").alert('close'); *@
+@*     }, 3000);  // Automatically close after 3 seconds *@
+@* </script> *@
+@* <!-- Add Bootstrap CSS in <head> section --> *@
+@* <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet"> *@
+
+@* <!-- Add Bootstrap JS and jQuery before </body> tag --> *@
+@* <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script> *@
+@* <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script> *@

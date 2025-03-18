@@ -4,8 +4,9 @@ namespace library_management.repository.internalinterface
 {
     public interface MemberMasterInterface
     {
-        Task<List<Member>> GetAllAdminsData();
+        Task<List<Member>> GetAllMembersAsync();
 
+        Task<List<Member>> GetLibraryMembersAsync(int libraryId);
         Task<object> UpdateStatus(int adminId, bool status);
 
         Task<object> AddMember(Member user);

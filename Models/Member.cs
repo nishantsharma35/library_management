@@ -13,7 +13,6 @@ public partial class Member
     public string? Picture { get; set; }
     [NotMapped]
     public IFormFile? profilefile { get; set; }
-
     public string? Email { get; set; }
 
     public string? Gender { get; set; }
@@ -30,9 +29,7 @@ public partial class Member
 
     public string? Password { get; set; }
     [NotMapped]
-
     public string? Confirmpassword { get; set; }
-
     public string? Otp { get; set; }
 
     public DateTime? Otpexpiry { get; set; }
@@ -42,4 +39,8 @@ public partial class Member
     public int RoleId { get; set; }
 
     public string? VerificationStatus { get; set; }
+
+    public virtual ICollection<Borrow> Borrows { get; set; } = new List<Borrow>();
+
+    public virtual ICollection<Membership> Memberships { get; set; } = new List<Membership>();
 }

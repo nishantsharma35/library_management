@@ -1,0 +1,52 @@
+﻿@model IEnumerable<library_management.Models.Borrow>
+
+<h2>Return Books</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Book Title</th>
+            <th>Member</th>
+            <th>Borrow Date</th>
+            <th>Return Date</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var borrow in Model)
+        {
+            <tr>
+                <td>@borrow.Book.Title</td>
+                <td>@borrow.Member.Name</td>
+                <td>@borrow.IssueDate.ToString("dd/MM/yyyy")</td>
+                <td>@(borrow.IsReturned ? borrow.ReturnDate?.ToString("dd/MM/yyyy") : "Not Returned")</td>
+                <td>@(borrow.IsReturned ? "Returned" : "Not Returned")</td>
+                <td>
+                    @if (!borrow.IsReturned)
+                    {
+                        <!-- Return form -->
+                        <form asp-action="Return" asp-route-borrowId="@borrow.BorrowId" method="post">
+                            <button type="submit" class="btn btn-primary">Return</button>
+                        </form>
+
+                    }
+                    else
+                    {
+                        <span class="text-success">Returned</span>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Alert Box -->
+<script>
+    window.onload = function () {
+        var alertMessage = '@TempData["AlertMessage"]';
+        if (alertMessage) {
+            alert(alertMessage);  // JavaScript alert box
+        }
+    };
+</script>

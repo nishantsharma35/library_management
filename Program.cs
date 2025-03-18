@@ -3,7 +3,6 @@ using library_management.repository.classes;
 using library_management.repository.internalinterface;
 using Microsoft.EntityFrameworkCore;
 using library_management.Repositories.Classes;
-using library_management.repository;
 using library_management.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,10 +14,16 @@ builder.Services.AddDbContext<dbConnect>(options => options.UseSqlServer(builder
 builder.Services.AddScoped<libraryInterface , librarymainClass>();
 builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
 builder.Services.AddSingleton<EmailSenderInterface, EmailSenderClass>();
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddScoped<loginInterface, loginClass>();
 builder.Services.AddScoped<ISidebarRepository , SidebarRepository>();
 builder.Services.AddScoped<MemberMasterInterface , MemberMasterClass>();
 builder.Services.AddScoped<AdminInterface, AdminMasterClass>();
+builder.Services.AddScoped<MembershipInterface, MembershipClass>();
+builder.Services.AddScoped<BookServiceInterface, BookServiceClass>();
+builder.Services.AddScoped<BorrowInterface, BorrowClass>();
+builder.Services.AddScoped<FineInterface,FineClass>();
+
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30); // Session timeout

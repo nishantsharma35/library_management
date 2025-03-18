@@ -1,0 +1,163 @@
+﻿@model library_management.Models.Book
+
+@{
+    Layout = "/Views/Shared/_mainLayout.cshtml";
+    ViewData["Title"] = "book List";
+}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white text-center">
+            <h3 class="m-0">@(Model.BookId > 0 ? "Edit Book" : "Add New Book")</h3>
+        </div>
+        <div class="card-body">
+            <form asp-action="AddBook" method="post" enctype="multipart/form-data">
+                <input type="hidden" asp-for="BookId" />
+
+                <div class="form-group">
+                    <label>Title</label>
+                    <input asp-for="Title" class="form-control" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Author</label>
+                    <input asp-for="Author" class="form-control" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Publisher</label>
+                    <input asp-for="Publisher" class="form-control" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Year</label>
+                    <input asp-for="PublicationYear" type="number" class="form-control" min="1900" max="@DateTime.Now.Year" required />
+                </div>
+
+                <div class="form-group">
+                    <label>ISBN</label>
+                    <input asp-for="Isbn" class="form-control" />
+                </div>
+
+                 <div class="form-group"> 
+                     <label>Genre</label> 
+                     <select asp-for="GenreId" class="form-control" asp-items="@(new SelectList(ViewBag.Genres, "GenreId", "GenreName"))"> 
+                         <option value="">-- Select Genre --</option> 
+                     </select> 
+                 </div>
+                <div class="form-group">
+                    <label>Edition</label>
+                    <input asp-for="Edition" class="form-control" placeholder="Enter Edition (e.g., 1st Edition)" />
+                </div>
+
+                <!-- ✅ New Language Field -->
+                <div class="form-group">
+                    <label>Language</label>
+                    <input asp-for="Language" class="form-control" placeholder="Enter Language (e.g., English)" />
+                </div>
+
+                <!-- Library ID Hidden Field (Auto-assigned) -->
+                <input type="hidden" asp-for="LibraryId" value="@ViewBag.LibraryId" />
+
+                <div class="form-group">
+                    <label>Stock</label>
+                    <input asp-for="Stock" type="number" class="form-control" min="1" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Book Image</label>
+                    <input type="file" asp-for="bookImage" class="form-control" />
+                    @if (!string.IsNullOrEmpty(Model.bookimagepath))
+                    {
+                        <div class="mt-2">
+                            <img src="@Model.bookimagepath" alt="Book Image" width="100" height="100" class="border rounded" />
+                        </div>
+                    }
+                </div>
+
+                <button type="submit" class="btn btn-success mt-3">@(Model.BookId > 0 ? "Update Book" : "Add Book")</button>
+                <a asp-action="BookList" class="btn btn-secondary mt-3">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
+
+
+<script src="~/bookjs/bookjs.js"></script>
+
+@* @model library_management.Models.Book *@
+
+@* <div class="container mt-4"> *@
+@*     <div class="card shadow"> *@
+@*         <div class="card-header bg-primary text-white text-center"> *@
+@*             <h3 class="m-0">@(Model.BookId > 0 ? "Edit Book" : "Add New Book")</h3> *@
+@*         </div> *@
+@*         <div class="card-body"> *@
+@*             <form asp-action="AddBook" asp-controller="BookMaster" method="post" enctype="multipart/form-data"> *@
+@*                 <input type="hidden" asp-for="BookId" /> *@
+
+@*                 <div class="form-group"> *@
+@*                     <label>Title</label> *@
+@*                     <input asp-for="Title" class="form-control" required /> *@
+@*                 </div> *@
+
+@*                 <div class="form-group"> *@
+@*                     <label>Author</label> *@
+@*                     <input asp-for="Author" class="form-control" required /> *@
+@*                 </div> *@
+
+@*                 <div class="form-group"> *@
+@*                     <label>ISBN</label> *@
+@*                     <input asp-for="Isbn" class="form-control" required /> *@
+@*                 </div> *@
+
+@*                 <div class="form-group"> *@
+@*                     <label>Publisher</label> *@
+@*                     <input asp-for="Publisher" class="form-control" required /> *@
+@*                 </div> *@
+
+@*                 <div class="form-group"> *@
+@*                     <label>Publication Year</label> *@
+@*                     <input asp-for="PublicationYear" type="number" class="form-control" required /> *@
+@*                 </div> *@
+
+@*                 <div class="form-group"> *@
+@*                     <label>Genre</label> *@
+@*                     <select asp-for="GenreId" class="form-control" asp-items="@(new SelectList(ViewBag.Genres, "GenreId", "GenreName"))"> *@
+@*                         <option value="">-- Select Genre --</option> *@
+@*                     </select> *@
+@*                 </div> *@
+
+@*                 <div class="form-group"> *@
+@*                     <label>Total Copies</label> *@
+@*                     <input asp-for="TotalCopies" type="number" class="form-control" required /> *@
+@*                 </div> *@
+
+@*                 <div class="form-group"> *@
+@*                     <label>Available Copies</label> *@
+@*                     <input asp-for="AvailableCopies" type="number" class="form-control" required /> *@
+@*                 </div> *@
+
+@*                 <div class="form-group"> *@
+@*                     <label>Book Cover</label> *@
+@*                     <input type="file" asp-for="bookImage" class="form-control" /> *@
+@*                     @if (!string.IsNullOrEmpty(Model.bookimagepath)) *@
+@*                     { *@
+@*                         <div class="mt-2"> *@
+@*                             <img src="@Model.bookimagepath" alt="Book Image" width="100" height="100" class="border rounded" /> *@
+@*                         </div> *@
+@*                     } *@
+@*                 </div> *@
+
+@*                 <button type="submit" class="btn btn-success mt-3">@(Model.BookId > 0 ? "Update Book" : "Add Book")</button> *@
+@*                 <a asp-action="BookList" class="btn btn-secondary mt-3">Cancel</a> *@
+
+@*             </form> *@
+@*         </div> *@
+@*     </div> *@
+@* </div> *@
+
+    

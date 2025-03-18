@@ -1,0 +1,39 @@
+﻿@model List<library_management.Models.Library>
+
+<h2>Available Libraries</h2>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Library Name</th>
+            <th>Location</th>
+            <th>Admin Id</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var library in Model)
+        {
+            <tr>
+                <td>@library.Libraryname</td>
+                <td>@library.Address</td>
+                <td>@library.AdminId</td>
+                <td>
+                    <form asp-controller="Membership" asp-action="Joinlibrary" method="post">
+                        <input type="hidden" name="libraryId" value="@library.LibraryId" />
+                        <button class="btn btn-primary joinLibrary" data-id="@library.LibraryId">Join</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="~/memberportal/joinlibrary.js"></script>
+
+}

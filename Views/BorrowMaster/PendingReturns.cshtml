@@ -1,0 +1,36 @@
+﻿@model List<Borrow>
+
+<h2>Pending Return Requests</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Book</th>
+            <th>Member</th>
+            <th>Borrow Date</th>
+            <th>Due Date</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var borrow in Model)
+        {
+            <tr>
+                <td>@borrow.Book.Title</td>
+                <td>@borrow.Member.Name</td>
+                <td>@borrow.IssueDate.ToShortDateString()</td>
+                <td>@borrow.DueDate.ToShortDateString()</td>
+                <td>
+                    <form asp-action="ApproveReturn" asp-controller="BorrowMaster" method="post">
+                        <input type="hidden" name="borrowId" value="@borrow.BorrowId" />
+                        <button type="submit" class="btn btn-success">Approve</button>
+                    </form>
+                    <form asp-action="RejectReturn" asp-controller="BorrowMaster" method="post">
+                        <input type="hidden" name="borrowId" value="@borrow.BorrowId" />
+                        <button type="submit" class="btn btn-danger">Reject</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

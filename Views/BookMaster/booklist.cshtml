@@ -1,0 +1,290 @@
+﻿@model IEnumerable<library_management.Models.Book>
+
+@{
+    Layout = "/Views/Shared/_mainLayout.cshtml";
+    ViewData["Title"] = "Book List";
+}
+
+<!-- ✅ DataTables & Bootstrap CSS -->
+<link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
+<link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css" rel="stylesheet">
+<link href="~/assets/css/sb-admin-2.min.css" rel="stylesheet">
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 text-center">
+        <h2 class="m-0 font-weight-bold text-primary">Book List</h2>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Book Cover</th>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Publication Year</th>
+                        <th>Genre</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var book in Model.ToList())
+                    {
+                        <tr>
+                            <td>
+                                <img src="@book.bookimagepath" alt="Book Cover" class="img-fluid rounded" style="width: 50px; height: 70px;">
+                            </td>
+                            <td>@book.Title</td>
+                            <td>@book.Author</td>
+                            <td>@book.PublicationYear</td>
+                            <td>@book.Genre.GenreName</td>
+                            <td>
+                                <a class="btn btn-info" href="@Url.Action("Details", "BookMaster", new { id = book.BookId })">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a class="btn btn-primary" href="@Url.Action("Addbook", "BookMaster", new { id = book.BookId })">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button class="btn btn-danger delete-btn" data-id="@book.BookId">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            console.log("Initializing DataTable...");
+            if ($.fn.DataTable) {
+                $('#dataTable').DataTable({
+                    "paging": true,          // ✅ Pagination enabled
+                    "searching": true,       // ✅ Search box enabled
+                    "ordering": true,        // ✅ Sorting enabled
+                    "info": true,            // ✅ Show table info
+                    "lengthMenu": [5, 10, 25, 50, 100], // ✅ Entries per page
+                    "responsive": true
+                });
+                console.log("✅ DataTable Initialized Successfully!");
+            } else {
+                console.error("❌ DataTable function is not available.");
+            }
+        });
+    </script>
+}
+
+
+
+
+@* @model IEnumerable<library_management.Models.Book> *@
+
+@* @{ *@
+@*     Layout = "/Views/Shared/_mainLayout.cshtml"; *@
+@*     ViewData["Title"] = "Book List"; *@
+@* } *@
+@* <link href="~/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css"> *@
+@* <link href="~/assets/css/sb-admin-2.min.css" rel="stylesheet"> *@
+
+@* <div class="card shadow mb-4"> *@
+@*     <div class="card-header py-3 text-center"> *@
+@*         <h2 class="m-0 font-weight-bold text-primary">Book List</h2> *@
+@*     </div> *@
+@*     <div class="card-header d-flex justify-content-between align-items-right"> *@
+@*         <input type="text" id="customSearchBox" class="form-control w-25" placeholder="Search books..."> *@
+@*     </div> *@
+@*     <div class="card-body"> *@
+@*         <div class="table-responsive"> *@
+@*             <table class="table table-bordered" id="dataTable" width="80%" cellspacing="0" style="margin: 0 auto; font-size: 14px;"> *@
+@*                 <thead> *@
+@*                     <tr> *@
+@*                         <th>Book Cover</th> *@
+@*                         <th>Title</th> *@
+@*                         <th>Author</th> *@
+@*                         <th>Publication Year</th> *@
+@*                         <th>Genre</th> *@
+@*                         <th>Action</th> *@
+@*                     </tr> *@
+@*                 </thead> *@
+@*                 <tbody> *@
+@*                     @foreach (var book in Model.ToList()) *@
+@*                     { *@
+@*                         <tr> *@
+@*                             <td> *@
+@*                                 <img src="@book.bookimagepath" alt="Book Cover" class="img-fluid rounded" style="width: 50px; height: 70px;"> *@
+@*                             </td> *@
+@*                             <td>@book.Title</td> *@
+@*                             <td>@book.Author</td> *@
+@*                             <td>@book.PublicationYear</td> *@
+@*                             <td>@book.Genre.GenreName</td> *@
+@*                             <td> *@
+@*                                 <a class="me-3 btn btn-info" href="@Url.Action("Details", "BookMaster", new { id = book.BookId })"> *@
+@*                                     <i class="fas fa-eye"></i> *@
+@*                                 </a> *@
+@*                                 <a class="me-3 btn btn-primary Edit-btn" href="@Url.Action("Addbook", "BookMaster", new { id = book.BookId })"> *@
+@*                                     <i class="fas fa-edit"></i> *@
+@*                                 </a> *@
+@*                                 <button class="me-3 btn btn-danger delete-btn" data-id="@book.BookId"> *@
+@*                                     <i class="fas fa-trash-alt"></i> *@
+@*                                 </button> *@
+@*                             </td> *@
+@*                         </tr> *@
+@*                     } *@
+@*                 </tbody> *@
+@*             </table> *@
+@*         </div> *@
+@*     </div> *@
+@* </div> *@
+@* @section Scripts { *@
+@*     <!-- ✅ Load jQuery First --> *@
+@*     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> *@
+
+@*     <!-- ✅ Load DataTables --> *@
+@*     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script> *@
+@*     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"> *@
+
+@*     <!-- ✅ Load Bootstrap & SB Admin 2 Scripts --> *@
+@*     <script src="~/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script> *@
+@*     <script src="~/assets/vendor/jquery-easing/jquery.easing.min.js"></script> *@
+@*     <script src="~/assets/js/sb-admin-2.min.js"></script> *@
+
+@*     <!-- ✅ Load DataTables Bootstrap Integration (If Used) --> *@
+@*     <script src="~/assets/vendor/datatables/jquery.dataTables.min.js"></script> *@
+@*     <script src="~/assets/vendor/datatables/dataTables.bootstrap4.min.js"></script> *@
+
+
+@*     <!-- ✅ SweetAlert2 & Delete Script --> *@
+@*     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> *@
+@*     <script src="~/libraryjs/Delete.js"></script> *@
+
+@*     <!-- ✅ Optimized DataTable Initialization --> *@
+@*     <script> *@
+@*         $(document).ready(function () { *@
+@*             console.log("Initializing DataTable..."); *@
+
+@*             // ✅ Ensure table exists before initializing *@
+@*             if ($('#dataTable').length) { *@
+@*                 var table = $('#dataTable').DataTable({ *@
+@*                     "paging": true, *@
+@*                     "searching": true, *@
+@*                     "ordering": true *@
+@*                 }); *@
+@*                 console.log("✅ DataTable Initialized Successfully!"); *@
+@*             } else { *@
+@*                 console.warn("⚠ DataTable element not found!"); *@
+@*             } *@
+
+@*             // ✅ Custom Search Box *@
+@*             $('#customSearchBox').on('keyup', function () { *@
+@*                 if ($('#dataTable').length) { *@
+@*                     console.log("Search Input:", this.value); *@
+@*                     table.search(this.value).draw(); *@
+@*                 } *@
+@*             }); *@
+
+@*             // ✅ Delete Button Initialization (Ensure Function Exists) *@
+@*             if (typeof initializeDeleteButtons === "function") { *@
+@*                 initializeDeleteButtons('@Url.Action("DeleteUser", "BookMaster")'); *@
+@*             } else { *@
+@*                 console.warn("⚠ initializeDeleteButtons function not found!"); *@
+@*             } *@
+@*         }); *@
+@*     </script> *@
+@* } *@
+
+
+
+@* @model IEnumerable<library_management.Models.Book> *@
+
+@* @{ *@
+@*     Layout = "/Views/Shared/_mainLayout.cshtml"; *@
+@*     ViewData["Title"] = "book List"; *@
+@* } *@
+@* <link href="~/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css"> *@
+@* <link href="~/assets/css/sb-admin-2.min.css" rel="stylesheet"> *@
+
+
+@* <div class="card shadow mb-4"> *@
+@*     <div class="card-header py-3 text-center "> *@
+@*         <h2 class="m-0 font-weight-bold text-primary">Book List</h2> *@
+@*     </div> *@
+@*     <div class="card-body"> *@
+@*         <div class="table-responsive"> *@
+@*             <table class="table table-bordered" id="dataTable" width="80%" cellspacing="0" style="margin: 0 auto; font-size: 14px;"> *@
+@*                 <thead> *@
+@*                     <tr> *@
+@*                         <th>Book Cover</th> *@
+@*                         <th>Title</th> *@
+@*                         <th>Author</th> *@
+@*                         <th>Publication Year</th> *@
+@*                         <th>Genere</th> *@
+@*                         <th>Action</th> *@
+@*                     </tr> *@
+@*                 </thead> *@
+@*                 <tbody> *@
+@*                     @foreach (var book in Model.ToList()) *@
+@*                     { *@
+@*                         <tr> *@
+@*                             <td>  *@
+@*                                  <img src="@book.bookimagepath" alt="Book Cover" class="img-fluid rounded" style="width: 50px; height: 70px;">  *@
+@*                              </td> *@
+@*                             <td>@book.Title</td> *@
+@*                             <td>@book.Author</td> *@
+@*                             <td>@book.PublicationYear</td> *@
+@*                             <td>@book.Genre.GenreName</td> *@
+@*                             <td> *@
+@*                                 <a class="me-3 btn btn-info" href="@Url.Action("Details", "BookMaster", new { id = book.BookId })"> *@
+@*                                     <i class="fas fa-eye"></i> *@
+@*                                 </a> *@
+@*                                 <a class="me-3 btn btn-primary Edit-btn" href="@Url.Action("Addbook", "BookMaster", new { id = book.BookId })"> *@
+@*                                     <i class="fas fa-edit"></i> *@
+@*                                 </a> *@
+@*                                 <button class="me-3 btn btn-danger delete-btn" data-id="@book.BookId"> *@
+@*                                     <i class="fas fa-trash-alt"></i> *@
+@*                                 </button> *@
+
+@*                             </td> *@
+@*                         </tr> *@
+@*                     } *@
+@*                 </tbody> *@
+@*             </table> *@
+@*         </div> *@
+@*     </div> *@
+@* </div> *@
+
+
+@* @section Scripts { *@
+
+@*     <!-- Include SweetAlert2 & delete.js --> *@
+@*     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> *@
+@*     <script src="~/libraryjs/Delete.js"></script> *@
+
+@*     <!-- Initialize Delete Buttons with Dynamic URL --> *@
+@*     <script>  *@
+@*          $(document).ready(function () { *@
+@*              initializeDeleteButtons('@Url.Action("DeleteUser", "BookMaster")'); *@
+@*         });  *@
+@*      </script> *@
+@*     @* <script src="~/assets/vendor/jquery/jquery.min.js"></script> *@ 
+@*     <script src="~/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script> *@
+
+@*     <!-- Core plugin JavaScript--> *@
+@*     <script src="~/assets/vendor/jquery-easing/jquery.easing.min.js"></script> *@
+
+@*     <!-- Custom scripts for all pages--> *@
+@*     <script src="~/assets/js/sb-admin-2.min.js"></script> *@
+
+
+@*     <!-- Page level plugins --> *@
+@*     <script src="~/assets/vendor/datatables/jquery.dataTables.min.js"></script> *@
+@*     <script src="~/assets/vendor/datatables/dataTables.bootstrap4.min.js"></script> *@
+
+@*     <!-- Page level custom scripts --> *@
+@*     <script src="~/assets/js/demo/datatables-demo.js"></script> *@
+@* } *@

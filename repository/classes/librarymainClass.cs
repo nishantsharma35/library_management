@@ -76,6 +76,8 @@ namespace library_management.repository.classes
                 await _connect.SaveChangesAsync();
                 bool redirect = false;
 
+                
+
                 return new { success = true, message = "Registration successful. Please check your email to verify your account."};
             }
             catch (Exception ex)
@@ -203,7 +205,63 @@ namespace library_management.repository.classes
             return new { success = false, message = "Email not found" };
         }
 
-       
+        public async Task<List<Member>> GetAllMembersAsync()
+        {
+            return await _connect.Members.ToListAsync();
+        }
+
+        public async Task<bool> IsMemberInLibraryAsync(int memberId, int libraryId)
+        {
+return await _connect.Memberships
+        .AnyAsync(m => m.MemberId == memberId && m.LibraryId == libraryId);
+        }
+
+        public async Task<int?> GetLibraryIdByMemberAsync(int memberId)
+        {
+
+            var membership = await _connect.Memberships
+        .Where(m => m.MemberId == memberId)
+        .Select(m => m.LibraryId)
+        .FirstOrDefaultAsync();
+
+            Console.WriteLine($"LOG: Member {memberId} belongs to Library {membership}");
+            return membership;
+            //      var membership = await _connect.Memberships
+            //.Where(m => m.MemberId == memberId)
+            //.OrderByDescending(m => m.MembershipId) // Latest Membership lo
+            //.Select(m => m.LibraryId)
+            //.FirstOrDefaultAsync();
+
+            //      Console.WriteLine($"Fetched LibraryId for Member {memberId}: {membership}");
+            //      return membership;
+            //   var membership = await _connect.Memberships
+            //.Where(m => m.MemberId == memberId) // ✅ MemberId match karo
+            //.Select(m => m.LibraryId) // ✅ Sirf LibraryId lo
+            //.FirstOrDefaultAsync();
+
+            //   return membership;// ✅ Agar nahi mila to 0 return hoga
+        }
+
+
+
+        public async Task<List<Member>> GetLibraryMembersAsync(int libraryId)
+        {
+            var members = await _connect.Members
+        .Include(m => m.Memberships)
+        .Where(m => m.Memberships.Any(mem => mem.LibraryId == libraryId))
+        .ToListAsync();
+
+            Console.WriteLine($"LOG: Found {members.Count} members for Library {libraryId}");
+
+            return members;
+            //return await _connect.Members
+            //    .Where(m => _connect.Memberships
+            //        .Any(ms => ms.MemberId == m.Id && ms.LibraryId == libraryId)
+            //    )
+            //    .ToListAsync();
+        }
+
+
     }
 }
-    
+

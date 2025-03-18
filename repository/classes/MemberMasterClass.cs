@@ -14,7 +14,7 @@ namespace library_management.Controllers
             _context = context;
             _emailSender = emailSender;
         }
-        public async Task<List<Member>> GetAllAdminsData()
+        public async Task<List<Member>> GetAllMembersAsync()
         {
             return await _context.Members.ToListAsync();
         }
@@ -123,7 +123,21 @@ namespace library_management.Controllers
             return existingUser;
         }
 
+        public async Task<List<Member>> GetLibraryMembersAsync(int libraryId)
+        {
+            return await _context.Members
+       .Where(m => _context.Memberships.Any(ms => ms.MemberId == m.Id && ms.LibraryId == libraryId)) // ✅ Membership table se check karo
+       .ToListAsync();
 
+            //   return await _context.Members
+            //.Join(_context.Memberships,
+            //      m => m.Id,
+            //      ms => ms.MemberId,
+            //      (m, ms) => new { Member = m, Membership = ms })
+            //.Where(x => x.Membership.LibraryId == libraryId && x.Membership.IsActive) // ✅ Sirf Active Members
+            //.Select(x => x.Member)
+            //.ToListAsync();
+        }
 
     }
 }

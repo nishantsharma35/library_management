@@ -1,0 +1,95 @@
+﻿@model IEnumerable<library_management.Models.Library>
+@{
+    Layout = "/Views/Shared/_mainLayout.cshtml";
+    ViewData["Title"] = "Update Library Fines";
+}
+
+<!-- Page Heading -->
+<h1 class="h3 mb-4 text-gray-800">Update Library Fines</h1>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success" role="alert">
+        @TempData["Success"]
+    </div>
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Library Fine Management</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Library Name</th>
+                        <th>Current Fine (₹)</th>
+                        <th>Update Fine</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var library in Model)
+                    {
+                        <tr>
+                            <td>@library.Libraryname</td>
+                            <td>₹@library.LibraryFineAmount</td>
+                            <td>
+                                <form method="post" action="/Fine/UpdateFine" class="d-flex align-items-center">
+                                    <input type="hidden" name="libraryId" value="@library.LibraryId" />
+                                    <input type="number" name="fineAmount" value="@library.LibraryFineAmount" step="0.01" required class="form-control w-50 mr-2" />
+                                    <button type="submit" class="btn btn-primary">Update</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Include DataTables JS if needed -->
+<script>
+    $(document).ready(function () {
+        $('#dataTable').DataTable();
+    });
+</script>
+
+
+
+@* @model List<Library> *@
+
+
+@* <h2>Update Library Fines</h2> *@
+
+@* <table border="1"> *@
+@*     <thead> *@
+@*         <tr> *@
+@*             <th>Library Name</th> *@
+@*             <th>Current Fine (₹)</th> *@
+@*             <th>Update Fine</th> *@
+@*         </tr> *@
+@*     </thead> *@
+@*     <tbody> *@
+@*         @foreach (var library in Model) *@
+@*         { *@
+@*             <tr> *@
+@*                 <td>@library.Libraryname</td> *@
+@*                 <td>₹@library.LibraryFineAmount</td> *@
+@*                 <td> *@
+@*                     <form method="post" action="/Fine/UpdateFine"> *@
+@*                         <input type="hidden" name="libraryId" value="@library.LibraryId" /> *@
+@*                         <input type="number" name="fineAmount" value="@library.LibraryFineAmount" step="0.01" required /> *@
+@*                         <button type="submit">Update</button> *@
+@*                     </form> *@
+@*                 </td> *@
+@*             </tr> *@
+@*         } *@
+@*     </tbody> *@
+@* </table> *@
+
+@* @if (TempData["Success"] != null) *@
+@* { *@
+@*     <p style="color: green;">@TempData["Success"]</p> *@
+@* } *@

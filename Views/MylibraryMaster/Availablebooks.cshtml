@@ -1,0 +1,72 @@
+﻿@model List<Book>
+
+<h2>Available Books</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<label for="LibraryId" class="form-label">Select Library:</label>
+<select id="LibraryId" class="form-control">
+    <option value="">Select Library</option>
+    @foreach (var library in ViewBag.Libraries)
+    {
+        <option value="@library.Value">@library.Text</option>
+    }
+</select>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody id="bookTableBody">
+        <!-- Yaha JS dynamically data inject karega -->
+    </tbody>
+</table>
+
+<script>
+    document.getElementById("LibraryId").addEventListener("change", function () {
+        let libraryId = this.value; // Select ki gayi library ka ID lo
+        console.log("Fetching books for Library ID:", libraryId);
+
+        if (libraryId === "") {
+            document.getElementById("bookTableBody").innerHTML = ""; // Agar koi library select na ho, toh clear karo
+            return;
+        }
+
+        // AJAX Call
+        fetch(`/MyLibraryMaster/GetBooksByLibrary?libraryId=${libraryId}`)
+            .then(response => response.json())
+            .then(books => {
+                let tableBody = document.getElementById("bookTableBody");
+                tableBody.innerHTML = ""; // Purani books hatao
+
+                books.forEach(book => {
+                    let row = `
+                    <tr>
+                        <td>${book.title}</td>
+                        <td>${book.author}</td>
+                        <td>
+                            <form class="borrow-form" action="/MyLibraryMaster/BorrowBook" method="post">
+                                <input type="hidden" name="bookId" value="${book.bookId}" />
+                                <input type="hidden" class="libraryIdField" name="libraryId" value="${libraryId}" />
+                                <button type="submit" class="btn btn-primary">Borrow</button>
+                            </form>
+                        </td>
+                    </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            })
+            .catch(error => console.error("Error fetching books:", error));
+    });
+</script>

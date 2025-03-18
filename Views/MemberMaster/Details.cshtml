@@ -1,106 +1,106 @@
 ﻿@model library_management.Models.Member
 
-<div class="page-wrapper">
-    <div class="content">
-        <div class="content">
-            <div class="page-header">
-                <h6>Full details of a Owners/Admins Registered</h6>
-            </div>
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header text-center bg-primary text-white">
+            <h3 class="m-0">Member Details</h3>
         </div>
+        <div class="card-body">
+            <div class="text-center mb-3">
+                <input type="hidden" asp-for="Id" value="@Model.Id" />
 
-        <div class="row">
-            <div class="col-lg-8 col-sm-12">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="col-lg-4 col-sm-12">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Personal Information</h5>
-                                    <div class="row">
-                                        <div class="form-group align-center">
-                                            <img src="@Model.Picture" alt="img" class="img-fluid rounded-circle border border-black" style="width: 100px; height: 100px; border-width: 3px;">
-
-                                        </div>
-                                        <div class="align-center">
-                                            <label class="col-form-label">@Model.Name</label>
-                                        </div>
-
-                                        <div class="productdetails">
-                                            <ul class="product-bar">
-                                                <li>
-                                                    <h4>Name</h4>
-                                                    <h6>@Model.Name</h6>
-                                                </li>
-                                                <li>
-                                                    <h4>Email</h4>
-                                                    <h6>@Model.Email</h6>
-                                                </li>
-                                                <li>
-                                                    <h4>Contact</h4>
-                                                    <h6>@Model.Phoneno</h6>
-                                                </li>
-                                                <li>
-                                                    <h4>Gender</h4>
-                                                    <h6>@Model.Gender</h6>
-                                                </li>
-                                                <li>
-                                                    <h4>Address</h4>
-                                                    <h6>@Model.Address</h6>
-                                                </li>
-                                                <li>
-                                                    <h4>State</h4>
-                                                    <h6>@Model.State</h6>
-                                                </li>
-                                                <li>
-                                                    <h4>City</h4>
-                                                    <h6>@Model.City</h6>
-                                                </li>
-                                                <li>
-                                                    <h4>Joiningdate</h4>
-                                                    <h6>@Model.Joiningdate</h6>
-                                                </li>
-                                                <li>
-                                                    <h4>Role </h4>
-                                                    <h6>@ViewBag.RoleName</h6>
-                                                </li>
-                                            </ul>
-                                            <input hidden readonly id="Id" value="@Model.Id" />
-                                            <div class="align-center mt-2 justify-content-around">
-
-                                                @if (Model.VerificationStatus == "Pending")
-                                                {
-                                                            <div class="mx-3">
-                                                                <button type="submit" class="badges bg-lightgreen" id="btnAccept"><span class="spinner-border spinner-border-sm d-none" id="btnLoader" role="status" aria-hidden="true"></span>Accept</button>
-
-                                                                <button type="submit" class="badges bg-danger" id="btnReject"><span class="spinner-border spinner-border-sm d-none" id="btnLoader" role="status" aria-hidden="true"></span>Reject</button>
-                                                            </div>
-                                                }
-                                                else
-                                                {
-
-                                                    if (Model.VerificationStatus == "Rejected")
-                                                    {
-                                                        <h6 class="badges bg-danger">@Model.VerificationStatus</h6> <button type="submit" class="badges bg-lightgreen" id="btnAccept"><span class="spinner-border spinner-border-sm d-none" id="btnLoader" role="status" aria-hidden="true"></span>Accepted Application?</button>
-                                                    }
-                                                    else
-                                                    {
-                                                        <h6 class="badges bg-lightgreen">@Model.VerificationStatus</h6> <button type="submit" class="badges bg-danger" id="btnReject"><span class="spinner-border spinner-border-sm d-none" id="btnLoader" role="status" aria-hidden="true"></span>Remove Approval?</button>
-                                                    }
-                                                }
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
+                <img src="@Model.Picture" alt="Profile Image" class="img-fluid rounded-circle border border-dark" style="width: 120px; height: 120px;">
+                <h4 class="mt-2">@Model.Name</h4>
+                <span class="badge bg-info">@ViewBag.RoleName</span>
             </div>
-        </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr>
+                            <th>Name</th>
+                            <td>@Model.Name</td>
+                        </tr>
+                        <tr>
+                            <th>Email</th>
+                            <td>@Model.Email</td>
+                        </tr>
+                        <tr>
+                            <th>Contact</th>
+                            <td>@Model.Phoneno</td>
+                        </tr>
+                        <tr>
+                            <th>Gender</th>
+                            <td>@Model.Gender</td>
+                        </tr>
+                        <tr>
+                            <th>Address</th>
+                            <td>@Model.Address</td>
+                        </tr>
+                        <tr>
+                            <th>State</th>
+                            <td>@Model.State</td>
+                        </tr>
+                        <tr>
+                            <th>City</th>
+                            <td>@Model.City</td>
+                        </tr>
+                        <tr>
+                            <th>Joining Date</th>
+                            <td>@Model.Joiningdate?.ToString("dd MMM yyyy")</td>
+                        </tr>
+                        <tr>
+                            <th>Verification Status</th>
+                            <td>
+                                @if (Model.VerificationStatus == "Pending")
+                                {
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                }
+                                else if (Model.VerificationStatus == "Rejected")
+                                {
+                                    <span class="badge bg-danger">Rejected</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">Approved</span>
+                                }
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="text-center mt-3">
+                @if (Model.VerificationStatus == "Pending")
+                {
+                    <button class="btn btn-success" id="btnAccept">
+                        <i class="fas fa-check"></i> Accept
+                        <span class="btn-loader d-none"><i class="fas fa-spinner fa-spin"></i></span>
+                    </button>
+
+                    <button class="btn btn-danger" id="btnReject">
+                        <i class="fas fa-times"></i> Reject
+                        <span class="btn-loader d-none"><i class="fas fa-spinner fa-spin"></i></span>
+                    </button>
+                }
+                else if (Model.VerificationStatus == "Rejected")
+                {
+                    <button class="btn btn-success" id="btnAccept">
+                        <i class="fas fa-check"></i> Accept Application?
+                        <span class="btn-loader d-none"><i class="fas fa-spinner fa-spin"></i></span>
+                    </button>
+                }
+                else
+                {
+                    <button class="btn btn-danger" id="btnReject">
+                        <i class="fas fa-times"></i> Remove Approval?
+                        <span class="btn-loader d-none"><i class="fas fa-spinner fa-spin"></i></span>
+                    </button>
+                }
+            </div>
     </div>
 </div>
 
 @section Scripts {
-            <script src="~/libraryjs/memberstatus.js"></script>
+    <script src="~/libraryjs/memberstatus.js"></script>
 }

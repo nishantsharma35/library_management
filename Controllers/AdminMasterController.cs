@@ -1,5 +1,7 @@
 ﻿using library_management.Models;
 using library_management.repository.internalinterface;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
@@ -14,13 +16,15 @@ namespace library_management.Controllers
         private readonly ILogger<AdminMasterController> _logger;
         private readonly AdminInterface _adminInterface;
         private readonly libraryInterface _libraryInterface;
-        public AdminMasterController(dbConnect connect,EmailSenderInterface sender,ISidebarRepository sidebar,ILogger<AdminMasterController> logger,AdminInterface admin,libraryInterface libraryInterface) : base(sidebar)
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        public AdminMasterController(dbConnect connect,EmailSenderInterface sender,ISidebarRepository sidebar,ILogger<AdminMasterController> logger,AdminInterface admin,libraryInterface libraryInterface,IWebHostEnvironment webHostEnvironment) : base(sidebar)
         {
             _connect = connect;
             _sender = sender;
             _logger = logger;
             _adminInterface = admin;
             _libraryInterface = libraryInterface;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         public IActionResult Index()
@@ -58,19 +62,17 @@ namespace library_management.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddAdmin(Library user)
+        public async Task<IActionResult> AddAdmin(Library user, IFormFile LibraryFile)
         {
             try
             {
-                if (user.LibraryId > 0)
+                // ✅ Check if Library already exists
+                if (user.AdminId > 0)
                 {
                     Library resData = _adminInterface.checkExistence(user.Libraryname, user.LibraryId);
-                    if (resData != null)
+                    if (resData != null && resData.Libraryname == user.Libraryname)
                     {
-                        if (resData.Libraryname == user.Libraryname)
-                        {
-                            return Json(new { success = false, message = "Email already exists" });
-                        }
+                        return Json(new { success = false, message = "Library name already exists" });
                     }
                 }
                 else
@@ -81,18 +83,50 @@ namespace library_management.Controllers
                     }
                 }
 
+                // ✅ Fetching values
                 string username = user.Libraryname;
                 string address = user.Address;
                 int AdminId = Convert.ToInt32(user.AdminId);
-                string starttime = user.StartTime.ToString();
-                string closetime = user.ClosingTime.ToString();
+                string startTime = user.StartTime?.ToString() ?? "";
+                string closingTime = user.ClosingTime?.ToString() ?? "";
                 int Pincode = Convert.ToInt32(user.Pincode);
                 string state = user.State;
                 string city = user.City;
-                //string join = user.CreatedAt.ToString();
-
                 int id = user.LibraryId;
 
+                // ✅ Image Upload Handling
+                if (LibraryFile != null && LibraryFile.Length > 0)
+                {
+                    // Agar purani image hai to delete karo
+                    if (!string.IsNullOrEmpty(user.LibraryImagePath))
+                    {
+                        string oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", user.LibraryImagePath);
+                        if (System.IO.File.Exists(oldImagePath))
+                        {
+                            System.IO.File.Delete(oldImagePath);
+                        }
+                    }
+
+                    // Naya image save karo
+                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(LibraryFile.FileName);
+                    string uploadPath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads");
+
+                    if (!Directory.Exists(uploadPath))
+                    {
+                        Directory.CreateDirectory(uploadPath);
+                    }
+
+                    string filePath = Path.Combine(uploadPath, fileName);
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await LibraryFile.CopyToAsync(stream);
+                    }
+
+                    // Database me image ka naam save karo
+                    user.LibraryImagePath = fileName;
+                }
+
+                // ✅ Save Library Data
                 var res = await _adminInterface.AddAdmin(user);
 
                 return Ok(res);
@@ -132,8 +166,87 @@ namespace library_management.Controllers
                 return Json(new { success = false, message = "Error deleting user." });
             }
         }
+        [HttpGet]
+        public async Task<IActionResult> PendingMemberships()
+        {
+            try
+            {
+                // Check if the session has the admin email
+                var adminEmail = HttpContext.Session.GetString("UserEmail");
 
+                if (string.IsNullOrEmpty(adminEmail))
+                {
+                    Console.WriteLine("Session doesn't contain admin email.");
+                    return RedirectToAction("Login"); // If no admin email in session, redirect to login
+                }
 
+                // Get admin info from the database (make sure this user is an admin)
+                var admin = await _connect.Members
+                    .FirstOrDefaultAsync(m => m.Email == adminEmail && m.RoleId == 2);
 
+                if (admin == null)
+                {
+                    Console.WriteLine($"Admin not found or user is not an admin. Email: {adminEmail}");
+                    return RedirectToAction("Login"); // Redirect if the user is not an admin
+                }
+
+                // Log admin info to confirm it's retrieved correctly
+                Console.WriteLine($"Admin found: {admin.Email}, Admin ID: {admin.Id}");
+
+                // Query for pending memberships for this admin's library
+                var pendingMembershipsQuery = _connect.Memberships
+                    .Include(m => m.Member)
+                    .Include(m => m.Library)
+                    .Where(m => m.Library.AdminId == admin.Id && m.IsActive == false && m.IsDeleted == false);
+
+                // Check if the query is returning any data before calling ToListAsync
+                var pendingMemberships = await pendingMembershipsQuery.ToListAsync();
+
+                if (pendingMemberships == null || !pendingMemberships.Any())
+                {
+                    Console.WriteLine("No pending memberships found for this admin.");
+                    return View(new List<Membership>()); // Return empty if no pending memberships
+                }
+
+                return View(pendingMemberships);
+            }
+            catch (Exception ex)
+            {
+                // Log any errors that occur
+                Console.WriteLine($"Error occurred: {ex.Message}");
+                return View(new List<Membership>());
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ApproveMembership(int id)
+        {
+            var membership = await _connect.Memberships.FindAsync(id);
+            if (membership == null)
+            {
+                return Json(new { success = false, message = "Membership not found!" });
+            }
+
+            membership.IsActive = true;
+            await _connect.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Membership approved successfully!" });
+        }
+        [HttpPost]
+        public async Task<IActionResult> RejectMembership(int id)
+        {
+            var membership = await _connect.Memberships.FindAsync(id);
+            if (membership == null)
+            {
+                return Json(new { success = false, message = "Membership not found!" });
+            }
+
+            membership.IsDeleted = true; // Mark as rejected
+            await _connect.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Membership rejected successfully!" });
+        }
+
+      
     }
 }

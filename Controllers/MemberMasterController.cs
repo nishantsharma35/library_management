@@ -30,10 +30,75 @@ namespace library_management.Controllers
 
         public async Task<IActionResult> MemberList()
         {
+            try
+            {
+                int? userId = HttpContext.Session.GetInt32("UserId");
+                int? userRoleId = HttpContext.Session.GetInt32("UserRoleId"); // ✅ Role Check ke liye
+
+                if (userId == null || userId == 0)
+                {
+                    ViewBag.ErrorMessage = "User ID is missing. Please log in again.";
+                    return View("MemberList", new List<Member>());
+                }
+
+                List<Member> members;
+
+                if (userRoleId == 1) // ✅ Super Admin ho to sabhi members fetch karo
+                {
+                    members = await _memberMasterInterface.GetAllMembersAsync();
+                }
+                else
+                {
+                    var library = await _context.Libraries.FirstOrDefaultAsync(l => l.AdminId == userId.Value);
+                    if (library == null)
+                    {
+                        ViewBag.ErrorMessage = "No associated library found for this admin.";
+                        return View("MemberList", new List<Member>());
+                    }
+
+                    int libraryId = library.LibraryId;
+                    members = await _memberMasterInterface.GetLibraryMembersAsync(libraryId);
+                }
+
+                return View("MemberList", members);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching members: {ex.Message}");
+                ViewBag.ErrorMessage = "An error occurred while fetching members.";
+                return View("MemberList", new List<Member>());
+            }
+
+
+
+            //try
+            //{
+            //    int? libraryId = HttpContext.Session.GetInt32("LibraryId"); // ✅ Direct session check
+
+            //    if (libraryId == null || libraryId == 0)
+            //    {
+            //        TempData["ErrorMessage"] = "Library ID is missing. Please log in again.";
+            //        return RedirectToAction("Login", "library"); // ✅ Redirect to login instead of same page
+            //    }
+
+            //    var members = await _memberMasterInterface.GetLibraryMembersAsync(libraryId.Value);
+
+            //    return View("MemberList", members);
+            //}
+            //catch (Exception ex)
+            //{
+            //    Console.WriteLine($"Error fetching members: {ex.Message}");
+            //    TempData["ErrorMessage"] = "An error occurred while fetching members.";
+            //    return RedirectToAction("ErrorPage"); // ✅ Redirect to a proper error page
+            //}
+
+
+
+
             //var pendingUsers = await _context.TblUsers.Where(u => u.VerificationStatus == "Pending").ToListAsync();
             //return View(pendingUsers);
 
-            return View(await _memberMasterInterface.GetAllAdminsData());
+            //    return View(await _memberMasterInterface.GetAllAdminsData());
 
             //var users = _context.TblUsers
             //            .Where(u => !u.IsApproved)
@@ -76,13 +141,14 @@ namespace library_management.Controllers
                 return Json(new { success = false, message = "Error occurred." });
             }
         }
+       
         [HttpGet]
         public IActionResult Details(int id)
         {
             var member = _context.Members.FirstOrDefault(m => m.Id == id);
 
             // Get Role Name
-            var roleName = _context.tblRoles
+            var roleName = _context.TblRoles
                                    .Where(r => r.RoleId == member.RoleId)
                                    .Select(r => r.RoleName)
                                    .FirstOrDefault();
@@ -173,7 +239,7 @@ namespace library_management.Controllers
                     if (((dynamic)res).success)
                     {
                         string subject = "Admin account has been created by the SuperAdmin";
-                        string body = $"Hello there {username}, welcome to our WMS Application, you account has been successfully created and you can access your account under the given credentials. UserName : {username}, Email : {email}, Password : {password}, Phone : {phone}, Joining Date : {join} and after login, you can fill out your extra informations. But keep in mind, this is a sensitive information, so plz don't share it with anyone else. Thank you";
+                        string body = $"Hello there {username}, welcome to our LMS Application, you account has been successfully created and you can access your account under the given credentials. UserName : {username}, Email : {email}, Password : {password}, Phone : {phone}, Joining Date : {join} and after login, you can fill out your extra informations. But keep in mind, this is a sensitive information, so plz don't share it with anyone else. Thank you";
                         _emailSender.SendEmailAsync(user.Email, subject, body);
                     }
                 }
@@ -186,8 +252,8 @@ namespace library_management.Controllers
             }
         }
 
-        [HttpPost]
         //[ValidateAntiForgeryToken] // Protect against CSRF attacks
+        [HttpPost]
         public IActionResult DeleteUser(int id)
         {
             if (id == 0)
@@ -203,10 +269,24 @@ namespace library_management.Controllers
                     return Json(new { success = false, message = "User not found." });
                 }
 
-                _context.Members.Remove(user);
-                _context.SaveChanges();
+                // Check if member has borrowed books
+                var hasActiveBorrows = _context.Borrows.Any(b => b.MemberId == id && b.ReturnDate == null);
+                var hasPendingFines = _context.Fines.Any(f => f.Borrow.MemberId == id && f.PaymentStatus != "Paid");
 
-                return Json(new { success = true, message = "user deleted successfully." });
+                if (hasActiveBorrows || hasPendingFines)
+                {
+                    return Json(new { success = false, message = "User cannot be deleted until all books are returned and fines are cleared." });
+                }
+
+                // Fetch membership and mark as deleted (soft delete)
+                var membership = _context.Memberships.FirstOrDefault(m => m.MemberId == id);
+                if (membership != null)
+                {
+                    membership.IsDeleted = true;
+                    _context.SaveChanges();
+                }
+
+                return Json(new { success = true, message = "User membership deactivated successfully." });
             }
             catch (Exception ex)
             {
@@ -214,6 +294,38 @@ namespace library_management.Controllers
                 return Json(new { success = false, message = "Error deleting user." });
             }
         }
+
+
+
+
+
+        //[HttpPost]
+        //public IActionResult DeleteUser(int id)
+        //{
+        //    if (id == 0)
+        //    {
+        //        return Json(new { success = false, message = "Invalid user id." });
+        //    }
+
+        //    try
+        //    {
+        //        var user = _context.Members.Find(id);
+        //        if (user == null)
+        //        {
+        //            return Json(new { success = false, message = "User not found." });
+        //        }
+
+        //        _context.Members.Remove(user);
+        //        _context.SaveChanges();
+
+        //        return Json(new { success = true, message = "user deleted successfully." });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine("Error deleting user: " + ex.Message);
+        //        return Json(new { success = false, message = "Error deleting user." });
+        //    }
+        //}
 
 
 

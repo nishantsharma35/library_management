@@ -23,7 +23,7 @@ namespace library_management.Repositories.Classes
             {
                 // Creating a MailboxAddress with both the display name and the email address
                 var message = new MimeMessage();
-                message.From.Add(new MailboxAddress("Sender", "tester.vikash022@gmail.com"));
+                message.From.Add(new MailboxAddress("Library System", "tester.vikash022@gmail.com"));
                 message.To.Add(new MailboxAddress("Receiver", toEmail));
                 message.Subject = subject;
                 message.Body = new TextPart("html") { Text = body };
