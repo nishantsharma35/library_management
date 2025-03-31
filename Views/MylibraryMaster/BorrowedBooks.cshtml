@@ -60,11 +60,14 @@
                             <input type="hidden" name="fineId" value="@borrow.Fine?.FineId" />
                             <input type="number" name="payAmount" placeholder="Enter Payment Amount" required />
                             <button type="submit" class="btn btn-danger">Pay Fine</button>
+
                         </form>
                     }
                     else if (borrow.Status == "Returned" && fine > 0 && paymentStatus == "Paid")
                     {
-                        <span class="text-success">Fine Paid on @paymentDate</span>
+                        <a href="@Url.Action("ViewFine", "Fine", new { borrowId = borrow.BorrowId })" class="btn btn-primary">
+                            View Receipt
+                        </a>
                     }
                     else
                     {

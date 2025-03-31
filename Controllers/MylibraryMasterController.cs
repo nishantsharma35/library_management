@@ -273,10 +273,10 @@ namespace library_management.Controllers
             string memberName = fine.Borrow?.Member?.Name ?? "Guest"; // Default to "Guest" if Member is null
 
             string body = fine.Borrow?.Member != null
-                ? $"Dear {memberName},\\n\\n" +
-                  $"You have made a payment of ₹{payAmount} towards your fine.\\n\\n" +
-                  $"Remaining Amount: ₹{fine.FineAmount - fine.PaidAmount}\\n\\n"
-                : "Dear Member,\\n\\nYour fine has been updated.";
+                ? $"Dear {memberName},\n\n" +
+                  $"You have made a payment of ₹{payAmount} towards your fine.\n\n" +
+                  $"Remaining Amount: ₹{fine.FineAmount - fine.PaidAmount}\n\n"
+                : "Dear Member,\n\nYour fine has been updated.";
 
             // Append payment status message
             body += fine.PaymentStatus == "Paid"
@@ -285,7 +285,18 @@ namespace library_management.Controllers
 
             string recipientEmail = fine.Borrow?.Member?.Email ?? "defaultEmail@example.com"; // Default email
 
-            await _emailService.SendEmailAsync(recipientEmail, subject, body);
+            // ✅ Generate PDF Receipt
+            byte[] pdfBytes = _fineInterface.GenerateFineReceiptPdf(fine);
+
+            // ✅ Send Email with PDF Attachment
+            await _emailService.SendEmailWithAttachment(
+                recipientEmail,
+                subject,
+                body,
+                pdfBytes,
+                $"Fine_Receipt_{fine.FineId}.pdf"
+            );
+
 
             TempData["Success"] = "Fine payment successful!";
             return RedirectToAction("BorrowedBooks");

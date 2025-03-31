@@ -2,6 +2,10 @@
 using library_management.repository.internalinterface;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using iTextSharp.text;
+using iTextSharp.text.pdf;
+using System.IO;
+using System.Diagnostics;
 
 namespace library_management.Controllers
 {
@@ -27,16 +31,63 @@ namespace library_management.Controllers
         public async Task<IActionResult> ViewFine(int borrowId)
         {
             // Get the fine for the borrowId
+            Debug.WriteLine($"Received BorrowId: {borrowId}");
+
             var fine = await _fineInterface.GetFineByBorrowIdAsync(borrowId);
 
             if (fine == null)
             {
-                TempData["Error"] = "No fine found for this borrow record!";
+                TempData["Error"] = $"No fine found for this borrow record! BorrowId: {borrowId}";
                 return RedirectToAction("BorrowList", "BorrowMaster");
             }
 
-            return View(fine); // Return fine details
+            // ✅ If Fine is Paid, Generate PDF Receipt
+            if (fine.PaymentStatus == "Paid")
+            {
+                return GenerateFineReceipt(fine);
+            }
+
+            return View(fine); // Normal View for unpaid fines
         }
+
+        private IActionResult GenerateFineReceipt(Fine fine)
+        {
+            using (MemoryStream stream = new MemoryStream())
+            {
+                Document document = new Document();
+                PdfWriter writer = PdfWriter.GetInstance(document, stream);
+                document.Open();
+
+                // ✅ Set font style
+                var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 16, BaseColor.BLACK);
+                var normalFont = FontFactory.GetFont(FontFactory.HELVETICA, 12, BaseColor.BLACK);
+
+                // ✅ Add Title
+                document.Add(new Paragraph("Library Fine Receipt", titleFont));
+                document.Add(new Paragraph("\n")); // Line break
+
+                // ✅ Add Fine Details
+                document.Add(new Paragraph($"Fine ID: {fine.FineId}", normalFont));
+                document.Add(new Paragraph($"Borrow ID: {fine.BorrowId}", normalFont));
+                document.Add(new Paragraph($"Amount: ₹{fine.FineAmount}", normalFont));
+                document.Add(new Paragraph($"Paid Amount: ₹{fine.PaidAmount}", normalFont));
+                document.Add(new Paragraph($"Payment Status: {fine.PaymentStatus}", normalFont));
+                document.Add(new Paragraph($"Date: {DateTime.Now:dd-MM-yyyy HH:mm}", normalFont));
+
+                document.Close();
+                writer.Close();
+
+                // ✅ Ensure stream is converted before returning
+                byte[] fileBytes = stream.ToArray();
+
+                return File(fileBytes, "application/pdf", $"Fine_Receipt_{fine.FineId}.pdf");
+            }
+        }
+
+
+
+
+
 
         [HttpGet]
         public async Task<IActionResult> AddFine(int borrowId)
@@ -136,11 +187,10 @@ namespace library_management.Controllers
             string memberName = fine.Borrow?.Member?.Name ?? "Guest"; // Default to "Guest" if Member is null
 
             string body = fine.Borrow?.Member != null
-    ? $"Dear {fine.Borrow.Member.Name},\n\n" +
-      $"You have made a payment of ₹{payAmount} towards your fine.\n\n" +
-      $"Remaining Amount: ₹{fine.FineAmount - fine.PaidAmount}\n\n"
-    : "Dear Member,\n\nYour fine has been updated.";
-
+                ? $"Dear {fine.Borrow.Member.Name},\n\n" +
+                  $"You have made a payment of ₹{payAmount} towards your fine.\n\n" +
+                  $"Remaining Amount: ₹{fine.FineAmount - fine.PaidAmount}\n\n"
+                : "Dear Member,\n\nYour fine has been updated.";
 
             // If fully paid, update email body
             if (fine.PaymentStatus == "Paid")
@@ -152,8 +202,14 @@ namespace library_management.Controllers
                 body += "Please pay the remaining amount to fully clear your fine.";
             }
 
-            string recipientEmail = fine.Borrow?.Member?.Email ?? "defaultEmail@example.com"; // Use a default email if Member or Email is null
-            _emailService.SendEmailAsync(recipientEmail, subject, body);
+            string recipientEmail = fine.Borrow?.Member?.Email ?? "defaultEmail@example.com"; // Default email if null
+
+            // ✅ Generate Fine Receipt PDF
+            byte[] pdfBytes =  _fineInterface.GenerateFineReceiptPdf(fine);
+
+            // ✅ Send Email with PDF Attachment
+            await _emailService.SendEmailWithAttachment(recipientEmail, subject, body, pdfBytes, $"Fine_Receipt_{fine.FineId}.pdf");
+
 
             TempData["Success"] = "Fine payment processed successfully!";
             return RedirectToAction("BorrowList", "BorrowMaster");
@@ -193,6 +249,56 @@ namespace library_management.Controllers
             TempData["Success"] = "Fine updated successfully!";
             return RedirectToAction("UpdateFine");
         }
+
+
+        [HttpGet]
+        public async Task<IActionResult> DownloadFineReceipt(int borrowId)
+        {
+            var fine = await _fineInterface.GetFineByBorrowIdAsync(borrowId);
+
+            if (fine == null || fine.PaymentStatus != "Paid")
+            {
+                TempData["Error"] = "Fine not found or not paid!";
+                return RedirectToAction("ViewFine", new { borrowId });
+            }
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                Document document = new Document(PageSize.A4);
+                PdfWriter writer = PdfWriter.GetInstance(document, ms);
+                document.Open();
+
+                // Title
+                Font titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 16);
+                Paragraph title = new Paragraph("Library Fine Receipt", titleFont);
+                title.Alignment = Element.ALIGN_CENTER;
+                document.Add(title);
+
+                document.Add(new Paragraph("\n"));
+
+                // Fine Details Table
+                PdfPTable table = new PdfPTable(2);
+                table.WidthPercentage = 100;
+                table.AddCell("Borrow ID");
+                table.AddCell(fine.BorrowId.ToString());
+                table.AddCell("Fine Amount");
+                table.AddCell("₹" + fine.FineAmount);
+                table.AddCell("Paid Amount");
+                table.AddCell("₹" + fine.PaidAmount);
+                table.AddCell("Payment Status");
+                table.AddCell(fine.PaymentStatus);
+                table.AddCell("Payment Date");
+                table.AddCell(fine.PaymentDate?.ToString("dd/MM/yyyy"));
+
+                document.Add(table);
+
+                document.Close();
+                writer.Close();
+
+                return File(ms.ToArray(), "application/pdf", $"Fine_Receipt_{fine.BorrowId}.pdf");
+            }
+        }
+
 
 
 

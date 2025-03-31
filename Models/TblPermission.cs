@@ -13,7 +13,7 @@ public partial class TblPermission
 
     public string PermissionType { get; set; } = null!;
 
-    public bool? IsActive { get; set; }
+    public bool IsActive { get; set; }
 
     public virtual TblTab Tab { get; set; } = null!;
 }

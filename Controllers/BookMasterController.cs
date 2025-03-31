@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using CsvHelper;
 using System.Globalization;
 using CsvHelper.Configuration;
+using static library_management.Models.Book;
 
 namespace library_management.Controllers
 {
@@ -307,6 +308,7 @@ namespace library_management.Controllers
 
             return RedirectToAction("BulkUpload");
         }
+
 
     }
 }

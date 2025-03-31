@@ -56,7 +56,7 @@ public partial class Book
             Map(m => m.GenreId);
             Map(m => m.Edition);
             Map(m => m.Language);
-            Map(m => m.bookimagepath);
+            Map(m => m.bookimagepath).Name("BookImagePath", "bookimagepath");
         }
     }
 

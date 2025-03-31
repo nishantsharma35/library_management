@@ -9,15 +9,24 @@
     </tr>
     <tr>
         <th>Fine Amount</th>
-        <td>@Model.FineAmount</td>
+        <td>₹@Model.FineAmount</td>
     </tr>
     <tr>
         <th>Paid Amount</th>
-        <td>@Model.PaidAmount</td>
+        <td>₹@Model.PaidAmount</td>
     </tr>
     <tr>
         <th>Payment Status</th>
-        <td>@Model.PaymentStatus</td>
+        <td>
+            @if (Model.PaymentStatus == "Paid")
+            {
+                <span class="badge bg-success">Paid</span>
+            }
+            else
+            {
+                <span class="badge bg-danger">Pending</span>
+            }
+        </td>
     </tr>
     <tr>
         <th>Payment Date</th>
@@ -30,4 +39,10 @@
     <form asp-action="PayFine" asp-route-fineId="@Model.FineId" method="post">
         <button type="submit" class="btn btn-primary">Pay Fine</button>
     </form>
+}
+else
+{
+    <a href="@Url.Action("DownloadFineReceipt", "Fine", new { borrowId = Model.BorrowId })" class="btn btn-success">
+        📥 Download Fine Receipt
+    </a>
 }

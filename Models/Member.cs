@@ -39,6 +39,12 @@ public partial class Member
     public int RoleId { get; set; }
 
     public string? VerificationStatus { get; set; }
+    // Foreign Key
+    public int? LibraryId { get; set; }
+
+    // Navigation Property
+    public virtual Library? Library { get; set; }
+
 
     public virtual ICollection<Borrow> Borrows { get; set; } = new List<Borrow>();
 

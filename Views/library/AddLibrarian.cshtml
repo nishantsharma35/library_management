@@ -1,0 +1,63 @@
+﻿@model library_management.Models.Member
+
+@{
+    ViewData["Title"] = "Add Librarian";
+}
+
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <h1 class="h3 mb-4 text-gray-800">Add Librarian</h1>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Librarian Details</h6>
+        </div>
+        <div class="card-body">
+            <form id="librarianForm" asp-action="AddLibrarian" asp-controller="library" method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label asp-for="Name"></label>
+                    <input asp-for="Name" class="form-control" required>
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Email"></label>
+                    <input asp-for="Email" class="form-control" required>
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Phoneno"></label>
+                    <input asp-for="Phoneno" class="form-control" required>
+                    <span asp-validation-for="Phoneno" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Password"></label>
+                    <input asp-for="Password" type="password" class="form-control" required>
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="profilefile"></label>
+                    <input asp-for="profilefile" type="file" class="form-control-file">
+                    <span asp-validation-for="profilefile" class="text-danger"></span>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" id="btnSubmit" class="btn btn-primary">
+                        <span id="btnLoader" class="spinner-border spinner-border-sm d-none"></span>
+                        Add Librarian
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @* await Html.RenderPartialAsync("_ValidationScriptsPartial"); *@
+    <script src="~/libraryjs/addlibrarian.js"></script>
+}
+

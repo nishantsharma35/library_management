@@ -262,6 +262,64 @@ return await _connect.Memberships
         }
 
 
+        public async Task<object> AddLibrarianAsync(Member librarian, int adminLibraryId)
+        {
+            try
+            {
+                if (librarian.profilefile != null)
+                {
+                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                    const long maxFileSize = 5 * 1024 * 1024;
+
+                    string fileExtension = Path.GetExtension(librarian.profilefile.FileName).ToLower();
+                    if (!allowedExtensions.Contains(fileExtension))
+                    {
+                        return new { success = false, message = "Invalid file type." };
+                    }
+
+                    if (librarian.profilefile.Length > maxFileSize)
+                    {
+                        return new { success = false, message = "File size exceeds 5 MB." };
+                    }
+
+                    string uploadFolder = Path.Combine(_environment.WebRootPath, "images");
+                    Directory.CreateDirectory(uploadFolder);
+
+                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(librarian.profilefile.FileName);
+                    string filePath = Path.Combine(uploadFolder, uniqueFileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await librarian.profilefile.CopyToAsync(stream);
+                    }
+                    librarian.Picture = "/images/" + uniqueFileName;
+                }
+
+                // Auto-assign library of admin
+                librarian.LibraryId = adminLibraryId;
+                librarian.RoleId = 4; // ✅ Librarian RoleId set to 4
+                librarian.Password = BCrypt.Net.BCrypt.HashPassword(librarian.Password);
+
+                // ✅ Directly approve librarian (No OTP)
+                librarian.Otp = null;
+                librarian.Otpexpiry = null;
+                librarian.IsEmailVerified = true;
+                librarian.VerificationStatus = "Accepted";
+
+                await _connect.Members.AddAsync(librarian);
+                await _connect.SaveChangesAsync();
+
+                return new { success = true, message = "Librarian added successfully." };
+            }
+            catch (Exception ex)
+            {
+                return new { success = false, message = "Error: " + ex.Message };
+            }
+        }
+
+
+
+
     }
 }
 

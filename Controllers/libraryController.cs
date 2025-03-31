@@ -102,7 +102,7 @@ namespace library_management.Controllers
 
                 var data = await _libraryInterface.GetUserDataByEmail(email);
                 var member = _db.Members.FirstOrDefault(m => m.Email == email);
-                if (member?.RoleId == 2) // Librarian Role
+                if (member?.RoleId == 2) // admin Role
                 {
                     var librarian = _db.Libraries.FirstOrDefault(l => l.AdminId == member.Id);
                     if (librarian != null)
@@ -110,8 +110,13 @@ namespace library_management.Controllers
                         HttpContext.Session.SetInt32("LibraryId", librarian.LibraryId); // ✅ Int value set karo
                     }
                 }
+                else if(member.RoleId == 4) // admin Role
+                {
+                    
+                        HttpContext.Session.SetInt32("LibraryId",(int) member.LibraryId); // ✅ Int value set karo
+                    
+                }
 
-                // Ye login method me set karna hai (e.g., AccountController me)
                 HttpContext.Session.SetInt32("MemberId", data.Id);
                 // ✅ Har kisi ka RoleId bhi session me store karo
                 HttpContext.Session.SetInt32("UserRoleId", data.RoleId);
@@ -401,9 +406,34 @@ namespace library_management.Controllers
             return Ok(res);
         }
 
-      
+        [HttpGet]
+        public IActionResult AddLibrarian()
+        {
+            return View();
+        }
 
+        [HttpPost]
+        public async Task<IActionResult> AddLibrarian(Member librarian)
+        {
+            try
+            {
+                // ✅ Get Admin's LibraryId from session
+                int? adminLibraryId = HttpContext.Session.GetInt32("LibraryId");
+                if (adminLibraryId == null)
+                {
+                    return Json(new { success = false, message = "Admin's library not found." });
+                }
 
+                // ✅ Call repository method
+                var result = await _libraryInterface.AddLibrarianAsync(librarian, adminLibraryId.Value);
+
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error: " + ex.Message });
+            }
+        }
 
     }
 }

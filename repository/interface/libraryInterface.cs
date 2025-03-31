@@ -30,6 +30,7 @@ namespace library_management.repository.internalinterface
 
         Task<bool> IsMemberInLibraryAsync(int memberId, int libraryId);
 
+        Task<object> AddLibrarianAsync(Member librarian, int adminLibraryId);
 
         //Task<List<string>> getallstate();
 

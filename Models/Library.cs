@@ -39,5 +39,8 @@ public partial class Library
     public virtual ICollection<Membership> Memberships { get; set; } = new List<Membership>();
     
     public virtual ICollection<Fine> Fines { get; set; } = new List<Fine>();
+    public virtual ICollection<Member> Member { get; set; } = new List<Member>();
+
+
 
 }

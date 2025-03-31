@@ -11,8 +11,9 @@ namespace library_management.repository.internalinterface
 
         Task<decimal> CalculateFineAsync(int borrowId);
 
+        byte[] GenerateFineReceiptPdf(Fine fine);
 
-       // Task<bool> CalculateFineAsync(int borrowId);
-       // decimal CalculateFine(int borrowId);
+        // Task<bool> CalculateFineAsync(int borrowId);
+        // decimal CalculateFine(int borrowId);
     }
 }

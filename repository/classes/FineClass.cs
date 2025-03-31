@@ -1,6 +1,10 @@
 ﻿using library_management.Models;
 using library_management.repository.internalinterface;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
+using iTextSharp.text;
+using iTextSharp.text.pdf;
+
 
 namespace library_management.repository.classes
 {
@@ -20,9 +24,15 @@ namespace library_management.repository.classes
         }
         public async Task<Fine> GetFineByBorrowIdAsync(int borrowId)
         {
-            return await _context.Fines
-                                 .Include(f => f.Borrow)
-                                 .FirstOrDefaultAsync(f => f.BorrowId == borrowId);
+            Debug.WriteLine($"Fetching Fine for BorrowId: {borrowId}");
+
+            var fine = await _context.Fines
+                                     .Include(f => f.Borrow)
+                                     .FirstOrDefaultAsync(f => f.BorrowId == borrowId);
+
+            Debug.WriteLine(fine != null ? "Fine found!" : "Fine NOT found!");
+
+            return fine;
         }
 
         public async Task<bool> AddFineAsync(Fine fine)
@@ -91,6 +101,28 @@ namespace library_management.repository.classes
 
             return fineAmount;
         }
+
+        public byte[] GenerateFineReceiptPdf(Fine fine)
+        {
+            using (MemoryStream stream = new MemoryStream())
+            {
+                Document document = new Document();
+                PdfWriter.GetInstance(document, stream);
+                document.Open();
+
+                document.Add(new Paragraph("Library Fine Receipt"));
+                document.Add(new Paragraph($"Fine ID: {fine.FineId}"));
+                document.Add(new Paragraph($"Borrow ID: {fine.BorrowId}"));
+                document.Add(new Paragraph($"Amount: ₹{fine.FineAmount}"));
+                document.Add(new Paragraph($"Paid Amount: ₹{fine.PaidAmount}"));
+                document.Add(new Paragraph($"Payment Status: {fine.PaymentStatus}"));
+                document.Add(new Paragraph($"Date: {DateTime.Now.ToString("dd-MM-yyyy HH:mm")}"));
+
+                document.Close();
+                return stream.ToArray(); // 📎 Convert PDF to Byte Array
+            }
+        }
+
 
 
         //public async Task<decimal> CalculateFineAsync(int borrowId)

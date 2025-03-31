@@ -89,6 +89,14 @@
                                             <button type="submit" class="btn btn-success">Pay Fine</button>
                                         </form>
                                     }
+                                    @if (item.Fine.PaymentStatus == "Paid") // ✅ Fully Paid, Show Receipt Button
+                                    {
+                                        <br />
+                                        <a href="@Url.Action("ViewFine", "Fine", new { borrowId = item.Fine.BorrowId })" class="btn btn-primary">
+                                            View Receipt
+                                        </a>
+                                    }
+
                                 }
                                 else
                                 {
