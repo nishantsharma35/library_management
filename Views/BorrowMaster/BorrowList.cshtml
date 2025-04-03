@@ -115,47 +115,6 @@
                                     <span>Book Returned</span>
                                 }
                             </td>
-
-                            
-                            @* <td> *@
-                            @*     @if (item.Fine != null) *@
-                            @*     { *@
-                            @*         <span>Total Fine: ₹@item.Fine.FineAmount</span> *@
-
-                            @*         <br /> *@
-                            @*         <span>Paid: ₹@item.Fine.PaidAmount</span> *@
-
-                            @*         <br /> *@
-                            @*         <span>Remaining: ₹@(item.Fine.FineAmount - item.Fine.PaidAmount)</span> *@
-
-                            @*         <br /> *@
-                            @*         <strong>Fine Status: @item.Fine.PaymentStatus</strong>  <!-- Debugging --> *@
-                            @*         <br /> *@
-                            @*         @if (item.Fine.PaymentStatus != "Paid") *@
-                            @*         { *@
-                            @*             <form asp-action="PayFine" asp-controller="Fine" method="post"> *@
-                            @*                 <input type="hidden" name="fineId" value="@item.Fine.FineId" /> *@
-                            @*                 <input type="number" name="payAmount" min="1" max="@(item.Fine.FineAmount - item.Fine.PaidAmount)" required /> *@
-                            @*                 <button type="submit" class="btn btn-success">Pay Fine</button> *@
-                            @*             </form> *@
-                            @*         } *@
-                            @*     } *@
-                            @*     else *@
-                            @*     { *@
-                            @*         <span>No Fine</span> *@
-                            @*     } *@
-                            @*     @if (!item.IsReturned) *@
-                            @*     { *@
-                            @*         <form asp-action="ReturnBook" asp-controller="BorrowMaster" method="post"> *@
-                            @*             <input type="hidden" name="borrowId" value="@item.BorrowId" /> *@
-                            @*             <button type="submit" class="btn btn-primary">Return Book</button> *@
-                            @*         </form> *@
-                            @*     } *@
-                            @*     else *@
-                            @*     { *@
-                            @*         <span>Book Returned</span> *@
-                            @*     } *@
-                            @* </td> *@
                         </tr>
                     }
                 </tbody>

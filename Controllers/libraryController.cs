@@ -1,4 +1,5 @@
-﻿using library_management.Models;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using library_management.Models;
 using library_management.repository.internalinterface;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -107,7 +108,8 @@ namespace library_management.Controllers
                     var librarian = _db.Libraries.FirstOrDefault(l => l.AdminId == member.Id);
                     if (librarian != null)
                     {
-                        HttpContext.Session.SetInt32("LibraryId", librarian.LibraryId); // ✅ Int value set karo
+                         HttpContext.Session.SetInt32("LibraryId", librarian.LibraryId); // ✅ Int value set karo
+                       
                     }
                 }
                 else if(member.RoleId == 4) // admin Role
@@ -206,7 +208,7 @@ namespace library_management.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> Register([FromForm] Member model)
+        public async Task<IActionResult> Register([FromForm] Models.Member model)
         {
             try
             {
@@ -310,7 +312,7 @@ namespace library_management.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Otpcheck(Member user)
+        public async Task<IActionResult> Otpcheck(Models.Member user)
         {
             try
             {
@@ -372,7 +374,7 @@ namespace library_management.Controllers
 
         }
         [HttpPost]
-        public async Task<IActionResult> ForgotPassword(Member user)
+        public async Task<IActionResult> ForgotPassword(Models.Member user)
         {
             HttpContext.Session.SetString("ForgotPassEmail", user.Email);
             var res = await _login.TokenSenderViaEmail(user.Email);
@@ -413,7 +415,7 @@ namespace library_management.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddLibrarian(Member librarian)
+        public async Task<IActionResult> AddLibrarian(Models.Member librarian)
         {
             try
             {

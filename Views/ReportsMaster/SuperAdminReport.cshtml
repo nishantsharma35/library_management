@@ -1,0 +1,128 @@
+﻿@model library_management.DTO.SuperAdminReportsDto
+
+@{
+    Layout = "/Views/Shared/_mainLayout.cshtml";
+    ViewData["Title"] = "Super Admin Reports";
+  
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 text-center">
+        <h2 class="m-0 font-weight-bold text-primary">📊 Super Admin Reports</h2>
+    </div>
+
+    <div class="card-body">
+        <!-- 🔹 Dropdowns for Filters -->
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label for="libraryFilter">Filter by Library:</label>
+                <select id="libraryFilter" class="form-control">
+                    <option value="">All Libraries</option>
+                    @foreach (var lib in Model.LibraryBookStocks)
+                    {
+                        <option value="@lib.LibraryName">@lib.LibraryName</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label for="memberFilter">Filter by Member:</label>
+                <select id="memberFilter" class="form-control">
+                    <option value="">All Members</option>
+                    @foreach (var member in Model.MemberFineBreakdowns.Select(m => m.MemberName).Distinct())
+                    {
+                        <option value="@member">@member</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        <!-- 🔹 Export Buttons -->
+        <div class="mb-3 text-center">
+            <button class="btn btn-success" onclick="exportTableToExcel('libraryFineTable', 'Library_Fine_Report')">📥 Export Library Fine</button>
+            <button class="btn btn-success" onclick="exportTableToExcel('memberFineTable', 'Member_Fine_Report')">📥 Export Member Fine</button>
+        </div>
+
+        <!-- 🔹 Library-Wise Fine Collection -->
+        <div class="table-responsive">
+            <h3 class="text-primary">📌 Library Fine Collection</h3>
+            <table class="table table-bordered" id="libraryFineTable">
+                <thead>
+                    <tr>
+                        <th>Library Name</th>
+                        <th>Total Fine Collected</th>
+                        <th>Total Pending Fines</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.LibraryFineCollections)
+                    {
+                        <tr data-library="@item.LibraryName">
+                            <td>@item.LibraryName</td>
+                            <td>₹ @item.TotalFineCollected</td>
+                            <td>₹ @item.TotalPendingFines</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 🔹 Member Wise Fine Breakdown -->
+        <div class="table-responsive mt-4">
+            <h3 class="text-primary">📌 Member Wise Fine Breakdown</h3>
+            <table class="table table-bordered" id="memberFineTable">
+                <thead>
+                    <tr>
+                        <th>Library Name</th>
+                        <th>Member Name</th>
+                        <th>Book Title</th>
+                        <th>Fine Amount</th>
+                        <th>Fine Status</th>
+                        <th>Fine Payment Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.MemberFineBreakdowns)
+                    {
+                        <tr data-library="@item.LibraryName" data-member="@item.MemberName">
+                            <td>@item.LibraryName</td>
+                            <td>@item.MemberName</td>
+                            <td>@item.BookTitle</td>
+                            <td>₹ @item.FineAmount</td>
+                            <td>
+                                @if (item.FineStatus == "Paid")
+                                {
+                                    <span class="text-success">Paid</span>
+                                }
+                                else
+                                {
+                                    <span class="text-danger">Pending</span>
+                                }
+                            </td>
+                            <td>@(item.FinePaymentDate?.ToString("dd-MM-yyyy") ?? "N/A")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- DataTables & JS Files -->
+<link href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#libraryFineTable, #memberFineTable').DataTable({
+            "paging": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "lengthMenu": [5, 10, 25, 50, 100],
+            "responsive": true
+        });
+    });
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
+<script src="~/libraryjs/SuperadminReports.js"></script>
