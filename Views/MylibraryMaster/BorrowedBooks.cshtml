@@ -1,86 +1,124 @@
 ﻿@model List<Borrow>
 
-<h2>Borrowed Books</h2>
+@{
+    Layout = "/Views/Shared/_mainLayout.cshtml";
+    ViewData["Title"] = "Borrowed Books";
+}
+<div id="wrapper">
+    <!-- Content Wrapper -->
+    <div id="content-wrapper" class="d-flex flex-column">
+        <!-- Main Content -->
+        <div id="content">
+            <!-- Begin Page Content -->
+            <div class="container-fluid">
+                <!-- Page Heading -->
+                <h1 class="h3 mb-4 text-gray-800 text-center">Borrowed Books</h1>
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 text-center">
+                        <h6 class="m-0 font-weight-bold text-primary">Borrowed List</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                <thead>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Title</th>
-            <th>Author</th>
-            <th>Status</th>
-            <th>Fine</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var borrow in Model)
-        {
-            <tr>
-                <td>@borrow.Book.Title</td>
-                <td>@borrow.Book.Author</td>
-                <td>@borrow.Status</td>
-                <td>
-                    @{
-                        var fine = borrow.Fine?.FineAmount ?? 0;
-                        var paidAmount = borrow.Fine?.PaidAmount ?? 0;
-                        var paymentStatus = borrow.Fine?.PaymentStatus ?? "N/A";
-                        var paymentDate = borrow.Fine?.PaymentDate?.ToString("dd-MM-yyyy") ?? "N/A";
-                    }
-                    @if (fine > 0)
-                    {
-                        @if (paidAmount == 0)
-                        {
-                            <span class="text-danger">@fine ( Unpaid )</span>
-                        }
-                        else if (paidAmount > 0 && paidAmount < fine)
-                        {
-                            <span class="text-warning">@fine ( Partially Paid: @paidAmount )</span>
-                        }
-                        else
-                        {
-                            <span class="text-success">@fine ( Paid: @paidAmount on @paymentDate )</span>
-                        }
-                    }
-                    else
-                    {
-                        <span class="text-success">No Fine</span>
-                    }
-                </td>
-                <td>
-                    @if (borrow.Status == "Borrowed")
-                    {
-                        <form asp-action="RequestReturn" asp-controller="MyLibraryMaster" method="post">
-                            <input type="hidden" name="borrowId" value="@borrow.BorrowId" />
-                            <button type="submit" class="btn btn-warning">Request Return</button>
-                        </form>
-                    }
-                    else if (borrow.Status == "Returned" && fine > 0 && paymentStatus != "Paid")
-                    {
-                        <form asp-action="PayFine" asp-controller="MyLibraryMaster" method="post">
-                            <input type="hidden" name="fineId" value="@borrow.Fine?.FineId" />
-                            <input type="number" name="payAmount" placeholder="Enter Payment Amount" required />
-                            <button type="submit" class="btn btn-danger">Pay Fine</button>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Author</th>
+                                        <th>Status</th>
+                                        <th>Fine</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var borrow in Model)
+                                    {
+                                        <tr>
+                                            <td>@borrow.Book.Title</td>
+                                            <td>@borrow.Book.Author</td>
+                                            <td>@borrow.Status</td>
+                                            <td>
+                                                @{
+                                                    var fine = borrow.Fine?.FineAmount ?? 0;
+                                                    var paidAmount = borrow.Fine?.PaidAmount ?? 0;
+                                                    var paymentStatus = borrow.Fine?.PaymentStatus ?? "N/A";
+                                                    var paymentDate = borrow.Fine?.PaymentDate?.ToString("dd-MM-yyyy") ?? "N/A";
+                                                }
+                                                @if (fine > 0)
+                                                {
+                                                    @if (paidAmount == 0)
+                                                    {
+                                                        <span class="text-danger">@fine ( Unpaid )</span>
+                                                    }
+                                                    else if (paidAmount > 0 && paidAmount < fine)
+                                                    {
+                                                        <span class="text-warning">@fine ( Partially Paid: @paidAmount )</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-success">@fine ( Paid: @paidAmount on @paymentDate )</span>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-success">No Fine</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (borrow.Status == "Borrowed")
+                                                {
+                                                    <form asp-action="RequestReturn" asp-controller="MyLibraryMaster" method="post">
+                                                        <input type="hidden" name="borrowId" value="@borrow.BorrowId" />
+                                                        <button type="submit" class="btn btn-warning">Request Return</button>
+                                                    </form>
+                                                }
+                                                else if (borrow.Status == "Returned" && fine > 0 && paymentStatus != "Paid")
+                                                {
+                                                    <form asp-action="PayFine" asp-controller="MyLibraryMaster" method="post">
+                                                        <input type="hidden" name="fineId" value="@borrow.Fine?.FineId" />
+                                                        <input type="number" name="payAmount" placeholder="Enter Payment Amount" required />
+                                                        <button type="submit" class="btn btn-danger">Pay Fine</button>
 
-                        </form>
-                    }
-                    else if (borrow.Status == "Returned" && fine > 0 && paymentStatus == "Paid")
-                    {
-                        <a href="@Url.Action("ViewFine", "Fine", new { borrowId = borrow.BorrowId })" class="btn btn-primary">
-                            View Receipt
-                        </a>
-                    }
-                    else
-                    {
-                        <span class="text-success">Returned</span>
-                    }
-                </td>
+                                                    </form>
+                                                }
+                                                else if (borrow.Status == "Returned" && fine > 0 && paymentStatus == "Paid")
+                                                {
+                                                    <a href="@Url.Action("ViewFine", "Fine", new { borrowId = borrow.BorrowId })" class="btn btn-primary">
+                                                        View Receipt
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-success">Returned</span>
+                                                }
+                                            </td>
 
-            </tr>
-        }
-    </tbody>
-</table>
-
-
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#dataTable').DataTable({
+                "paging": true,
+                "searching": true,
+                "ordering": true,
+                "info": true,
+                 "lengthMenu": [5, 10, 25, 50, 100], // ✅ Entries per page
+                    "responsive": true
+            });
+        });
+    </script>
+}
 
 @* @model List<Borrow> *@
 

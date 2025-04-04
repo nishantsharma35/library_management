@@ -1,43 +1,66 @@
 ﻿@model List<library_management.Models.Membership>
+@{
+    Layout = "/Views/Shared/_mainLayout.cshtml";
+    ViewData["Title"] = "Pending MemberShip-List";
+}
+<div id="wrapper">
+    <!-- Content Wrapper -->
+    <div id="content-wrapper" class="d-flex flex-column">
+        <!-- Main Content -->
+        <div id="content">
+            <!-- Begin Page Content -->
+            <div class="container-fluid">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 text-center ">
+                        <h2 class="m-0 font-weight-bold text-primary">Pending Membership Requests</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered" id="dataTable" width="80%" cellspacing="0" style="margin: 0 auto; font-size: 14px;">
+                                <thead>
+                                    <tr>
+                                        <th>Member Name</th>
+                                        <th>Library</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var membership in Model)
+                                    {
+                                        <tr>
+                                            <td>@membership.Member.Name</td>
+                                            <td>@membership.Library.Libraryname</td>
+                                            <td>
+                                                <form method="post" asp-controller="AdminMaster" asp-action="ApproveMembership" class="d-inline-block">
+                                                    <input type="hidden" name="id" value="@membership?.MembershipId" />
+                                                    <button type="button" class="btn btn-success approveMembership" data-id="@membership.MembershipId">Approve</button>
+                                                </form>
 
-<h2>Pending Membership Requests</h2>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Member Name</th>
-            <th>Library</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var membership in Model)
-        {
-            <tr>
-                <td>@membership.Member.Name</td>
-                <td>@membership.Library.Libraryname</td>
-                <td>
-                    <form method="post" asp-controller="AdminMaster" asp-action="ApproveMembership" class="d-inline-block">
-                        <input type="hidden" name="id" value="@membership?.MembershipId" />
-                        <button type="button" class="btn btn-success approveMembership" data-id="@membership.MembershipId">Approve</button>
-                    </form>
+                                                <form method="post" asp-controller="AdminMaster" asp-action="RejectMembership" class="d-inline-block">
+                                                    <input type="hidden" name="id" value="@membership?.MembershipId" />
+                                                    <button type="button" class="btn btn-danger rejectMembership" data-id="@membership.MembershipId" onclick="return confirm('Are you sure you want to reject this membership?');">Reject</button>
 
-                    <form method="post" asp-controller="AdminMaster" asp-action="RejectMembership" class="d-inline-block">
-                        <input type="hidden" name="id" value="@membership?.MembershipId" />
-                        <button type="button" class="btn btn-danger rejectMembership" data-id="@membership.MembershipId" onclick="return confirm('Are you sure you want to reject this membership?');">Reject</button>
-                         
-                    </form>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-@section Scripts{
+
+@section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-        <script src="~/memberportal/approvereject.js"></script>
+    <script src="~/memberportal/approvereject.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-    
+
 }

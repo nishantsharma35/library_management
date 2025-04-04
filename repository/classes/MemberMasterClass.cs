@@ -44,19 +44,17 @@ namespace library_management.Controllers
                 return new { success = false, message = ex.Message };
             }
         }
-        public async Task<object> AddMember(Member user)
+
+        public async Task<object> AddMember(Member user, int libraryId)
         {
             var UpdatedUser = await _context.Members.FirstOrDefaultAsync(u => u.Id == user.Id);
             string imgPath = "";
+
             if (user.profilefile != null)
             {
                 var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
-
-                // Maximum allowed file size (5 MB in bytes)
-                //const long maxFileSize = 5  1024  1024;
-
-                // Get file extension and check if it is allowed
                 string fileExtension = Path.GetExtension(user.profilefile.FileName).ToLower();
+
                 if (!allowedExtensions.Contains(fileExtension))
                 {
                     return new { success = false, message = "Invalid file type. Only .jpg, .jpeg, and .png are allowed." };
@@ -64,8 +62,8 @@ namespace library_management.Controllers
 
                 string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot\\images");
                 string uniqueFileName = Guid.NewGuid().ToString() + "_" + user.profilefile.FileName;
-
                 string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     user.profilefile.CopyTo(stream);
@@ -73,9 +71,10 @@ namespace library_management.Controllers
 
                 imgPath = "\\images\\" + uniqueFileName;
             }
+
             if (user.Id > 0)
             {
-
+                // Update existing
                 UpdatedUser.Name = user.Name;
                 UpdatedUser.Email = user.Email;
                 UpdatedUser.Gender = user.Gender;
@@ -88,30 +87,115 @@ namespace library_management.Controllers
                 {
                     UpdatedUser.Picture = imgPath;
                 }
-                UpdatedUser.Email = user.Email;
-            }
-            if (user.Password != null)
-            {
-                user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
-            }
-            user.profilefile = null;
-            user.Picture = imgPath;    
-            user.VerificationStatus = "Accepted";
-            string msg = "";
-            if (user.Id > 0)
-            {
-                _context.Update(UpdatedUser);
-                msg = "User data has been updated successfully";
             }
             else
             {
-                _context.AddAsync(user);
-                msg = "New User has been added successfully";
-            }
-            await _context.SaveChangesAsync();
+                // New user setup
+                if (user.Password != null)
+                {
+                    user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
+                }
 
+                user.profilefile = null;
+                user.Picture = imgPath;
+                user.VerificationStatus = "Accepted";
+                user.RoleId = 3;
+
+                await _context.Members.AddAsync(user);
+            }
+
+            await _context.SaveChangesAsync(); // 🟢 yahan tak user.Id generate ho chuka hoga
+
+            // ✅ Add Membership after user is saved
+            if (user.Id > 0)
+            {
+                var membership = new Membership
+                {
+                    MemberId = user.Id,
+                    LibraryId = libraryId,
+                    IsActive = true,
+                    IsDeleted = false,
+                };
+                _context.Memberships.Add(membership);
+                await _context.SaveChangesAsync();
+            }
+
+            string msg = user.Id > 0 ? "User data has been updated successfully" : "New User has been added successfully";
             return new { success = true, message = msg };
         }
+
+
+
+        //public async Task<object> AddMember(Member user)
+        //{
+        //    var UpdatedUser = await _context.Members.FirstOrDefaultAsync(u => u.Id == user.Id);
+        //    string imgPath = "";
+        //    if (user.profilefile != null)
+        //    {
+        //        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+
+        //        // Maximum allowed file size (5 MB in bytes)
+        //        //const long maxFileSize = 5  1024  1024;
+
+        //        // Get file extension and check if it is allowed
+        //        string fileExtension = Path.GetExtension(user.profilefile.FileName).ToLower();
+        //        if (!allowedExtensions.Contains(fileExtension))
+        //        {
+        //            return new { success = false, message = "Invalid file type. Only .jpg, .jpeg, and .png are allowed." };
+        //        }
+
+        //        string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot\\images");
+        //        string uniqueFileName = Guid.NewGuid().ToString() + "_" + user.profilefile.FileName;
+
+        //        string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+        //        using (var stream = new FileStream(filePath, FileMode.Create))
+        //        {
+        //            user.profilefile.CopyTo(stream);
+        //        }
+
+        //        imgPath = "\\images\\" + uniqueFileName;
+        //    }
+        //    if (user.Id > 0)
+        //    {
+
+        //        UpdatedUser.Name = user.Name;
+        //        UpdatedUser.Email = user.Email;
+        //        UpdatedUser.Gender = user.Gender;
+        //        UpdatedUser.Phoneno = user.Phoneno;
+        //        UpdatedUser.Address = user.Address;
+        //        UpdatedUser.State = user.State;
+        //        UpdatedUser.City = user.City;
+        //        UpdatedUser.Joiningdate = user.Joiningdate;
+        //        if (user.profilefile != null)
+        //        {
+        //            UpdatedUser.Picture = imgPath;
+        //        }
+        //        UpdatedUser.Email = user.Email;
+        //    }
+        //    if (user.Password != null)
+        //    {
+        //        user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
+        //    }
+        //    user.profilefile = null;
+        //    user.Picture = imgPath;    
+        //    user.VerificationStatus = "Accepted";
+        //    user.RoleId = 3;
+        //    string msg = "";
+        //    if (user.Id > 0)
+        //    {
+        //        _context.Update(UpdatedUser);
+        //        msg = "User data has been updated successfully";
+        //    }
+        //    else
+        //    {
+        //        _context.Members.AddAsync(user);
+
+        //        msg = "New User has been added successfully";
+        //    }
+        //    await _context.SaveChangesAsync();
+
+        //    return new { success = true, message = msg };
+        //}
 
 
         public Member checkExistence(string Username, string email, int UserId)

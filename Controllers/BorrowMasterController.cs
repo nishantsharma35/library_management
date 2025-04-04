@@ -16,7 +16,8 @@ namespace library_management.Controllers
         private readonly FineInterface _fineInterface;
         private readonly MembershipInterface _membershipInterface;
         private readonly EmailSenderInterface _emailSenderInterface;
-        public BorrowMasterController(dbConnect connect,ISidebarRepository sidebar, libraryInterface libraryInterface, BookServiceInterface bookServiceInterface,BorrowInterface borrowInterface,FineInterface fineInterface,MembershipInterface membershipInterface,EmailSenderInterface emailSenderInterface) : base(sidebar)
+        private readonly PermisionHelperInterface _permission;
+        public BorrowMasterController(dbConnect connect,ISidebarRepository sidebar, libraryInterface libraryInterface, BookServiceInterface bookServiceInterface,BorrowInterface borrowInterface,FineInterface fineInterface,MembershipInterface membershipInterface,EmailSenderInterface emailSenderInterface,PermisionHelperInterface permission ) : base(sidebar)
         {
             _connect = connect;
             _libraryInterface = libraryInterface;
@@ -25,195 +26,94 @@ namespace library_management.Controllers
             _fineInterface = fineInterface;
             _membershipInterface = membershipInterface;
             _emailSenderInterface = emailSenderInterface;
+            _permission = permission;
         }
 
-
+        public string GetUserPermission(string action)
+        {
+            int roleId = HttpContext.Session.GetInt32("UserRoleId").Value;
+            string permissionType = _permission.HasAccess(action, roleId);
+            ViewBag.PermissionType = permissionType;
+            return permissionType;
+        }
 
         public async Task<IActionResult> BorrowList()
         {
-            try
+            string permissionType = GetUserPermission("Borrower list");
+            if (permissionType == "CanView" || permissionType == "CanEdit" || permissionType == "FullAccess")
             {
-                int libraryId = HttpContext.Session.GetInt32("LibraryId") ?? 0;
-                var borrowedBooks = await _borrowInterface.GetAllBorrowsAsync(libraryId);
-
-                // Filter out pending requests and show only borrowed/returned books
-                borrowedBooks = borrowedBooks.Where(b =>
-                    b.Book != null &&
-                    b.Member != null &&
-                    (b.Status == "Borrowed" || b.Status == "Returned")
-                ).ToList();
-
-                foreach (var borrow in borrowedBooks)
+                try
                 {
-                    var fine = await _fineInterface.GetFineByBorrowIdAsync(borrow.BorrowId);
-                    borrow.Fine = fine;
+                    int libraryId = HttpContext.Session.GetInt32("LibraryId") ?? 0;
+                    var borrowedBooks = await _borrowInterface.GetAllBorrowsAsync(libraryId);
+
+                    // Filter out pending requests and show only borrowed/returned books
+                    borrowedBooks = borrowedBooks.Where(b =>
+                        b.Book != null &&
+                        b.Member != null &&
+                        (b.Status == "Borrowed" || b.Status == "Returned")
+                    ).ToList();
+
+                    foreach (var borrow in borrowedBooks)
+                    {
+                        var fine = await _fineInterface.GetFineByBorrowIdAsync(borrow.BorrowId);
+                        borrow.Fine = fine;
+                    }
+                    return View(borrowedBooks);
                 }
-                return View(borrowedBooks);
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error in BorrowList: {ex.Message}");
+                    return View(new List<Borrow>());
+                }
+
             }
-            catch (Exception ex)
+            else
             {
-                Console.WriteLine($"Error in BorrowList: {ex.Message}");
-                return View(new List<Borrow>());
+                return RedirectToAction("UnauthorisedAccess", "Error");
             }
         }
 
-        //public async Task<IActionResult> BorrowList()
-        //{
-        //    try
-        //    {
-        //        int libraryId = HttpContext.Session.GetInt32("LibraryId") ?? 0;
-        //        var borrowedBooks = await _borrowInterface.GetAllBorrowsAsync(libraryId);
-
-        //        borrowedBooks = borrowedBooks.Where(b => b.Book != null && b.Member != null).ToList(); // ✅ Null handling
-
-        //        foreach (var borrow in borrowedBooks)
-        //        {
-        //            var fine = await _fineInterface.GetFineByBorrowIdAsync(borrow.BorrowId);
-        //            borrow.Fine = fine;
-        //        }
-        //        return View(borrowedBooks);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine($"Error in BorrowList: {ex.Message}");
-        //        return View(new List<Borrow>()); // ✅ Empty list return to prevent crash
-        //    }
-        //}
-
-
-
-        //public async Task<IActionResult> BorrowList()
-        //{
-        //    try
-        //    {
-        //        var borrowedBooks = await _borrowInterface.GetAllBorrowsAsync();
-
-        //        foreach (var borrow in borrowedBooks)
-        //        {
-        //            if (borrow.Book == null || borrow.Member == null)
-        //            {
-        //                continue; // Skip record if Book or Member is NULL
-        //            }
-
-        //            var fine = await _fineInterface.GetFineByBorrowIdAsync(borrow.BorrowId);
-        //            borrow.Fine = fine;
-        //        }
-        //        return View(borrowedBooks);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine($"Error in BorrowList: {ex.Message}");
-        //        return View(new List<Borrow>()); // Empty list return to prevent crash
-        //    }
-        //}
-
-
-
-        //public async Task<IActionResult> BorrowList()
-        //{
-        //    int userRoleId = _bookServiceInterface.GetLoggedInUserRoleId(); // Session se role ID le raha hu
-        //    int libraryId = _bookServiceInterface.GetLoggedInLibrarianLibraryId(); // Librarian ki LibraryId
-
-        //    //var borrowedBooks = await _borrowInterface.GetAllBorrowsAsync();
-
-        //    //if (borrowedBooks == null || !borrowedBooks.Any())
-        //    //{
-        //    //    throw new Exception("GetAllBorrowsAsync() returned null or empty list.");
-        //    //}
-
-
-        //    var borrowedBooks = await _borrowInterface.GetAllBorrowsAsync();
-
-        //    // Agar user Admin hai, sirf uski library ke borrows dikhne chahiye
-        //    if (userRoleId != 1)
-        //    {
-        //        borrowedBooks = borrowedBooks.Where(b => b.LibraryId == libraryId).ToList();
-        //    }
-
-        //    // Har borrow record ke liye fine fetch karo
-        //    foreach (var borrow in borrowedBooks)
-        //    {
-        //        borrow.FineAmount = await _fineInterface.CalculateFineAsync(borrow.BorrowId);
-
-        //        //var fine = await _fineInterface.GetFineByBorrowIdAsync(borrow.BorrowId);
-        //        //borrow.Fine = fine;  // Fine ko borrow record me assign karo
-        //    }
-
-        //    return View(borrowedBooks);
-        //}
-
-
-        //public async Task<IActionResult> BorrowList()
-        //{
-        //    var borrowedBooks = await _borrowInterface.GetAllBorrowsAsync();
-
-        //    // Har borrow record ke liye fine fetch karo
-        //    foreach (var borrow in borrowedBooks)
-        //    {
-        //        var fine = await _fineInterface.GetFineByBorrowIdAsync(borrow.BorrowId);
-        //        borrow.Fine = fine;  // Fine ko borrow record me assign karo
-        //    }
-
-        //    return View(borrowedBooks);
-        //}
-
+        
 
         [HttpGet]
         public async Task<IActionResult> AddBorrow()
             {
-             int libraryId = HttpContext.Session.GetInt32("LibraryId") ?? 0; // Librarian ki LibraryId
-            int userRoleId = HttpContext.Session.GetInt32("UserRoleId") ?? 0;
-
-            List<Member> members;
-            List<Book> books;
-
-            if (userRoleId == 1)
+            string permissionType = GetUserPermission("Add Borrower");
+            if (permissionType == "CanEdit" || permissionType == "FullAccess")
             {
-                members = await _libraryInterface.GetAllMembersAsync();
-                books = await _bookServiceInterface.GetAvailableBooksAsync();
+                int libraryId = HttpContext.Session.GetInt32("LibraryId") ?? 0; // Librarian ki LibraryId
+                int userRoleId = HttpContext.Session.GetInt32("UserRoleId") ?? 0;
+
+                List<Member> members;
+                List<Book> books;
+
+                if (userRoleId == 1)
+                {
+                    members = await _libraryInterface.GetAllMembersAsync();
+                    books = await _bookServiceInterface.GetAvailableBooksAsync();
+                }
+                else
+                {
+                    members = await _libraryInterface.GetLibraryMembersAsync(libraryId);
+                    books = await _bookServiceInterface.GetAvailableBooksByLibraryAsync(libraryId);
+                }
+
+                Console.WriteLine($"Members Count: {members?.Count}");
+                Console.WriteLine($"Available Books Count: {books?.Count}");
+
+                ViewBag.Members = new SelectList(members ?? new List<Member>(), "Id", "Name");
+                //            ViewBag.Books = new SelectList(books ?? new List<Book>(), "BookId", "Title");
+
+                ViewBag.Books = new SelectList(await _bookServiceInterface.GetAvailableBooksByLibraryAsync(libraryId), "BookId", "Title");
+
+                return View();
             }
             else
             {
-                members = await _libraryInterface.GetLibraryMembersAsync(libraryId);
-                books = await _bookServiceInterface.GetAvailableBooksByLibraryAsync(libraryId);
+                return RedirectToAction("UnauthorisedAccess", "Error");
             }
-
-            Console.WriteLine($"Members Count: {members?.Count}");
-            Console.WriteLine($"Available Books Count: {books?.Count}");
-
-            ViewBag.Members = new SelectList(members ?? new List<Member>(), "Id", "Name");
-            //            ViewBag.Books = new SelectList(books ?? new List<Book>(), "BookId", "Title");
-
-            ViewBag.Books = new SelectList( await _bookServiceInterface.GetAvailableBooksByLibraryAsync(libraryId), "BookId","Title");
-
-            return View();
         }
-
-
-
-
-        //[HttpGet]
-        //public async Task<IActionResult> AddBorrow()
-        //{
-        //    var members = await _libraryInterface.GetAllMembersAsync();
-        //    var books = await _bookServiceInterface.GetAvailableBooksAsync();
-
-        //    Console.WriteLine($"Members Count: {members?.Count}");
-        //    Console.WriteLine($"Available Books Count: {books?.Count}");
-
-        //    if (books == null)
-        //    {
-        //        Console.WriteLine("books is NULL!");
-        //        books = new List<Book>(); // Null Handling
-        //    }
-
-        //    ViewBag.Members = new SelectList(members ?? new List<Member>(), "Id", "Name");
-        //    ViewBag.Books = new SelectList(await _bookServiceInterface.GetAvailableBooksAsync(), "BookId", "Title");
-
-        //    return View();
-        //}
-
-      
 
         [HttpPost]
         public async Task<IActionResult> AddBorrow(Borrow borrow)
@@ -289,11 +189,22 @@ namespace library_management.Controllers
         //}
 
         // GET method - Display Return Page
+
+
         [HttpGet]
         public async Task<IActionResult> Return()
         {
-            var borrowList = await _borrowInterface.GetAllBorrowsAsync(HttpContext.Session.GetInt32("LibraryId") ?? 0); // List return karo
-            return View(borrowList);  // IEnumerable<Borrow> pass kar rahe hai
+            string permissionType = GetUserPermission("Borrow Managemet");
+            if (permissionType == "CanView" || permissionType == "CanEdit" || permissionType == "FullAccess")
+            {
+                var borrowList = await _borrowInterface.GetAllBorrowsAsync(HttpContext.Session.GetInt32("LibraryId") ?? 0); // List return karo
+                return View(borrowList);  // IEnumerable<Borrow> pass kar rahe hai
+            }
+            else
+            {
+                return RedirectToAction("UnauthorisedAccess", "Error");
+            }
+            
         }
 
 
@@ -392,16 +303,27 @@ namespace library_management.Controllers
         //}
 
         [HttpGet]
+
         public async Task<IActionResult> UpdateLibraryFine()
         {
-            int libraryId = HttpContext.Session.GetInt32("LibraryId") ?? 0; // Logged-in admin library
-            if (libraryId == 0) return NotFound("Library ID not found in session.");
 
-            var library = await _connect.Libraries.FindAsync(libraryId);
-            if (library == null) return NotFound("Library not found.");
+            string permissionType = GetUserPermission("Borrow Managemet");
+            if (permissionType == "CanEdit" || permissionType == "FullAccess")
+            {
+                int libraryId = HttpContext.Session.GetInt32("LibraryId") ?? 0; // Logged-in admin library
+                if (libraryId == 0) return NotFound("Library ID not found in session.");
 
-            return View(library);
-        }
+                var library = await _connect.Libraries.FindAsync(libraryId);
+                if (library == null) return NotFound("Library not found.");
+
+                return View(library);
+
+            }
+            else
+            {
+                return RedirectToAction("UnauthorisedAccess", "Error");
+            }
+                    }
 
         [HttpPost]
         public async Task<IActionResult> UpdateLibraryFine(decimal fineAmount)
@@ -516,101 +438,6 @@ namespace library_management.Controllers
 
             return View(pendingReturns);
         }
-        //[HttpPost]
-        //public IActionResult ApproveReturn(int borrowId)
-        //{
-        //    var borrowRecord = _connect.Borrows.FirstOrDefault(b => b.BorrowId == borrowId && b.Status == "Pending Return");
-
-        //    if (borrowRecord == null)
-        //    {
-        //        TempData["Error"] = "Invalid approval request.";
-        //        return RedirectToAction("PendingReturns");
-        //    }
-
-        //    borrowRecord.Status = "Returned";
-        //    borrowRecord.ReturnDate = DateTime.Now;
-
-        //    // Update Stock in LibraryBooks Table
-        //    var libraryBook = _connect.LibraryBooks.FirstOrDefault(lb => lb.BookId == borrowRecord.BookId && lb.LibraryId == borrowRecord.LibraryId);
-        //    if (libraryBook != null)
-        //    {
-        //        libraryBook.Stock += 1;
-        //    }
-
-        //    _connect.SaveChanges();
-        //    TempData["Success"] = "Book return approved.";
-        //    return RedirectToAction("PendingReturns");
-        //}
-
-
-        //    [HttpPost]
-        //    public IActionResult ApproveReturn(int borrowId)
-        //    {
-        //        var borrow = _connect.Borrows
-        //  .Include(b => b.Book)
-        //  .Include(b => b.Library) // Required for fine calculation
-        //  .FirstOrDefault(b => b.BorrowId == borrowId && b.Status == "Pending Return");
-
-        //        if (borrow == null)
-        //        {
-        //            TempData["Error"] = "Invalid return request.";
-        //            return RedirectToAction("PendingReturns");
-        //        }
-        //        borrow.ReturnDate = DateTime.Now;
-
-        //        // Fine Calculation Logic
-        //        decimal fineAmount = 0;
-        //        //var finePerDay = _connect.Fines
-        //        //    .Where(f => f.LibraryId == borrow.LibraryId)
-        //        //    .Select(f => f.FineAmount)
-        //        //    .FirstOrDefault(); // Fetch library-specific fine per day
-        //        var finePerDay = _connect.Libraries
-        //.Where(l => l.LibraryId == borrow.LibraryId)
-        //.Select(l => l.LibraryFineAmount)
-        //.FirstOrDefault();
-
-        //        if (borrow.ReturnDate > borrow.DueDate) // If returned late
-        //        {
-        //            int overdueDays = Math.Max(0, (DateTime.Now - borrow.DueDate).Days);
-        //            fineAmount = (overdueDays > 0) ? (overdueDays * (borrow.Library?.LibraryFineAmount ?? 0)) : 0;
-        //        }
-
-
-        //        // Update Borrow Entry
-        //        borrow.Status = "Returned";
-        //        _connect.SaveChanges();
-
-        //        // Add Fine Entry (if applicable)
-        //        // Check if Fine record already exists
-        //        var existingFine = _connect.Fines.FirstOrDefault(f => f.BorrowId == borrow.BorrowId);
-
-        //        if (existingFine == null) // Only insert if no existing fine record
-        //        {
-        //            var fine = new Fine
-        //            {
-        //                BorrowId = borrow.BorrowId,
-        //                FineAmount = fineAmount,
-        //                PaidAmount = 0,
-        //                PaymentStatus = "Pending"
-        //            };
-
-        //            _connect.Fines.Add(fine);
-        //            _connect.SaveChanges();
-        //        }
-
-
-        //        // Update Stock
-        //        var libraryBook = _connect.LibraryBooks
-        //            .FirstOrDefault(lb => lb.LibraryId == borrow.LibraryId && lb.BookId == borrow.BookId);
-        //        if (libraryBook != null)
-        //        {
-        //            libraryBook.Stock += 1;
-        //            _connect.SaveChanges();
-        //        }
-
-        //        TempData["Success"] = "Book returned successfully.";
-        //        return RedirectToAction("BorrowList");
-        //    }
 
         [HttpPost]
         public IActionResult ApproveReturn(int borrowId)

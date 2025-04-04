@@ -39,10 +39,20 @@
                                 <td>@member.CreatedAt</td>
                                 <td>@member.Address</td>
                                 <td>
-                                    <a class="me-3 btn btn-primary details-btn" href="@Url.Action("AdminDetails", "AdminMaster", new { id = member.LibraryId })">Details</a>
-                                    <a class="me-3 btn btn-primary Edit-btn" href="@Url.Action("AddAdmin", "AdminMaster", new { id = member.LibraryId })">Edit</a>
-                                @* <button class="me-3 btn delete-btn" data-id="@member.Id">Delete</button> *@
-                                    <button class="me-3 btn btn-primary delete-btn" data-id="@member.LibraryId">Delete</button>
+                                <div class="d-flex align-items-center gap-2">
+                                    <a class="btn btn-primary details-btn" href="@Url.Action("AdminDetails", "AdminMaster", new { id = member.LibraryId })">
+                                        <i class="fas fa-info-circle"></i>
+                                    </a>
+
+                                    <a class="btn btn-warning Edit-btn" href="@Url.Action("AddAdmin", "AdminMaster", new { id = member.LibraryId })">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+
+                                    <button class="btn btn-danger delete-btn" data-id="@member.LibraryId">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+
                                 </td>
                             </tr>
                     }

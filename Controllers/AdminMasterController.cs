@@ -17,7 +17,8 @@ namespace library_management.Controllers
         private readonly AdminInterface _adminInterface;
         private readonly libraryInterface _libraryInterface;
         private readonly IWebHostEnvironment _webHostEnvironment;
-        public AdminMasterController(dbConnect connect,EmailSenderInterface sender,ISidebarRepository sidebar,ILogger<AdminMasterController> logger,AdminInterface admin,libraryInterface libraryInterface,IWebHostEnvironment webHostEnvironment) : base(sidebar)
+        private readonly PermisionHelperInterface _permission;
+        public AdminMasterController(dbConnect connect,EmailSenderInterface sender,ISidebarRepository sidebar,ILogger<AdminMasterController> logger,AdminInterface admin,libraryInterface libraryInterface,IWebHostEnvironment webHostEnvironment,PermisionHelperInterface permisionHelperInterface) : base(sidebar)
         {
             _connect = connect;
             _sender = sender;
@@ -25,7 +26,17 @@ namespace library_management.Controllers
             _adminInterface = admin;
             _libraryInterface = libraryInterface;
             _webHostEnvironment = webHostEnvironment;
+            _permission = permisionHelperInterface;
         }
+
+        public string GetUserPermission(string action)
+        {
+            int roleId = HttpContext.Session.GetInt32("UserRoleId").Value;
+            string permissionType = _permission.HasAccess(action, roleId);
+            ViewBag.PermissionType = permissionType;
+            return permissionType;
+        }
+
 
         public IActionResult Index()
         {
@@ -34,15 +45,31 @@ namespace library_management.Controllers
 
         public async Task<IActionResult> AdminList()
         {
-            return View(await _adminInterface.GetAllAdminsData());
+            string permissionType = GetUserPermission("AdminList");
+            if (permissionType == "CanView" || permissionType == "CanEdit" || permissionType == "FullAccess")
+            {
+                return View(await _adminInterface.GetAllAdminsData());
+            }
+            else
+            {
+                return RedirectToAction("UnauthorisedAccess", "Error");
+            }
         }
 
         [HttpGet]
         public IActionResult AdminDetails(int id)
         {
-            Library admin = _connect.Libraries.FirstOrDefault(x => x.LibraryId == id);
-
-            return View(admin);
+            string permissionType = GetUserPermission("AdminList");
+            if (permissionType == "CanView" || permissionType == "CanEdit" || permissionType == "FullAccess")
+            {
+                Library admin = _connect.Libraries.FirstOrDefault(x => x.LibraryId == id);
+                return View(admin);
+            }
+            else
+            {
+                return RedirectToAction("UnauthorisedAccess", "Error");
+            }
+           
         }
         [HttpPost]
         public async Task<IActionResult> UpdateStatus(int UserId, bool Status)
@@ -53,12 +80,21 @@ namespace library_management.Controllers
         [HttpGet]
         public async Task<IActionResult> AddAdmin(int? id)
         {
-            Library model = new Library();
-            if (id > 0)
+            string permissionType = GetUserPermission("AddAdmin");
+            if (permissionType == "CanEdit" || permissionType == "FullAccess")
             {
-                model = await _connect.Libraries.FirstOrDefaultAsync(x => x.LibraryId == id);
+                Library model = new Library();
+                if (id > 0)
+                {
+                    model = await _connect.Libraries.FirstOrDefaultAsync(x => x.LibraryId == id);
+                }
+                return View(model);
             }
-            return View(model);
+            else
+            {
+                return RedirectToAction("UnauthorisedAccess", "Error");
+            }
+            
         }
 
         [HttpPost]
@@ -169,52 +205,61 @@ namespace library_management.Controllers
         [HttpGet]
         public async Task<IActionResult> PendingMemberships()
         {
-            try
+            string permissionType = GetUserPermission("Manage Member Approval");
+            if (permissionType == "CanView" || permissionType == "CanEdit" || permissionType == "FullAccess")
             {
-                // Check if the session has the admin email
-                var adminEmail = HttpContext.Session.GetString("UserEmail");
-
-                if (string.IsNullOrEmpty(adminEmail))
+                try
                 {
-                    Console.WriteLine("Session doesn't contain admin email.");
-                    return RedirectToAction("Login"); // If no admin email in session, redirect to login
+                    // Check if the session has the admin email
+                    var adminEmail = HttpContext.Session.GetString("UserEmail");
+
+                    if (string.IsNullOrEmpty(adminEmail))
+                    {
+                        Console.WriteLine("Session doesn't contain admin email.");
+                        return RedirectToAction("Login"); // If no admin email in session, redirect to login
+                    }
+
+                    // Get admin info from the database (make sure this user is an admin)
+                    var admin = await _connect.Members
+                        .FirstOrDefaultAsync(m => m.Email == adminEmail && m.RoleId == 2);
+
+                    if (admin == null)
+                    {
+                        Console.WriteLine($"Admin not found or user is not an admin. Email: {adminEmail}");
+                        return RedirectToAction("Login"); // Redirect if the user is not an admin
+                    }
+
+                    // Log admin info to confirm it's retrieved correctly
+                    Console.WriteLine($"Admin found: {admin.Email}, Admin ID: {admin.Id}");
+
+                    // Query for pending memberships for this admin's library
+                    var pendingMembershipsQuery = _connect.Memberships
+                        .Include(m => m.Member)
+                        .Include(m => m.Library)
+                        .Where(m => m.Library.AdminId == admin.Id && m.IsActive == false && m.IsDeleted == false);
+
+                    // Check if the query is returning any data before calling ToListAsync
+                    var pendingMemberships = await pendingMembershipsQuery.ToListAsync();
+
+                    if (pendingMemberships == null || !pendingMemberships.Any())
+                    {
+                        Console.WriteLine("No pending memberships found for this admin.");
+                        return View(new List<Membership>()); // Return empty if no pending memberships
+                    }
+
+                    return View(pendingMemberships);
+                }
+                catch (Exception ex)
+                {
+                    // Log any errors that occur
+                    Console.WriteLine($"Error occurred: {ex.Message}");
+                    return View(new List<Membership>());
                 }
 
-                // Get admin info from the database (make sure this user is an admin)
-                var admin = await _connect.Members
-                    .FirstOrDefaultAsync(m => m.Email == adminEmail && m.RoleId == 2);
-
-                if (admin == null)
-                {
-                    Console.WriteLine($"Admin not found or user is not an admin. Email: {adminEmail}");
-                    return RedirectToAction("Login"); // Redirect if the user is not an admin
-                }
-
-                // Log admin info to confirm it's retrieved correctly
-                Console.WriteLine($"Admin found: {admin.Email}, Admin ID: {admin.Id}");
-
-                // Query for pending memberships for this admin's library
-                var pendingMembershipsQuery = _connect.Memberships
-                    .Include(m => m.Member)
-                    .Include(m => m.Library)
-                    .Where(m => m.Library.AdminId == admin.Id && m.IsActive == false && m.IsDeleted == false);
-
-                // Check if the query is returning any data before calling ToListAsync
-                var pendingMemberships = await pendingMembershipsQuery.ToListAsync();
-
-                if (pendingMemberships == null || !pendingMemberships.Any())
-                {
-                    Console.WriteLine("No pending memberships found for this admin.");
-                    return View(new List<Membership>()); // Return empty if no pending memberships
-                }
-
-                return View(pendingMemberships);
             }
-            catch (Exception ex)
+            else
             {
-                // Log any errors that occur
-                Console.WriteLine($"Error occurred: {ex.Message}");
-                return View(new List<Membership>());
+                return RedirectToAction("UnauthorisedAccess", "Error");
             }
         }
 

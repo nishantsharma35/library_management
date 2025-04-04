@@ -1,34 +1,59 @@
 ﻿@model List<library_management.Models.Library>
 
-<h2>Available Libraries</h2>
-
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Library Name</th>
-            <th>Location</th>
-            <th>Admin Id</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var library in Model)
-        {
-            <tr>
-                <td>@library.Libraryname</td>
-                <td>@library.Address</td>
-                <td>@library.AdminId</td>
-                <td>
-                    <form asp-controller="Membership" asp-action="Joinlibrary" method="post">
-                        <input type="hidden" name="libraryId" value="@library.LibraryId" />
-                        <button class="btn btn-primary joinLibrary" data-id="@library.LibraryId">Join</button>
-                    </form>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
-
+   
+@{
+    // Layout = "/Views/Shared/_mainLayout.cshtml";
+   
+    ViewData["Title"] = "JoinLibrary";
+}
+<div id="wrapper">
+    <!-- Content Wrapper -->
+    <div id="content-wrapper" class="d-flex flex-column">
+        <!-- Main Content -->
+        <div id="content">
+            <!-- Begin Page Content -->
+            <div class="container-fluid">
+                <!-- Page Heading -->
+                <h1 class="h3 mb-4 text-gray-800 text-center">Join Library Books</h1>
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Library List</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>Library Name</th>
+                                        <th>Location</th>
+                                        <th>Admin Id</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var library in Model)
+                                    {
+                                        <tr>
+                                            <td>@library.Libraryname</td>
+                                            <td>@library.Address</td>
+                                            <td>@library.AdminId</td>
+                                            <td>
+                                                <form asp-controller="Membership" asp-action="Joinlibrary" method="post">
+                                                    <input type="hidden" name="libraryId" value="@library.LibraryId" />
+                                                    <button class="btn btn-primary joinLibrary" data-id="@library.LibraryId">Join</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");

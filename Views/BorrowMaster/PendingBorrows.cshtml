@@ -1,6 +1,7 @@
 ﻿@model List<Borrow>
 
 @{
+    Layout = "/Views/Shared/_mainLayout.cshtml";
     ViewData["Title"] = "Pending Borrow Requests";
 }
 
@@ -30,7 +31,7 @@
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-bordered" id="dataTable">
+                                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                                     <thead>
                                         <tr>
                                             <th>Member</th>
@@ -48,7 +49,7 @@
                                                 <td>@borrow.IssueDate.ToShortDateString()</td>
                                                 <td>
                                                     <button class="btn btn-success approve-btn" data-id="@borrow.BorrowId">
-                                                        <i class="fas fa-check"></i> Approve (@borrow.BorrowId)
+                                                        <i class="fas fa-check"></i> Approve
                                                     </button>
 
                                                     <button class="btn btn-danger reject-btn" data-id="@borrow.BorrowId">
@@ -74,9 +75,18 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script src="~/memberportal/approverejectborrow.js" ></script>
-@* <script src="~/assets/vendor/jquery/jquery.min.js"></script> *@
-@* <script src="~/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script> *@
-@* <script src="~/assets/vendor/jquery-easing/jquery.easing.min.js"></script> *@
-@* <script src="~/assets/js/sb-admin-2.min.js"></script> *@
-@* <script src="~/assets/vendor/datatables/jquery.dataTables.min.js"></script> *@
-@* <script src="~/assets/vendor/datatables/dataTables.bootstrap4.min.js"></script> *@
+@section Scripts {
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#dataTable').DataTable({
+                "paging": true,
+                "searching": true,
+                "ordering": true,
+                "info": true,
+                 "lengthMenu": [5, 10, 25, 50, 100], // ✅ Entries per page
+                    "responsive": true
+            });
+        });
+    </script>
+}

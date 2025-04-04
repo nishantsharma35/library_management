@@ -14,11 +14,21 @@ namespace library_management.Controllers
     {
         private readonly dbConnect _context;
         private readonly BookServiceInterface _bookServiceInterface;
-        public BookMasterController(dbConnect connect, BookServiceInterface bookServiceInterface, ISidebarRepository sidebar) : base(sidebar)
+        private readonly PermisionHelperInterface _permission;
+        public BookMasterController(dbConnect connect, BookServiceInterface bookServiceInterface, ISidebarRepository sidebar, PermisionHelperInterface permission) : base(sidebar)
         {
             _context = connect;
             _bookServiceInterface = bookServiceInterface;
+            _permission = permission;
         }
+        public string GetUserPermission(string action)
+        {
+            int roleId = HttpContext.Session.GetInt32("UserRoleId").Value;
+            string permissionType = _permission.HasAccess(action, roleId);
+            ViewBag.PermissionType = permissionType;
+            return permissionType;
+        }
+
         public IActionResult Index()
         {
             return View();
@@ -26,8 +36,17 @@ namespace library_management.Controllers
 
         public async Task<IActionResult> BookList()
         {
-            var books = await _bookServiceInterface.GetAllbooksData(); //  No Extra Parameters
-            return View(books);
+            string permissionType = GetUserPermission("View Book");
+            if (permissionType == "CanView" || permissionType == "CanEdit" || permissionType == "FullAccess")
+            {
+                var books = await _bookServiceInterface.GetAllbooksData(); //  No Extra Parameters
+                return View(books);
+            }
+            else
+            {
+                return RedirectToAction("UnauthorisedAccess", "Error");
+            }
+           
         }
 
 
@@ -46,33 +65,42 @@ namespace library_management.Controllers
         [HttpGet]
         public IActionResult Details(int id)
         {
-            int libraryId = _bookServiceInterface.GetLoggedInLibrarianLibraryId();
-            int userRoleId = HttpContext.Session.GetInt32("UserRoleId") ?? 0;
-
-            //  Pehle LibraryBooks table se check karo ki book exist karti hai ya nahi
-            var libraryBookQuery = _context.LibraryBooks
-                .Include(lb => lb.Book)
-                .ThenInclude(b => b.Genre)
-                .Where(lb => lb.BookId == id);
-
-            //  Agar user Librarian hai, to sirf uski library ki books dikhani hai
-            if (userRoleId != 1)
+            string permissionType = GetUserPermission("View Book");
+            if (permissionType == "CanView" || permissionType == "CanEdit" || permissionType == "FullAccess")
             {
-                libraryBookQuery = libraryBookQuery.Where(lb => lb.LibraryId == libraryId);
+                int libraryId = _bookServiceInterface.GetLoggedInLibrarianLibraryId();
+                int userRoleId = HttpContext.Session.GetInt32("UserRoleId") ?? 0;
+
+                //  Pehle LibraryBooks table se check karo ki book exist karti hai ya nahi
+                var libraryBookQuery = _context.LibraryBooks
+                    .Include(lb => lb.Book)
+                    .ThenInclude(b => b.Genre)
+                    .Where(lb => lb.BookId == id);
+
+                //  Agar user Librarian hai, to sirf uski library ki books dikhani hai
+                if (userRoleId != 1)
+                {
+                    libraryBookQuery = libraryBookQuery.Where(lb => lb.LibraryId == libraryId);
+                }
+
+                var libraryBook = libraryBookQuery.FirstOrDefault();
+
+                if (libraryBook == null)
+                {
+                    return NotFound(); // ✅ Agar book exist nahi karti ya access nahi allowed, to 404
+                }
+
+                // ✅ Final Book object create karna
+                var book = libraryBook.Book;
+                book.Stock = libraryBook.Stock; // ✅ Stock bhi assign kar diya
+
+                return View(book);
             }
-
-            var libraryBook = libraryBookQuery.FirstOrDefault();
-
-            if (libraryBook == null)
+            else
             {
-                return NotFound(); // ✅ Agar book exist nahi karti ya access nahi allowed, to 404
+                return RedirectToAction("UnauthorisedAccess", "Error");
             }
-
-            // ✅ Final Book object create karna
-            var book = libraryBook.Book;
-            book.Stock = libraryBook.Stock; // ✅ Stock bhi assign kar diya
-
-            return View(book);
+            
         }
 
 
@@ -94,23 +122,32 @@ namespace library_management.Controllers
         [HttpGet]
         public IActionResult AddBook(int? id)
         {
-            ViewBag.Genres = _context.Genres.ToList();
-            ViewBag.LibraryId = _bookServiceInterface.GetLoggedInLibrarianLibraryId();
-            // Genre dropdown ke liye data
-
-            if (id == null || id == 0)
+            string permissionType = GetUserPermission("Add Book");
+            if (permissionType == "CanEdit" || permissionType == "FullAccess")
             {
-                return View(new Book()); // Add Book case
+                ViewBag.Genres = _context.Genres.ToList();
+                ViewBag.LibraryId = _bookServiceInterface.GetLoggedInLibrarianLibraryId();
+                // Genre dropdown ke liye data
+
+                if (id == null || id == 0)
+                {
+                    return View(new Book()); // Add Book case
+                }
+                else
+                {
+                    var book = _context.Books.FirstOrDefault(b => b.BookId == id);
+                    if (book == null)
+                    {
+                        return NotFound();
+                    }
+                    return View(book); // Edit case
+                }
             }
             else
             {
-                var book = _context.Books.FirstOrDefault(b => b.BookId == id);
-                if (book == null)
-                {
-                    return NotFound();
-                }
-                return View(book); // Edit case
+                return RedirectToAction("UnauthorisedAccess", "Error");
             }
+            
         }
 
 
@@ -210,7 +247,17 @@ namespace library_management.Controllers
         [HttpGet]
         public IActionResult BulkUpload()
         {
-            return View(); // Ensure that BulkUpload.cshtml exists in Views/BookMaster
+            string permissionType = GetUserPermission("Bulk book adding");
+            if (permissionType == "CanEdit" || permissionType == "FullAccess")
+            {
+                return View(); // Ensure that BulkUpload.cshtml exists in Views/BookMaster
+            }
+            else
+            {
+                return RedirectToAction("UnauthorisedAccess", "Error");
+            }
+
+           
         }
 
 

@@ -9,7 +9,7 @@ namespace library_management.repository.internalinterface
         Task<List<Member>> GetLibraryMembersAsync(int libraryId);
         Task<object> UpdateStatus(int adminId, bool status);
 
-        Task<object> AddMember(Member user);
+        Task<object> AddMember(Member user, int libraryId);
         Member checkExistence(string Username, string email, int UserId);
 
     }

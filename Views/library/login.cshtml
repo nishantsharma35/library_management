@@ -2,71 +2,32 @@
 
 @{
     Layout = "/Views/Shared/_Layout.cshtml";
-
     ViewData["Title"] = "Login";
 }
+
 <link href="~/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
 <link href="~/assets/css/sb-admin-2.min.css" rel="stylesheet">
 
+<style>
+    .bg-login-image {
+        background-image: url('/images/loginimage.jpg'); /* 👈 yaha apni image ka path set karo */
+        background-size: cover;
+        background-position: center;
+        height: 100%;
+    }
+</style>
 
-@* <h4 class="text-muted text-center mb-4">Join Our Library</h4> *@
-@* <hr class="mb-4" /> *@
-@* <img src="#" id="imagePreview" class="img-fluid rounded" alt="Signup Graphic" style="display:none"> *@
-@* <div class="container"> *@
-@*     <div class="row justify-content-center"> *@
-@*         <div class="col-md-6"> *@
-@*             <div class="card shadow-lg"> *@
-@*                 <div class="card-body"> *@
-@*                     <form id="loginForm"> *@
-@*                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div> *@
-
-@*                         <div class="form-group mb-3"> *@
-@*                             <label asp-for="EmailOrName" class="form-label">Enter Your Name Or Email</label> *@
-@*                             <input asp-for="EmailOrName" class="form-control rounded-pill" placeholder="Enter your full name" /> *@
-@*                         </div> *@
-@*                         <div class="form-group"> *@
-@*                             <label asp-for="Password" class="form-label">Enter Your Password</label> *@
-@*                             <input type="password" asp-for="Password" class="form-control rounded-pill" placeholder="Enter your password" /> *@
-@*                         </div> *@
-                         @* <div class="form-check">  *@
-                         @*     <label class="form-check-label" for="showPasswordCheckbox">Show Password</label>  *@
-                         @*     <input type="checkbox" id="showPasswordCheckbox" class="form-check-input" />  *@
-                         @* </div>  *@
-@*                         <a href="~/library/ForgotPassword">Forget Password</a> *@
-
-
-@*                         <div class="form-check"> *@
-@*                             <label class="form-check-label" for="Remeber Me">Remember Me !</label> *@
-@*                             <input type="checkbox" asp-for="RememberMe" class="form-check-input" /> *@
-@*                         </div> *@
-
-
-
-@*                         <div class="form-group text-center"> *@
-@*                             <input type="submit" value="Login" class="btn btn-primary px-4 py-2 rounded-pill shadow" /> *@
-@*                         </div> *@
-@*                     </form> *@
-@*                 </div> *@
-@*             </div> *@
-@*         </div> *@
-@*     </div> *@
-@* </div> *@
-
- @* <div class="text-center mt-4">  *@
- @*     <a asp-action="Index" class="text-decoration-none">Back to List</a>  *@
- @* </div>  *@
 <div class="container">
 
     <!-- Outer Row -->
     <div class="row justify-content-center">
-
         <div class="col-xl-10 col-lg-12 col-md-9">
-
             <div class="card o-hidden border-0 shadow-lg my-5">
                 <div class="card-body p-0">
                     <!-- Nested Row within Card Body -->
                     <div class="row">
-                        <div class="col-lg-6 d-none d-lg-block bg-login-image"></div>
+                        <div class="col-lg-6 d-none d-lg-block bg-login-image"></div> <!-- 👈 Image wala section -->
+
                         <div class="col-lg-6">
                             <div class="p-5">
                                 <div class="text-center">
@@ -76,27 +37,26 @@
                                     <div class="form-group">
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                        <input class="form-control form-control-user"
-                                               asp-for="EmailOrName"   placeholder="Enter Email Or Username">
-                                          </div>
+                                            <input class="form-control form-control-user" asp-for="EmailOrName" placeholder="Enter Email Or Username">
+                                        </div>
                                     </div>
                                     <div class="form-group">
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                        <input type="password" class="form-control form-control-user"
-                                               asp-for="Password" placeholder="Password"></div>
+                                            <input type="password" class="form-control form-control-user" asp-for="Password" placeholder="Password">
+                                        </div>
                                     </div>
+
                                     <div style="display:flex;justify-content:space-around;">
-                                    <div class="form-check">
-                                        <input type="checkbox" id="showPasswordCheckbox" class="form-check-input" />
-                                        <label class="form-check-label" for="showPasswordCheckbox">Show Password</label>
-                                    </div>
+                                        <div class="form-check">
+                                            <input type="checkbox" id="showPasswordCheckbox" class="form-check-input" />
+                                            <label class="form-check-label" for="showPasswordCheckbox">Show Password</label>
+                                        </div>
 
-
-                                    <div class="form-check" >
-                                        <input type="checkbox" asp-for="RememberMe" class="form-check-input" />
-                                        <label class="form-check-label" for="Remeber Me">Remember Me !</label>
-                                    </div>
+                                        <div class="form-check">
+                                            <input type="checkbox" asp-for="RememberMe" class="form-check-input" />
+                                            <label class="form-check-label" for="RememberMe">Remember Me!</label>
+                                        </div>
                                     </div>
 
                                     <div class="form-group text-center">
@@ -104,32 +64,25 @@
                                             <span class="spinner-border spinner-border-sm d-none" id="btnLoader" role="status" aria-hidden="true"></span>
                                             Submit
                                         </button>
-                                   </div> 
-                                   
-
+                                    </div>
                                 </form>
                                 <hr>
                                 <div style="display:flex;justify-content:space-around;">
-                                <div class="text-center">
-                                    <a class="small" asp-action="ForgotPassword">Forgot Password?</a>
-                                </div>
-                                <div class="text-center">
-                                    <a class="small" asp-action="Register">Create an Account!</a>
+                                    <div class="text-center">
+                                        <a class="small" asp-action="ForgotPassword">Forgot Password?</a>
+                                    </div>
+                                    <div class="text-center">
+                                        <a class="small" asp-action="Register">Create an Account!</a>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> <!-- col-lg-6 form side -->
                     </div>
                 </div>
             </div>
-
         </div>
-
     </div>
-
-  </div>
 </div>
-
-
 
 @section Scripts {
     @{
@@ -138,12 +91,116 @@
     <script src="~/libraryjs/login.js"></script>
     <script src="~/assets/vendor/jquery/jquery.min.js"></script>
     <script src="~/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Core plugin JavaScript-->
     <script src="~/assets/vendor/jquery-easing/jquery.easing.min.js"></script>
-
-    <!-- Custom scripts for all pages-->
     <script src="~/assets/js/sb-admin-2.min.js"></script>
-
 }
+
+
+
+
+
+
+@* @model library_management.Models.LoginModel *@
+
+@* @{ *@
+@*     Layout = "/Views/Shared/_Layout.cshtml"; *@
+
+@*     ViewData["Title"] = "Login"; *@
+@* } *@
+@* <link href="~/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css"> *@
+@* <link href="~/assets/css/sb-admin-2.min.css" rel="stylesheet"> *@
+
+
+
+@* <div class="container"> *@
+
+@*     <!-- Outer Row --> *@
+@*     <div class="row justify-content-center"> *@
+
+@*         <div class="col-xl-10 col-lg-12 col-md-9"> *@
+
+@*             <div class="card o-hidden border-0 shadow-lg my-5"> *@
+@*                 <div class="card-body p-0"> *@
+@*                     <!-- Nested Row within Card Body --> *@
+@*                     <div class="row"> *@
+@*                         <div class="col-lg-6 d-none d-lg-block bg-login-image"></div> *@
+@*                         <div class="col-lg-6"> *@
+@*                             <div class="p-5"> *@
+@*                                 <div class="text-center"> *@
+@*                                     <h1 class="h4 text-gray-900 mb-4">Welcome Back!</h1> *@
+@*                                 </div> *@
+@*                                 <form id="loginForm"> *@
+@*                                     <div class="form-group"> *@
+@*                                         <div class="input-group"> *@
+@*                                             <span class="input-group-text"><i class="fas fa-user"></i></span> *@
+@*                                         <input class="form-control form-control-user" *@
+@*                                                asp-for="EmailOrName"   placeholder="Enter Email Or Username"> *@
+@*                                           </div> *@
+@*                                     </div> *@
+@*                                     <div class="form-group"> *@
+@*                                         <div class="input-group"> *@
+@*                                             <span class="input-group-text"><i class="fas fa-lock"></i></span> *@
+@*                                         <input type="password" class="form-control form-control-user" *@
+@*                                                asp-for="Password" placeholder="Password"></div> *@
+@*                                     </div> *@
+@*                                     <div style="display:flex;justify-content:space-around;"> *@
+@*                                     <div class="form-check"> *@
+@*                                         <input type="checkbox" id="showPasswordCheckbox" class="form-check-input" /> *@
+@*                                         <label class="form-check-label" for="showPasswordCheckbox">Show Password</label> *@
+@*                                     </div> *@
+
+
+@*                                     <div class="form-check" > *@
+@*                                         <input type="checkbox" asp-for="RememberMe" class="form-check-input" /> *@
+@*                                         <label class="form-check-label" for="Remeber Me">Remember Me !</label> *@
+@*                                     </div> *@
+@*                                     </div> *@
+
+@*                                     <div class="form-group text-center"> *@
+@*                                         <button type="submit" id="btnSubmit" class="btn btn-primary btn-user btn-block"> *@
+@*                                             <span class="spinner-border spinner-border-sm d-none" id="btnLoader" role="status" aria-hidden="true"></span> *@
+@*                                             Submit *@
+@*                                         </button> *@
+@*                                    </div>  *@
+                                   
+
+@*                                 </form> *@
+@*                                 <hr> *@
+@*                                 <div style="display:flex;justify-content:space-around;"> *@
+@*                                 <div class="text-center"> *@
+@*                                     <a class="small" asp-action="ForgotPassword">Forgot Password?</a> *@
+@*                                 </div> *@
+@*                                 <div class="text-center"> *@
+@*                                     <a class="small" asp-action="Register">Create an Account!</a> *@
+@*                                 </div> *@
+@*                             </div> *@
+@*                         </div> *@
+@*                     </div> *@
+@*                 </div> *@
+@*             </div> *@
+
+@*         </div> *@
+
+@*     </div> *@
+
+@*   </div> *@
+@* </div> *@
+
+
+
+@* @section Scripts { *@
+@*     @{ *@
+@*         await Html.RenderPartialAsync("_ValidationScriptsPartial"); *@
+@*     } *@
+@*     <script src="~/libraryjs/login.js"></script> *@
+@*     <script src="~/assets/vendor/jquery/jquery.min.js"></script> *@
+@*     <script src="~/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script> *@
+
+@*     <!-- Core plugin JavaScript--> *@
+@*     <script src="~/assets/vendor/jquery-easing/jquery.easing.min.js"></script> *@
+
+@*     <!-- Custom scripts for all pages--> *@
+@*     <script src="~/assets/js/sb-admin-2.min.js"></script> *@
+
+@* } *@
 

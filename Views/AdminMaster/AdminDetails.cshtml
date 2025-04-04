@@ -1,100 +1,73 @@
 ﻿@model library_management.Models.Library
 
+@{
+    Layout = "/Views/Shared/_mainLayout.cshtml";
+    ViewData["Title"] = "Admin Details";
+}
 <div class="page-wrapper">
     <div class="content">
-        <div class="content">
-            <div class="page-header">
-                <h6>Full details of a Owners/Admins Registered</h6>
-            </div>
-        </div>
+      
 
         <div class="row">
-            <div class="col-lg-8 col-sm-12">
-                <div class="card">
+            <div class="col-lg-8 col-sm-12 mx-auto">
+                <div class="card shadow-sm border rounded">
                     <div class="card-body">
-                        <div class="col-lg-4 col-sm-12">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Library Information</h5>
-                                    <div class="row">
-                                        <div class="form-group align-center">
-                                            <img src="@Model.LibraryImagePath" alt="img" class="img-fluid rounded-circle border border-black" style="width: 100px; height: 100px; border-width: 3px;">
+                        <h5 class="card-title text-primary"><i class="bi bi-building"></i> Library Information</h5>
+                        <hr />
 
-                                        </div>
-                                        <div class="align-center">
-                                            <label class="col-form-label">@Model.Libraryname</label>
-                                        </div>
+                        <div class="text-center mb-3">
+                            <img src="@Model.LibraryImagePath" alt="Library Image" class="img-fluid rounded-circle border border-black" style="width: 120px; height: 120px; border-width: 3px;">
+                            <h4 class="mt-2 text-uppercase">@Model.Libraryname</h4>
+                        </div>
 
-                                        <div class="productdetails">
-                                            <ul class="product-bar">
-                                                <li>
-                                                    <h4>Library name</h4>
-                                                    <h6>@Model.Libraryname</h6>
-                                                </li>
-                                                <li>
-                                                    <h4>Admin Id</h4>
-                                                    <h6>@Model.AdminId</h6>
-                                                </li>
-                                                <li>
-                                                    <h4>Created At</h4>
-                                                    <h6>@Model.CreatedAt</h6>
-                                                </li>
-                                                <li>
-                                                    <h4>Pincode</h4>
-                                                    <h6>@Model.Pincode</h6>
-                                                </li>
-                                                <li>
-                                                    <h4>Address</h4>
-                                                    <h6>@Model.Address</h6>
-                                                </li>
-                                                <li>
-                                                    <h4>State</h4>
-                                                    <h6>@Model.State</h6>
-                                                </li>
-                                                <li>
-                                                    <h4>City</h4>
-                                                    <h6>@Model.City</h6>
-                                                </li>
-                                                <li>
-                                                    <h4>Starting time</h4>
-                                                    <h6>@Model.StartTime</h6>
-                                                </li>
-                                                <li>
-                                                    <h4>Closing time</h4>
-                                                    <h6>@Model.ClosingTime</h6>
-                                                </li>
-                                            </ul>
-                                            <input hidden readonly id="Id" value="@Model.LibraryId" />
-                                            <div class="align-center mt-2 justify-content-around">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item"><strong><i class="bi bi-card-list"></i> Library Name:</strong> @Model.Libraryname</li>
+                                    <li class="list-group-item"><strong><i class="bi bi-person-badge"></i> Admin ID:</strong> @Model.AdminId</li>
+                                    <li class="list-group-item"><strong><i class="bi bi-calendar-event"></i> Created At:</strong> @Model.CreatedAt</li>
+                                    <li class="list-group-item"><strong><i class="bi bi-geo-alt"></i> Pincode:</strong> @Model.Pincode</li>
+                                    <li class="list-group-item"><strong><i class="bi bi-house-door"></i> Address:</strong> @Model.Address</li>
+                                </ul>
+                            </div>
 
-                                                @* @if (Model.VerificationStatus == "Pending") *@
-                                                @* { *@
-                                                @*                 <div class="mx-3"> *@
-                                                @*                     <button type="submit" class="badges bg-lightgreen" id="btnAccept"><span class="spinner-border spinner-border-sm d-none" id="btnLoader" role="status" aria-hidden="true"></span>Accept</button> *@
-
-                                                @*                     <button type="submit" class="badges bg-danger" id="btnReject"><span class="spinner-border spinner-border-sm d-none" id="btnLoader" role="status" aria-hidden="true"></span>Reject</button> *@
-                                                @*                 </div> *@
-                                                @* } *@
-                                                @* else *@
-                                                @* { *@
-
-                                                @*     if (Model.VerificationStatus == "Rejected") *@
-                                                @*     { *@
-                                                @*                 <h6 class="badges bg-danger">@Model.VerificationStatus</h6> <button type="submit" class="badges bg-lightgreen" id="btnAccept"><span class="spinner-border spinner-border-sm d-none" id="btnLoader" role="status" aria-hidden="true"></span>Accepted Application?</button> *@
-                                                @*     } *@
-                                                @*     else *@
-                                                @*     { *@
-                                                @*                 <h6 class="badges bg-lightgreen">@Model.VerificationStatus</h6> <button type="submit" class="badges bg-danger" id="btnReject"><span class="spinner-border spinner-border-sm d-none" id="btnLoader" role="status" aria-hidden="true"></span>Remove Approval?</button> *@
-                                                @*     } *@
-                                                @* } *@
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                            <div class="col-md-6">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item"><strong><i class="bi bi-globe"></i> State:</strong> @Model.State</li>
+                                    <li class="list-group-item"><strong><i class="bi bi-building"></i> City:</strong> @Model.City</li>
+                                    <li class="list-group-item"><strong><i class="bi bi-clock"></i> Starting Time:</strong> @Model.StartTime</li>
+                                    <li class="list-group-item"><strong><i class="bi bi-clock"></i> Closing Time:</strong> @Model.ClosingTime</li>
+                                </ul>
                             </div>
                         </div>
-                    </div>
 
+                        <div class="text-center mt-3">
+                            @* <input hidden readonly id="Id" value="@Model.LibraryId" /> *@
+                            @* @if (Model.VerificationStatus == "Pending") *@
+                            @* { *@
+                            @*     <button type="submit" class="btn btn-success me-2" id="btnAccept"> *@
+                            @*         <i class="bi bi-check-circle"></i> Accept *@
+                            @*     </button> *@
+                            @*     <button type="submit" class="btn btn-danger" id="btnReject"> *@
+                            @*         <i class="bi bi-x-circle"></i> Reject *@
+                            @*     </button> *@
+                            @* } *@
+                            @* else if (Model.VerificationStatus == "Rejected") *@
+                            @* { *@
+                            @*     <h6 class="badge bg-danger p-2">@Model.VerificationStatus</h6> *@
+                            @*     <button type="submit" class="btn btn-success" id="btnAccept"> *@
+                            @*         <i class="bi bi-arrow-repeat"></i> Accept Application? *@
+                            @*     </button> *@
+                            @* } *@
+                            @* else *@
+                            @* { *@
+                            @*     <h6 class="badge bg-success p-2">@Model.VerificationStatus</h6> *@
+                            @*     <button type="submit" class="btn btn-danger" id="btnReject"> *@
+                            @*         <i class="bi bi-x-circle"></i> Remove Approval? *@
+                            @*     </button> *@
+                            @* } *@
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -102,5 +75,5 @@
 </div>
 
 @section Scripts {
-                @* <script src="~/libraryjs/memberstatus.js"></script> *@
+    @* <script src="~/libraryjs/memberstatus.js"></script> *@
 }

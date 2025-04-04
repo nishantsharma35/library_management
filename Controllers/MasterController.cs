@@ -8,23 +8,43 @@ namespace library_management.Controllers
     public class MasterController : BaseController
     {
         private readonly dbConnect _context;
+        private readonly PermisionHelperInterface _permission;
 
-        public MasterController(dbConnect connect, ISidebarRepository sidebar) : base(sidebar)
+        public MasterController(dbConnect connect, ISidebarRepository sidebar, PermisionHelperInterface permission) : base(sidebar)
         {
             _context = connect;
+            _permission = permission;
         }
+
+        public string GetUserPermission(string action)
+        {
+            int roleId = HttpContext.Session.GetInt32("UserRoleId").Value;
+            string permissionType = _permission.HasAccess(action, roleId);
+            ViewBag.PermissionType = permissionType;
+            return permissionType;
+        }
+
         public IActionResult Index()
         {
             return View();
         }
         public IActionResult Access()
         {
-            var tabs = _context.TblTabs.Where(x => x.IsActive == true).ToList();
-            var roles = _context.TblRoles.Where(x => x.IsActive == true).ToList();
+            string permissionType = GetUserPermission("Add Permission");
+            if (permissionType == "CanView" || permissionType == "CanEdit" || permissionType == "FullAccess")
+            {
+                var tabs = _context.TblTabs.Where(x => x.IsActive == true).ToList();
+                var roles = _context.TblRoles.Where(x => x.IsActive == true).ToList();
 
-            ViewBag.Tabs = tabs;
-            ViewBag.Roles = roles;
-            return View(new List<TblPermission>());
+                ViewBag.Tabs = tabs;
+                ViewBag.Roles = roles;
+                return View(new List<TblPermission>());
+            }
+            else
+            {
+                return RedirectToAction("UnauthorisedAccess", "Error");
+            }
+           
         }
 
         [HttpGet]

@@ -1,7 +1,5 @@
 ﻿@model List<Book>
 
-<h2>Available Books</h2>
-
 @if (TempData["Success"] != null)
 {
     <div class="alert alert-success">@TempData["Success"]</div>
@@ -19,20 +17,44 @@
         <option value="@library.Value">@library.Text</option>
     }
 </select>
-
-<table class="table">
-    <thead>
-        <tr>
-            <th>Title</th>
-            <th>Author</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody id="bookTableBody">
-        <!-- Yaha JS dynamically data inject karega -->
-    </tbody>
-</table>
-
+@{
+    Layout = "/Views/Shared/_mainLayout.cshtml";
+    ViewData["Title"] = "Available Books";
+}
+<div id="wrapper">
+    <!-- Content Wrapper -->
+    <div id="content-wrapper" class="d-flex flex-column">
+        <!-- Main Content -->
+        <div id="content">
+            <!-- Begin Page Content -->
+            <div class="container-fluid">
+                <!-- Page Heading -->
+                <h1 class="h3 mb-4 text-gray-800 text-center">Available Books</h1>
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Books List</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Author</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bookTableBody">
+                                    <!-- Yaha JS dynamically data inject karega -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <script>
     document.getElementById("LibraryId").addEventListener("change", function () {
         let libraryId = this.value; // Select ki gayi library ka ID lo

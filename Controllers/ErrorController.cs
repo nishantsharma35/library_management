@@ -9,7 +9,7 @@ namespace library_management.Controllers
             return View();
         }
 
-        public IActionResult Unauthorizedaccess()
+        public IActionResult UnauthorisedAccess()
         {
             return View();
         }

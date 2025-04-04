@@ -24,6 +24,7 @@ builder.Services.AddScoped<BookServiceInterface, BookServiceClass>();
 builder.Services.AddScoped<BorrowInterface, BorrowClass>();
 builder.Services.AddScoped<FineInterface,FineClass>();
 builder.Services.AddScoped<ReportsInterface,ReportsClasses>();
+builder.Services.AddScoped<PermisionHelperInterface,PermisionHelperClass>();
 
 builder.Services.AddSession(options =>
 {

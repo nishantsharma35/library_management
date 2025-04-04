@@ -13,15 +13,24 @@ namespace library_management.Controllers
         private readonly ILogger<MemberMasterController> _logger;
         private readonly MemberMasterInterface _memberMasterInterface;
         private readonly libraryInterface _libraryInterface;
-        public MemberMasterController(dbConnect context, EmailSenderInterface emailSender, ILogger<MemberMasterController> logger, ISidebarRepository sidebar, MemberMasterInterface memberMasterInterface , libraryInterface libraryInterface) : base(sidebar) 
+        private readonly PermisionHelperInterface _permission;
+        public MemberMasterController(dbConnect context, EmailSenderInterface emailSender, ILogger<MemberMasterController> logger, ISidebarRepository sidebar, MemberMasterInterface memberMasterInterface , libraryInterface libraryInterface,PermisionHelperInterface permision) : base(sidebar) 
         {
             _context = context;
             _emailSender = emailSender;
             _logger = logger;
             _memberMasterInterface = memberMasterInterface;
             _libraryInterface = libraryInterface;
+            _permission = permision;
         }
-        
+
+        public string GetUserPermission(string action)
+        {
+            int roleId = HttpContext.Session.GetInt32("UserRoleId").Value;
+            string permissionType = _permission.HasAccess(action, roleId);
+            ViewBag.PermissionType = permissionType;
+            return permissionType;
+        }
 
         public IActionResult Index()
         {
@@ -30,88 +39,53 @@ namespace library_management.Controllers
 
         public async Task<IActionResult> MemberList()
         {
-            try
+            string permissionType = GetUserPermission("View Member");
+            if (permissionType == "CanView" || permissionType == "CanEdit" || permissionType == "FullAccess")
             {
-                int? userId = HttpContext.Session.GetInt32("UserId");
-                int? userRoleId = HttpContext.Session.GetInt32("UserRoleId"); // ✅ Role Check ke liye
-
-                if (userId == null || userId == 0)
+                try
                 {
-                    ViewBag.ErrorMessage = "User ID is missing. Please log in again.";
-                    return View("MemberList", new List<Member>());
-                }
+                    int? userId = HttpContext.Session.GetInt32("UserId");
+                    int? userRoleId = HttpContext.Session.GetInt32("UserRoleId"); // ✅ Role Check ke liye
 
-                List<Member> members;
-
-                if (userRoleId == 1) // ✅ Super Admin ho to sabhi members fetch karo
-                {
-                    members = await _memberMasterInterface.GetAllMembersAsync();
-                }
-                else
-                {
-                    var library = await _context.Libraries.FirstOrDefaultAsync(l => l.AdminId == userId.Value);
-                    if (library == null)
+                    if (userId == null || userId == 0)
                     {
-                        ViewBag.ErrorMessage = "No associated library found for this admin.";
+                        ViewBag.ErrorMessage = "User ID is missing. Please log in again.";
                         return View("MemberList", new List<Member>());
                     }
 
-                    int libraryId = library.LibraryId;
-                    members = await _memberMasterInterface.GetLibraryMembersAsync(libraryId);
+                    List<Member> members;
+
+                    if (userRoleId == 1) // ✅ Super Admin ho to sabhi members fetch karo
+                    {
+                        members = await _memberMasterInterface.GetAllMembersAsync();
+                    }
+                    else
+                    {
+                        var library = await _context.Libraries.FirstOrDefaultAsync(l => l.AdminId == userId.Value);
+                        if (library == null)
+                        {
+                            ViewBag.ErrorMessage = "No associated library found for this admin.";
+                            return View("MemberList", new List<Member>());
+                        }
+
+                        int libraryId = library.LibraryId;
+                        members = await _memberMasterInterface.GetLibraryMembersAsync(libraryId);
+                    }
+
+                    return View("MemberList", members);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error fetching members: {ex.Message}");
+                    ViewBag.ErrorMessage = "An error occurred while fetching members.";
+                    return View("MemberList", new List<Member>());
                 }
 
-                return View("MemberList", members);
             }
-            catch (Exception ex)
+            else
             {
-                Console.WriteLine($"Error fetching members: {ex.Message}");
-                ViewBag.ErrorMessage = "An error occurred while fetching members.";
-                return View("MemberList", new List<Member>());
+                return RedirectToAction("UnauthorisedAccess", "Error");
             }
-
-
-
-            //try
-            //{
-            //    int? libraryId = HttpContext.Session.GetInt32("LibraryId"); // ✅ Direct session check
-
-            //    if (libraryId == null || libraryId == 0)
-            //    {
-            //        TempData["ErrorMessage"] = "Library ID is missing. Please log in again.";
-            //        return RedirectToAction("Login", "library"); // ✅ Redirect to login instead of same page
-            //    }
-
-            //    var members = await _memberMasterInterface.GetLibraryMembersAsync(libraryId.Value);
-
-            //    return View("MemberList", members);
-            //}
-            //catch (Exception ex)
-            //{
-            //    Console.WriteLine($"Error fetching members: {ex.Message}");
-            //    TempData["ErrorMessage"] = "An error occurred while fetching members.";
-            //    return RedirectToAction("ErrorPage"); // ✅ Redirect to a proper error page
-            //}
-
-
-
-
-            //var pendingUsers = await _context.TblUsers.Where(u => u.VerificationStatus == "Pending").ToListAsync();
-            //return View(pendingUsers);
-
-            //    return View(await _memberMasterInterface.GetAllAdminsData());
-
-            //var users = _context.TblUsers
-            //            .Where(u => !u.IsApproved)
-            //            .Select(u => new SidebarModel
-            //            {
-            //                UserId = u.UserId,
-            //                Username = u.Username,
-            //                Email = u.Email,
-            //                RegistrationDate = u.RegistrationDate
-            //            })
-            //            .ToList();
-
-            //return View(users);
         }
 
 
@@ -166,16 +140,24 @@ namespace library_management.Controllers
 
 
 
-        //[Route("Admins/Save")]
         [HttpGet]
         public async Task<IActionResult> AddMember(int? id)
         {
-            Member model = new Member();
-            if (id > 0)
+            string permissionType = GetUserPermission("Add Member");
+            if (permissionType == "CanEdit" || permissionType == "FullAccess")
             {
-                model = await _context.Members.FirstOrDefaultAsync(x => x.Id == id);
+                Member model = new Member();
+                if (id > 0)
+                {
+                    model = await _context.Members.FirstOrDefaultAsync(x => x.Id == id);
+                }
+                return View(model);
             }
-            return View(model);
+            else
+            {
+                return RedirectToAction("UnauthorisedAccess", "Error");
+            }
+           
         }
         [HttpPost]
         public async Task<IActionResult> AddMember(Member user)
@@ -216,6 +198,7 @@ namespace library_management.Controllers
                 string gender = user.Gender;
                 string state = user.State;
                 string city = user.City;
+                int roleid = user.RoleId;
                 string join = user.Joiningdate.ToString();
 
 
@@ -223,14 +206,23 @@ namespace library_management.Controllers
 
                 //int ResId = (int)HttpContext.Session.GetInt32("UserId");
                 //string verifier = ResId.ToString();
-                var res = await _memberMasterInterface.AddMember(user);
+                int? libraryId = HttpContext.Session.GetInt32("LibraryId");
+
+                if (libraryId == null)
+                {
+                    return Json(new { success = false, message = "LibraryId not found in session." });
+                }
+
+                var res = await _memberMasterInterface.AddMember(user, libraryId.Value);
+                //var res = await _memberMasterInterface.AddMember(user);
+
 
                 if (id > 0)
                 {
                     if (((dynamic)res).success)
                     {
-                        string subject = "Admin account has been updated by the SuperAdmin";
-                        string body = $"Hello there {user.Name}, your account has been successfully update by the SuperAdmin and you can access your account now, some information has been update and your username and email has been mailed regardless of any changes, you can now login under the given credentials. UserName : {user.Name}, Email : {user.Email}, Password : you old same pass. But keep in mind, this is a sensitive information, so plz don't share it with anyone else. Thank you";
+                        string subject = "Member account has been updated by the Admin";
+                        string body = $"Hello there {user.Name}, your account has been successfully update by the Admin and you can access your account now, some information has been update and your username and email has been mailed regardless of any changes, you can now login under the given credentials. UserName : {user.Name}, Email : {user.Email}, Password : you old same pass. But keep in mind, this is a sensitive information, so plz don't share it with anyone else. Thank you";
                         _emailSender.SendEmailAsync(user.Email, subject, body);
                     }
                 }
@@ -238,7 +230,7 @@ namespace library_management.Controllers
                 {
                     if (((dynamic)res).success)
                     {
-                        string subject = "Admin account has been created by the SuperAdmin";
+                        string subject = "Member account has been created by the Admin";
                         string body = $"Hello there {username}, welcome to our LMS Application, you account has been successfully created and you can access your account under the given credentials. UserName : {username}, Email : {email}, Password : {password}, Phone : {phone}, Joining Date : {join} and after login, you can fill out your extra informations. But keep in mind, this is a sensitive information, so plz don't share it with anyone else. Thank you";
                         _emailSender.SendEmailAsync(user.Email, subject, body);
                     }
@@ -294,44 +286,5 @@ namespace library_management.Controllers
                 return Json(new { success = false, message = "Error deleting user." });
             }
         }
-
-
-
-
-
-        //[HttpPost]
-        //public IActionResult DeleteUser(int id)
-        //{
-        //    if (id == 0)
-        //    {
-        //        return Json(new { success = false, message = "Invalid user id." });
-        //    }
-
-        //    try
-        //    {
-        //        var user = _context.Members.Find(id);
-        //        if (user == null)
-        //        {
-        //            return Json(new { success = false, message = "User not found." });
-        //        }
-
-        //        _context.Members.Remove(user);
-        //        _context.SaveChanges();
-
-        //        return Json(new { success = true, message = "user deleted successfully." });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine("Error deleting user: " + ex.Message);
-        //        return Json(new { success = false, message = "Error deleting user." });
-        //    }
-        //}
-
-
-
-
-
-
-
     }
 }

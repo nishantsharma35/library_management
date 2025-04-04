@@ -7,136 +7,138 @@
 <link href="~/assets/css/sb-admin-2.min.css" rel="stylesheet">
 
 <div class="container">
-    <div class="card o-hidden border-0 shadow-lg my-5">
-        <div class="card-body p-0">
-            <!-- Nested Row within Card Body -->
-            <div class="row">
-                <div class="col-lg-5 d-none d-lg-block bg-register-image"></div>
-                <div class="col-lg-7">
-                    <div class="p-5">
-                        <div class="text-center">
-                            <h1 class="h4 text-gray-900 mb-4">Library Member Registration</h1>
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card o-hidden border-0 shadow-lg my-5">
+                <div class="card-body p-4">
+                    <div class="text-center">
+                        <h1 class="h4 text-gray-900 mb-4">Library Member Registration</h1>
+                    </div>
+                    <form id="Register" enctype="multipart/form-data">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                    <input type="text" class="form-control" asp-for="Name" placeholder="Full Name">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                    <input type="text" class="form-control" asp-for="Address" placeholder="User Address">
+                                </div>
+                            </div>
                         </div>
-                        <form  id="Register" enctype="multipart/form-data">
-                            <!-- Name and Profile Picture -->
-                            <div class="form-group row">
-                                <div class="col-sm-6 mb-3 mb-sm-0">
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                        <input type="text" class="form-control" asp-for="Name" placeholder="Full Name">
-                                    </div>
+                        <!-- Email and phone no -->
+                        <div class="form-group row">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                    <input type="email" class="form-control " asp-for="Email" placeholder="Email Address">
                                 </div>
-                                <div class="col-sm-6">
-                                    <label for="ProfileFile" class="small">Profile Picture</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-image"></i></span>
-                                        <input type="file" class="form-control" asp-for="profilefile">
-                                    </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" asp-for="Phoneno" placeholder="Phone Number">
                                 </div>
                             </div>
 
-                            <!-- Email and Gender -->
-                            <div class="form-group row">
-                                <div class="col-sm-6 mb-3 mb-sm-0">
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                                        <input type="email" class="form-control " asp-for="Email" placeholder="Email Address">
-                                    </div>
-                                </div>
-                                <div class="col-sm-6">
-                                    <label for="Gender" class="small">Gender</label>
-                                    <div class="form-control">
-                                        <input type="radio" id="male" asp-for="Gender" value="Male"> Male
-                                        <input type="radio" id="female" asp-for="Gender" value="Female" class="ms-3"> Female
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Phone Number and Address -->
-                            <div class="form-group row">
-                                <div class="col-sm-6">
-                                    @* <div class="input-group">  *@
-                                         @* <span class="input-group-text"><i class="fas fa-phone"></i></span> *@
-                                        <input type="tel" class="form-control form-control-user" asp-for="Phoneno">
-                                    @* </div> *@
-                                </div>
-                                <div class="col-sm-6">
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
-                                        <input type="text" class="form-control" asp-for="Address" placeholder="Address">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- State and City -->
-                            <div class="form-group row">
-                                <div class="col-sm-6 mb-3 mb-sm-0">
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-location-arrow"></i></span>
-                                        <select class="form-control" asp-for="State">
-                                            <option value="" disabled selected>Select State</option>
-                                            <option value="State1">State 1</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-sm-6">
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-city"></i></span>
-                                        <select class="form-control" asp-for="City">
-                                            <option value="" disabled selected>Select City</option>
-                                            <option value="City1">City 1</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Joining Date and Role ID -->
-                            <div class="form-group row">
-                                <div class="col-sm-6 mb-3 mb-sm-0">
-                                    <label for="JoiningDate" class="small">Joining Date</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
-                                        <input type="date" class="form-control" asp-for="Joiningdate">
-                                    </div>
-                                </div>
-                                <div class="col-sm-6">
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-user-tag"></i></span>
-                                        <select class="form-control" asp-for="RoleId">
-                                            <option value="" disabled selected>Select Role</option>
-                                            <option value="2">Admin</option>
-                                            <option value="3">Member</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Password and Confirm Password -->
-                            <div class="form-group row">
-                                <div class="col-sm-6 mb-3 mb-sm-0">
-                                    <div class="input-group input-wrap">
-                                        <span class="input-group-text"><i class="toggle-password fas fa-lock" id="passwordIcon"></i></span>
-                                        <input type="password" asp-for="Password" class="form-control pass-input" id="passwordField" autocomplete="off" placeholder="Password" required />
-                                    </div>
-                                </div>
-                                <div class="col-sm-6">
-                                    <div class="input-group input-wrap">
-                                        <span class="input-group-text"><i class="toggle-password fas fa-lock" id="passwordIcon"></i></span>
-                                        <input type="password" class="form-control pass-input" asp-for="Confirmpassword" placeholder="Confirm Password">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Submit Button -->
-                            <button type="submit" class="btn btn-primary btn-user btn-block">
-                                Register Account
-                            </button>
-                            <hr>
-                        </form>
-
-                        <div class="text-center">
-                            <a class="small" asp-action="login">Already have an account? Login!</a>
                         </div>
+
+                        <!-- date and gender -->
+                        <div class="form-group row">
+                            <div class="col-sm-6 mb-3 mb-sm-0">
+                                <label for="JoiningDate" class="small">Joining Date</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                                    <input type="date" class="form-control" asp-for="Joiningdate">
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="small">Gender</label>
+                                <div class="form-control">
+                                    <input type="radio" id="male" asp-for="Gender" value="Male"> Male
+                                    <input type="radio" id="female" asp-for="Gender" value="Female" class="ms-3"> Female
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- State and City -->
+                        <div class="form-group row">
+                            <div class="col-sm-6 mb-3 mb-sm-0">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-location-arrow"></i></span>
+                                    <select class="form-control" asp-for="State">
+                                        <option value="" disabled selected>Select State</option>
+                                        <option value="State1">State 1</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-city"></i></span>
+                                    <select class="form-control" asp-for="City">
+                                        <option value="" disabled selected>Select City</option>
+                                        <option value="City1">City 1</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Password and Role ID -->
+                        <div class="form-group row">
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-user-tag"></i></span>
+                                    <select class="form-control" asp-for="RoleId">
+                                        <option value="" disabled selected>Select Role</option>
+                                        <option value="2">Admin</option>
+                                        <option value="3">Member</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 mb-3 mb-sm-0">
+                                <div class="input-group input-wrap">
+                                    <span class="input-group-text"><i class="toggle-password fas fa-lock" id="passwordIcon"></i></span>
+                                    <input type="password" asp-for="Password" class="form-control pass-input" id="passwordField" autocomplete="off" placeholder="Password" required />
+                                </div>
+                            </div>
+                            
+                        </div>
+
+                        <!-- image and Confirm Password -->
+                        <div class="form-group row align-items-center">
+                            <!-- User Image -->
+                            <div class="col-sm-6 mb-3 mb-sm-0">
+                                <label class="small">User Image</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-image"></i></span>
+                                    <input type="file" asp-for="profilefile" class="form-control">
+                                </div>
+                            </div>
+
+                            <!-- Confirm Password -->
+                            <div class="col-sm-6">
+                                <label class="small">Confirm Password</label>
+                                <div class="input-group input-wrap">
+                                    <span class="input-group-text">
+                                        <i class="toggle-password fas fa-lock" id="passwordIcon"></i>
+                                    </span>
+                                    <input type="password" class="form-control pass-input" asp-for="Confirmpassword" placeholder="Confirm Password">
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn btn-primary btn-user btn-block">
+                            Register Account
+                        </button>
+                        <hr>
+                    </form>
+
+                    <div class="text-center">
+                        <a class="small" asp-action="login">Already have an account? Login!</a>
                     </div>
                 </div>
             </div>
@@ -149,7 +151,7 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     @* <script src="~/js/register.js"></script> *@
-    <script src="~/libraryjs/register.js" ></script>
+    <script src="~/libraryjs/register.js"></script>
     <script src="~/assets/vendor/jquery/jquery.min.js"></script>
     <script src="~/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 

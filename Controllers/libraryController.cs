@@ -15,15 +15,28 @@ namespace library_management.Controllers
         private readonly EmailSenderInterface _emailSender;
         private readonly loginInterface _login;
         private  readonly IMemoryCache _memoryCache;
-
-        public libraryController(dbConnect db , libraryInterface libraryInterface, EmailSenderInterface emailSender, loginInterface login,IMemoryCache memoryCache)
+        private readonly PermisionHelperInterface _permission;
+        public libraryController(dbConnect db , libraryInterface libraryInterface, EmailSenderInterface emailSender, loginInterface login,IMemoryCache memoryCache,PermisionHelperInterface permisionHelperInterface)
         {
             _db = db;
             _libraryInterface = libraryInterface;
             _emailSender = emailSender;
             _login = login;
             _memoryCache = memoryCache;
+            _permission = permisionHelperInterface;
         }
+
+        public string GetUserPermission(string action)
+        {
+            int roleId = HttpContext.Session.GetInt32("UserRoleId").Value;
+            string permissionType = _permission.HasAccess(action, roleId);
+            ViewBag.PermissionType = permissionType;
+            return permissionType;
+        }
+
+
+
+
         public IActionResult Index()
         {
             return View();
@@ -31,7 +44,7 @@ namespace library_management.Controllers
 
         public async Task<IActionResult> Register()
         {
-            return View();
+                return View();
         }
 
 
@@ -266,8 +279,7 @@ namespace library_management.Controllers
         }
         public IActionResult libraryRegistration()
         {
-            // Return the view where admin can complete their registration
-            return View();
+                return View();
         }
         [HttpPost]
         public async Task<IActionResult> libraryRegistration( Library lib , int id)
@@ -370,9 +382,9 @@ namespace library_management.Controllers
 
         public IActionResult ForgotPassword()
         {
-            return View();
-
+                return View();
         }
+
         [HttpPost]
         public async Task<IActionResult> ForgotPassword(Models.Member user)
         {
@@ -384,19 +396,19 @@ namespace library_management.Controllers
         [HttpGet]
         public IActionResult ResetPassword(string token)
         {
-            // Validate the token
-            if (string.IsNullOrEmpty(token) || !_memoryCache.TryGetValue(token, out object tokenData))
-            {
-                ViewBag.InvalidToken = true;
-                return View();
-                //return Json(new { success = false, message = "Token is Invalid or Expired, please send another link" });
-            }
-            ViewBag.InvalidToken = false;
-            ViewBag.Token = token;
-            // Remove the token from cache after successful validation
-            _memoryCache.Remove(token);
+                // Validate the token
+                if (string.IsNullOrEmpty(token) || !_memoryCache.TryGetValue(token, out object tokenData))
+                {
+                    ViewBag.InvalidToken = true;
+                    return View();
+                    //return Json(new { success = false, message = "Token is Invalid or Expired, please send another link" });
+                }
+                ViewBag.InvalidToken = false;
+                ViewBag.Token = token;
+                // Remove the token from cache after successful validation
+                _memoryCache.Remove(token);
 
-            return View();
+                return View();
         }
 
         [HttpPost]
@@ -411,7 +423,15 @@ namespace library_management.Controllers
         [HttpGet]
         public IActionResult AddLibrarian()
         {
-            return View();
+            string permissionType = GetUserPermission("Add Librarian");
+            if (permissionType == "CanView" || permissionType == "CanEdit" || permissionType == "FullAccess")
+            {
+                return View();
+            }
+            else
+            {
+                return RedirectToAction("UnauthorisedAccess", "Error");
+            }
         }
 
         [HttpPost]

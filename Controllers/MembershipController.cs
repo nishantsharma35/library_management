@@ -8,13 +8,22 @@ namespace library_management.Controllers
 {
     public class MembershipController : Controller
     {
-    private readonly MembershipInterface _membershipInterface;
         private readonly dbConnect _connect;
-
-        public MembershipController(MembershipInterface membershipInterface, dbConnect connect)
+        private readonly MembershipInterface _membershipInterface;
+        private readonly PermisionHelperInterface _permission;
+        public MembershipController(MembershipInterface membershipInterface, dbConnect connect, PermisionHelperInterface permission)
         {
             _membershipInterface = membershipInterface;
             _connect = connect;
+            _permission = permission;
+        }
+
+        public string GetUserPermission(string action)
+        {
+            int roleId = HttpContext.Session.GetInt32("UserRoleId").Value;
+            string permissionType = _permission.HasAccess(action, roleId);
+            ViewBag.PermissionType = permissionType;
+            return permissionType;
         }
         public IActionResult Index()
         {
@@ -28,9 +37,16 @@ namespace library_management.Controllers
         [HttpGet]
         public async Task<IActionResult> Joinlibrary()
         {
-            var libraries = await _connect.Libraries.ToListAsync();
-            return View(libraries);
-
+            string permissionType = GetUserPermission("MemberSite");
+            if (permissionType == "CanView" || permissionType == "CanEdit" || permissionType == "FullAccess")
+            {
+                var libraries = await _connect.Libraries.ToListAsync();
+                return View(libraries);
+            }
+            else
+            {
+                return RedirectToAction("UnauthorisedAccess", "Error");
+            }
         }
 
 

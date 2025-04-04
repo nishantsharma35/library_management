@@ -13,13 +13,25 @@ namespace library_management.Controllers
         private readonly BorrowInterface _borrowInterface;
         private readonly FineInterface _fineInterface;
         private readonly EmailSenderInterface _emailService;
-        public MylibraryMasterController(ISidebarRepository sidebar, BorrowInterface borrowInterface, dbConnect context, FineInterface fineInterface, EmailSenderInterface emailService) : base(sidebar)
+        private readonly PermisionHelperInterface _permission;
+        public MylibraryMasterController(ISidebarRepository sidebar, BorrowInterface borrowInterface, dbConnect context, FineInterface fineInterface, EmailSenderInterface emailService, PermisionHelperInterface permission) : base(sidebar)
         {
             _borrowInterface = borrowInterface;
             _context = context;
             _fineInterface = fineInterface;
             _emailService = emailService;
+            _permission = permission;
         }
+
+        public string GetUserPermission(string action)
+        {
+            int roleId = HttpContext.Session.GetInt32("UserRoleId").Value;
+            string permissionType = _permission.HasAccess(action, roleId);
+            ViewBag.PermissionType = permissionType;
+            return permissionType;
+        }
+
+
         public IActionResult Index()
         {
             return View();
@@ -27,65 +39,83 @@ namespace library_management.Controllers
         [HttpGet]
         public IActionResult AvailableBooks()
         {
-            int memberId = HttpContext.Session.GetInt32("MemberId") ?? 0;
-
-            if (memberId == 0)
+            string permissionType = GetUserPermission("AvailableBook");
+            if (permissionType == "CanView" || permissionType == "FullAccess")
             {
-                return Unauthorized(); // Agar Member login nahi hai
-            }
+                int memberId = HttpContext.Session.GetInt32("MemberId") ?? 0;
 
-            // **1️⃣ Member ki registered libraries ko fetch karo**
-            var memberLibraryIds = _context.Memberships
-                .Where(m => m.MemberId == memberId)
-                .Select(m => m.LibraryId)
-                .Distinct() // Unique libraries
-                .ToList();
-
-            Console.WriteLine("Member Registered Library IDs: " + string.Join(", ", memberLibraryIds));
-
-            // **2️⃣ Sirf wahi libraries fetch karo jo member ki hain**
-            var availableLibraries = _context.Libraries
-                .Where(l => memberLibraryIds.Contains(l.LibraryId))
-                .Select(l => new SelectListItem
+                if (memberId == 0)
                 {
-                    Value = l.LibraryId.ToString(),
-                    Text = l.Libraryname
-                })
-                .ToList();
+                    return Unauthorized(); // Agar Member login nahi hai
+                }
 
-            Console.WriteLine("Total Libraries in Dropdown: " + availableLibraries.Count);
+                // **1️⃣ Member ki registered libraries ko fetch karo**
+                var memberLibraryIds = _context.Memberships
+                    .Where(m => m.MemberId == memberId)
+                    .Select(m => m.LibraryId)
+                    .Distinct() // Unique libraries
+                    .ToList();
 
-            ViewBag.Libraries = availableLibraries;
+                Console.WriteLine("Member Registered Library IDs: " + string.Join(", ", memberLibraryIds));
 
-            // **3️⃣ Member ki selected library ka data fetch karo**
-            var availableBooks = _context.LibraryBooks
-                .Where(lb => memberLibraryIds.Contains(lb.LibraryId) && lb.Stock > 0)
-                .Include(lb => lb.Book) // Book Details fetch karne ke liye
-                .Select(lb => lb.Book)
-                .ToList();
+                // **2️⃣ Sirf wahi libraries fetch karo jo member ki hain**
+                var availableLibraries = _context.Libraries
+                    .Where(l => memberLibraryIds.Contains(l.LibraryId))
+                    .Select(l => new SelectListItem
+                    {
+                        Value = l.LibraryId.ToString(),
+                        Text = l.Libraryname
+                    })
+                    .ToList();
 
-            return View(availableBooks);
+                Console.WriteLine("Total Libraries in Dropdown: " + availableLibraries.Count);
+
+                ViewBag.Libraries = availableLibraries;
+
+                // **3️⃣ Member ki selected library ka data fetch karo**
+                var availableBooks = _context.LibraryBooks
+                    .Where(lb => memberLibraryIds.Contains(lb.LibraryId) && lb.Stock > 0)
+                    .Include(lb => lb.Book) // Book Details fetch karne ke liye
+                    .Select(lb => lb.Book)
+                    .ToList();
+
+                return View(availableBooks);
+            }
+            else
+            {
+                return RedirectToAction("UnauthorisedAccess", "Error");
+            }
+           
         }
 
 
         [HttpGet]
         public IActionResult BorrowedBooks()
         {
-            int memberId = HttpContext.Session.GetInt32("MemberId") ?? 0;
-
-            if (memberId == 0)
+            string permissionType = GetUserPermission("Borrowed books");
+            if (permissionType == "CanView" || permissionType == "FullAccess")
             {
-                return Unauthorized();
+                int memberId = HttpContext.Session.GetInt32("MemberId") ?? 0;
+
+                if (memberId == 0)
+                {
+                    return Unauthorized();
+                }
+
+                var borrowedBooks = _context.Borrows
+                    .Where(b => b.MemberId == memberId)
+                    .Include(b => b.Book)
+                    .Include(b => b.Fine)
+                    .OrderByDescending(b => b.IssueDate)
+                    .ToList();
+
+                return View(borrowedBooks);
             }
-
-            var borrowedBooks = _context.Borrows
-                .Where(b => b.MemberId == memberId)
-                .Include(b => b.Book)
-                .Include(b => b.Fine)
-                .OrderByDescending(b => b.IssueDate)
-                .ToList();
-
-            return View(borrowedBooks);
+            else
+            {
+                return RedirectToAction("UnauthorisedAccess", "Error");
+            }
+           
 
 
         }
