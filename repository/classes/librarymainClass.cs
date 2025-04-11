@@ -316,10 +316,6 @@ return await _connect.Memberships
                 return new { success = false, message = "Error: " + ex.Message };
             }
         }
-
-
-
-
     }
 }
 

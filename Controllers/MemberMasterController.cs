@@ -3,6 +3,7 @@ using library_management.repository.internalinterface;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics.Metrics;
+using System.Net.Http;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 namespace library_management.Controllers
 {
@@ -14,7 +15,8 @@ namespace library_management.Controllers
         private readonly MemberMasterInterface _memberMasterInterface;
         private readonly libraryInterface _libraryInterface;
         private readonly PermisionHelperInterface _permission;
-        public MemberMasterController(dbConnect context, EmailSenderInterface emailSender, ILogger<MemberMasterController> logger, ISidebarRepository sidebar, MemberMasterInterface memberMasterInterface , libraryInterface libraryInterface,PermisionHelperInterface permision) : base(sidebar) 
+        private readonly HttpClient _httpClient;
+        public MemberMasterController(dbConnect context, EmailSenderInterface emailSender, ILogger<MemberMasterController> logger, ISidebarRepository sidebar, MemberMasterInterface memberMasterInterface , libraryInterface libraryInterface,PermisionHelperInterface permision, IHttpClientFactory httpClientFactory) : base(sidebar) 
         {
             _context = context;
             _emailSender = emailSender;
@@ -22,6 +24,7 @@ namespace library_management.Controllers
             _memberMasterInterface = memberMasterInterface;
             _libraryInterface = libraryInterface;
             _permission = permision;
+            _httpClient = httpClientFactory.CreateClient();
         }
 
         public string GetUserPermission(string action)
@@ -86,6 +89,21 @@ namespace library_management.Controllers
             {
                 return RedirectToAction("UnauthorisedAccess", "Error");
             }
+        }
+
+        [HttpGet("/MemberMaster/states")]
+        public async Task<IActionResult> GetStates()
+        {
+            var response = await _httpClient.GetStringAsync("http://api.geonames.org/childrenJSON?geonameId=1269750&username=nishant_35");
+            return Content(response, "application/json");
+        }
+
+        [HttpGet("/MemberMaster/cities/{geonameId}")]
+        public async Task<IActionResult> GetCities(int geonameId)
+        {
+            var url = $"http://api.geonames.org/childrenJSON?geonameId={geonameId}&username=nishant_35";
+            var response = await _httpClient.GetStringAsync(url);
+            return Content(response, "application/json");
         }
 
 

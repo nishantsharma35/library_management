@@ -1,10 +1,15 @@
 ﻿using DocumentFormat.OpenXml.Spreadsheet;
 using library_management.Models;
 using library_management.repository.internalinterface;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using NuGet.Protocol.Plugins;
+using System.Net.Http;
+using System.Security.Claims;
 
 namespace library_management.Controllers
 {
@@ -16,7 +21,8 @@ namespace library_management.Controllers
         private readonly loginInterface _login;
         private  readonly IMemoryCache _memoryCache;
         private readonly PermisionHelperInterface _permission;
-        public libraryController(dbConnect db , libraryInterface libraryInterface, EmailSenderInterface emailSender, loginInterface login,IMemoryCache memoryCache,PermisionHelperInterface permisionHelperInterface)
+        private readonly HttpClient _httpClient;
+        public libraryController(dbConnect db , libraryInterface libraryInterface, EmailSenderInterface emailSender, loginInterface login,IMemoryCache memoryCache,PermisionHelperInterface permisionHelperInterface, IHttpClientFactory httpClientFactory)
         {
             _db = db;
             _libraryInterface = libraryInterface;
@@ -24,6 +30,7 @@ namespace library_management.Controllers
             _login = login;
             _memoryCache = memoryCache;
             _permission = permisionHelperInterface;
+            _httpClient = httpClientFactory.CreateClient();
         }
 
         public string GetUserPermission(string action)
@@ -56,9 +63,6 @@ namespace library_management.Controllers
                 model.EmailOrName = Emailvalue;
                 model.RememberMe = true;
             }
-
-            
-
             return View(model);
         }
 
@@ -207,6 +211,22 @@ namespace library_management.Controllers
                     }
 
                 }
+                // Role wise redirection
+                //switch (data.RoleId)
+                //{
+                //    case 1:
+                //        RedirectTo = "SuperAdminDashboard"; // Super Admin
+                //        break;
+                //    case 2:
+                //        RedirectTo = "AdminDashboard"; // Admin
+                //        break;
+                //    case 3:
+                //        RedirectTo = "MemberDashboard"; // Member
+                //        break;
+                //    default:
+                //        RedirectTo = "Dashboard"; // Default fallback
+                //        break;
+                //}
 
                 // Reset login attempts after successful login
                 _memoryCache.Remove(attemptKey);
@@ -218,7 +238,20 @@ namespace library_management.Controllers
             }
         }
 
+        [HttpGet("/library/states")]
+        public async Task<IActionResult> GetStates()
+        {
+            var response = await _httpClient.GetStringAsync("http://api.geonames.org/childrenJSON?geonameId=1269750&username=nishant_35");
+            return Content(response, "application/json");
+        }
 
+        [HttpGet("/library/cities/{geonameId}")]
+        public async Task<IActionResult> GetCities(int geonameId)
+        {
+            var url = $"http://api.geonames.org/childrenJSON?geonameId={geonameId}&username=nishant_35";
+            var response = await _httpClient.GetStringAsync(url);
+            return Content(response, "application/json");
+        }
 
         [HttpPost]
         public async Task<IActionResult> Register([FromForm] Models.Member model)
@@ -457,5 +490,229 @@ namespace library_management.Controllers
             }
         }
 
+        public IActionResult GoogleDetails(string email)
+        {
+            var model = new GoogleSignupModel { Email = email };
+            return View(model);
+        }
+
+        [HttpGet("login-google")]
+        public IActionResult LoginWithGoogle()
+        {
+            var redirectUrl = Url.Action("GoogleCallback", "library");
+            var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+        }
+
+
+        [HttpGet("library/google-callback-view")]
+        public IActionResult GoogleCallback()
+        {
+            return View("GoogleCallback", new object()); // This is your Razor view with JS
+        }
+
+        [HttpGet("library/google-callback")]
+        public async Task<IActionResult> GoogleResponse()
+        {
+            var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            if (!result.Succeeded || result.Principal == null)
+            {
+                return Json(new { success = false, message = "Google authentication failed. Please try again." });
+            }
+
+            var email = result.Principal.FindFirst(ClaimTypes.Email)?.Value;
+            var name = result.Principal.Identity.Name;
+
+            var user = await _db.Members.FirstOrDefaultAsync(u => u.Email == email);
+
+            //if (user != null && user.IsGoogleAccount == false)
+            //{
+            //    return Json(new { success = false, message = "This email is already registered manually. Use Email/Password to login." });
+            //}
+
+            //if (user != null && user.IsGoogleAccount == true)
+            //{
+
+
+            //    //if (user.RoleId <= 2)
+            //    //    shopData = _db.TblShops.FirstOrDefault(x => x.AdminId == user.UserId);
+            //    //else
+            //    //    shopData = _db.TblShops.FirstOrDefault(x => x.AdminId == user.AdminRef);
+
+            //    //if (shopData != null)
+            //    //    HttpContext.Session.SetInt32("ShopId", shopData.ShopId);
+
+            //    HttpContext.Session.SetInt32("UserId", user.Id);
+            //    HttpContext.Session.SetInt32("UserRoleId", user.RoleId);
+            //    HttpContext.Session.SetString("UserEmail", email);
+
+
+            //    // Check conditions and return messages accordingly
+            //    //if (user.RoleId == 2)
+            //    //{
+            //    //    if (!await _users.hasShopDetails(user.UserId))
+            //    //        return Json(new { success = false, message = "Shop details are missing. Please complete you shop details.", redirect = Url.Action("ShopDetails", "Auth") });
+
+            //    //    if (!await _users.hasAdminDoc(user.UserId))
+            //    //        return Json(new { success = false, message = "Documents are not uploaded yet.", redirect = Url.Action("AdminDoc", "Auth") });
+            //    //}
+
+            //    //if (info != null)
+            //    //{
+            //    //    if (user.VerificationStatus == "Rejected")
+            //    //        return Json(new { success = false, message = "Your account is rejected. Contact support." });
+
+            //    //    if (user.VerificationStatus == "Pending")
+            //    //        return Json(new { success = false, message = "Your account is pending verification." });
+            //    //}
+
+            //    return Json(new { success = true, message = "Login successful!", redirect = Url.Action("", "Dashboard") });
+            //}
+
+            if (user != null && user.IsGoogleAccount == true)
+            {
+                // ❌ Disallow Librarian
+                if (user.RoleId == 4)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Librarians are not allowed to login using Google. Please use email/password."
+                    });
+                }
+                HttpContext.Session.SetInt32("UserId", user.Id);
+                HttpContext.Session.SetInt32("UserRoleId", user.RoleId);
+                HttpContext.Session.SetString("UserEmail", email);
+                // ✅ Allow Super Admin
+                if (user.RoleId == 1)
+                {       
+                    return Json(new
+                    {
+                        success = true,
+                        message = "Super Admin login successful!",
+                        redirect = "/Dashboard" // or your actual dashboard
+                    });
+                }
+
+                // ✅ Allow Library Admin
+                if (user.RoleId == 2)
+                {
+                    var library = await _db.Libraries.FirstOrDefaultAsync(x => x.AdminId == user.Id);
+                    if (library == null)
+                    {
+                        return Json(new
+                        {
+                            success = false,
+                            message = "No library is assigned to your account. please add one",
+                            redirect = Url.Action("libraryRegistration", "library")
+                        });
+                    }
+
+                    if (user.VerificationStatus == "Rejected")
+                    {
+                        return Json(new { success = false, message = "Your account has been rejected." });
+                    }
+
+                    if (user.VerificationStatus == "Pending")
+                    {
+                        return Json(new { success = false, message = "Your account is pending approval." });
+                    }
+
+                    HttpContext.Session.SetInt32("UserId", user.Id);
+                    HttpContext.Session.SetInt32("UserRoleId", user.RoleId);
+                    HttpContext.Session.SetInt32("LibraryId", library.LibraryId);
+
+                    return Json(new
+                    {
+                        success = true,
+                        message = "Library Admin login successful!",
+                        redirect = Url.Action("index", "Dashboard")
+                    });
+                }
+
+                // ✅ Allow Member
+                if (user.RoleId == 3)
+                {
+                    
+
+                    return Json(new
+                    {
+                        success = true,
+                        message = "Member login successful!",
+                        redirect = Url.Action("index", "Dashboard") // update as needed
+                    });
+                }
+
+                // ❌ Unknown Role
+                return Json(new { success = false, message = "Unauthorized role. Contact support." });
+            }
+            // New Google user
+            return Json(new
+            {
+                success = true,
+                message = "Google account not found. Please complete your details.",
+                redirect = Url.Action("GoogleDetails", "library", new { email })
+            });
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> GoogleDetails(GoogleSignupModel model)
+        {
+            if (!ModelState.IsValid)
+                return Json(new { success = false, message = "Please fill all required fields." });
+
+            // Check if username already exists
+            bool usernameExists = _db.Members.Any(u => u.Name == model.Username);
+            if (usernameExists)
+            {
+                return Json(new { success = false, message = "Username Already Exists" });
+            }
+
+            // Create temp password
+            string tempPassword = Guid.NewGuid().ToString();
+
+            // Create user
+            var user = new Models.Member
+            {
+                Email = model.Email,
+                Name = model.Username,
+                Password = BCrypt.Net.BCrypt.HashPassword(tempPassword),
+                IsGoogleAccount = true,
+                IsEmailVerified = true,
+                RoleId = model.RoleId,
+                VerificationStatus = "Pending"
+            };
+
+            _db.Members.Add(user);
+            await _db.SaveChangesAsync();
+
+            HttpContext.Session.SetString("UserEmail", model.Email);
+            HttpContext.Session.SetInt32("UserId", user.Id);
+            HttpContext.Session.SetInt32("UserRoleId", user.RoleId);
+
+            // Admin = 2, Member = 3
+            if (model.RoleId == 2)
+            {
+                return Json(new
+                {
+                    success = true,
+                    message = "Redirecting to Library Registration...",
+                    redirect = Url.Action("libraryRegistration", "Library")
+                });
+            }
+
+            // Member redirect
+            TempData["google-toast"] = "Account Created Successfully using Google!";
+            TempData["google-toastType"] = "success";
+
+            return Json(new { success = true, message = "Account Created", redirect = Url.Action("", "Dashboard") });
+        }
+        public IActionResult Logout()
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "library");
+        }
     }
 }

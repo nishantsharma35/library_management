@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 using System;
+using System.Net.Http;
 
 namespace library_management.Controllers
 {
@@ -18,7 +19,8 @@ namespace library_management.Controllers
         private readonly libraryInterface _libraryInterface;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly PermisionHelperInterface _permission;
-        public AdminMasterController(dbConnect connect,EmailSenderInterface sender,ISidebarRepository sidebar,ILogger<AdminMasterController> logger,AdminInterface admin,libraryInterface libraryInterface,IWebHostEnvironment webHostEnvironment,PermisionHelperInterface permisionHelperInterface) : base(sidebar)
+        private readonly HttpClient _httpClient;
+        public AdminMasterController(dbConnect connect,EmailSenderInterface sender,ISidebarRepository sidebar,ILogger<AdminMasterController> logger,AdminInterface admin,libraryInterface libraryInterface,IWebHostEnvironment webHostEnvironment,PermisionHelperInterface permisionHelperInterface, IHttpClientFactory httpClientFactory) : base(sidebar)
         {
             _connect = connect;
             _sender = sender;
@@ -27,6 +29,7 @@ namespace library_management.Controllers
             _libraryInterface = libraryInterface;
             _webHostEnvironment = webHostEnvironment;
             _permission = permisionHelperInterface;
+            _httpClient = httpClientFactory.CreateClient();
         }
 
         public string GetUserPermission(string action)
@@ -69,8 +72,24 @@ namespace library_management.Controllers
             {
                 return RedirectToAction("UnauthorisedAccess", "Error");
             }
-           
         }
+
+
+        [HttpGet("/AdminMaster/states")]
+        public async Task<IActionResult> GetStates()
+        {
+            var response = await _httpClient.GetStringAsync("http://api.geonames.org/childrenJSON?geonameId=1269750&username=nishant_35");
+            return Content(response, "application/json");
+        }
+
+        [HttpGet("/AdminMaster/cities/{geonameId}")]
+        public async Task<IActionResult> GetCities(int geonameId)
+        {
+            var url = $"http://api.geonames.org/childrenJSON?geonameId={geonameId}&username=nishant_35";
+            var response = await _httpClient.GetStringAsync(url);
+            return Content(response, "application/json");
+        }
+
         [HttpPost]
         public async Task<IActionResult> UpdateStatus(int UserId, bool Status)
         {
@@ -80,20 +99,20 @@ namespace library_management.Controllers
         [HttpGet]
         public async Task<IActionResult> AddAdmin(int? id)
         {
-            string permissionType = GetUserPermission("AddAdmin");
-            if (permissionType == "CanEdit" || permissionType == "FullAccess")
-            {
+            //string permissionType = GetUserPermission("AddAdmin");
+            //if (permissionType == "CanEdit" || permissionType == "FullAccess" || permissionType == "CanView")
+            //{
                 Library model = new Library();
                 if (id > 0)
                 {
                     model = await _connect.Libraries.FirstOrDefaultAsync(x => x.LibraryId == id);
                 }
                 return View(model);
-            }
-            else
-            {
-                return RedirectToAction("UnauthorisedAccess", "Error");
-            }
+            //}
+            //else
+            //{
+            //    return RedirectToAction("UnauthorisedAccess", "Error");
+            //}
             
         }
 

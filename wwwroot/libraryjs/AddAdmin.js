@@ -27,11 +27,9 @@
     });
 
 
-    const username = "nishant_35"; // Replace with your Geonames username
-    const stateGeonameId = 1269750; // ID for India
+  
 
-    // Fetch States
-    fetch(`http://api.geonames.org/childrenJSON?geonameId=${stateGeonameId}&username=${username}`)
+    fetch(`/AdminMaster/states`)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -56,7 +54,7 @@
         const selectedStateGeonameId = $(this).find("option:selected").data("id"); // Get geonameId from data-id
 
         if (selectedStateGeonameId) {
-            fetch(`http://api.geonames.org/childrenJSON?geonameId=${selectedStateGeonameId}&username=${username}`)
+            fetch(`/AdminMaster/cities/${selectedStateGeonameId}`)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);

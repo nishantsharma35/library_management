@@ -42,6 +42,8 @@ public partial class Member
     // Foreign Key
     public int? LibraryId { get; set; }
 
+    public bool? IsGoogleAccount { get; set; }
+
     // Navigation Property
     public virtual Library? Library { get; set; }
 

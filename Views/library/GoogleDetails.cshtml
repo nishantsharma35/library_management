@@ -1,0 +1,79 @@
+﻿@model library_management.Models.GoogleSignupModel
+
+@{
+    Layout = "/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Google Details";
+}
+
+<html lang="en">
+<head>
+    <title>Google Details</title>
+    <style>
+        label.error {
+            color: red !important;
+        }
+    </style>
+</head>
+<body class="account-page">
+    <div id="global-loader">
+        <div class="whirly-loader"></div>
+    </div>
+    <div class="main-wrapper">
+        <div class="account-content">
+            <div class="login-wrapper">
+                <div class="login-content">
+                    <div class="login-userset">
+                        <form id="googleDetailsForm">
+                            <div class="login-userheading">
+                                <h3>Complete Google Signupaaaaaaaaaaaaaaaaaaaa</h3>
+                            </div>
+
+                            <div class="form-login">
+                                <label>Username</label>
+                                <div class="form-addons">
+                                    <input type="text" asp-for="Username" placeholder="Enter your Username" required>
+                                    <img src="~/assets/img/icons/users1.svg" alt="img">
+                                </div>
+                            </div>
+
+                            <div class="form-login">
+                                <label>Email</label>
+                                <div class="form-addons">
+                                    <input type="email" asp-for="Email" readonly>
+                                    <img src="~/assets/img/icons/mail.svg" alt="img">
+                                </div>
+                            </div>
+
+                            <div class="form-login">
+                                <label>Select Role</label>
+                                <div class="form-addons">
+                                    <select asp-for="RoleId" required>
+                                        <option value="">-- Select Role --</option>
+                                        <option value="3">Member</option>
+                                        <option value="2">Library Admin</option>
+                                    </select>
+                                    <img src="~/assets/img/icons/users1.svg" alt="img">
+                                </div>
+                            </div>
+
+                            <div class="form-login">
+                                <button type="submit" id="btnSave" class="btn btn-login">
+                                    <span class="spinner-border spinner-border-sm d-none" id="btnLoader" role="status" aria-hidden="true"></span>
+                                    Submit
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="login-img">
+                    <img src="~/assets/img/login.jpg" alt="img">
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+@section Scripts{
+    <script src="~/libraryjs/GoogleDetails.js"></script>
+}

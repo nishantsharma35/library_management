@@ -1,0 +1,79 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Google Sign-In</title>
+</head>
+<body>
+    <div class="text-center mt-5">
+        <p>Signing you in via Google... Please wait.</p>
+    </div>
+
+    @* <script> *@
+    @*     // Immediately fetch JSON from backend *@
+    @*     fetch("/library/google-callback") *@
+    @*         .then(res => res.json()) *@
+    @*         .then(data => { *@
+    @*             if(!data.success){ *@
+    @*                         // showToast(result.message, "error") *@
+    @*                          alert(data.message); *@
+    @*             } *@
+    @*             if (data.success && data.redirect) { *@
+    @*                 window.location.href = data.redirect; *@
+    @*             } *@
+    @*             else if (!data.success && data.redirect) { *@
+    @*                 window.location.href = data.redirect; *@
+    @*             } *@
+    @*             else if (!data.success) { *@
+    @*                 setTimeout(() => { *@
+    @*                     window.location.href = "/library/login"; // fallback *@
+    @*                 }, 3000); *@
+    @*             } *@
+    @*         }) *@
+    @*         .catch(err => { *@
+    @*                         // showToast("Unknown error occurred", "error") *@
+    @*                         alert(data.message); *@
+    @*             console.error(err); *@
+    @*             window.location.href = "/library/login"; *@
+    @*         }); *@
+    @* </script> *@
+    <script>
+        // Immediately fetch JSON from backend
+        fetch("/library/google-callback")
+            .then(res => res.json())
+            .then(data => {
+                    // alert(data.message);
+
+                if (!data.success) {
+                    alert(data.message);
+                }
+
+                if (data.success && data.redirect) {
+                    alert(data.message);
+
+                    window.location.href = data.redirect;
+                }
+                else if (!data.success && data.redirect) {
+                    alert(data.message);
+
+                    window.location.href = data.redirect;
+                }
+                else if (!data.success) {
+                    setTimeout(() => {
+                        window.location.href = "/library/login"; // fallback
+                    }, 3000);
+                }
+            })
+            .catch(err => {
+                alert("Unknown error occurred");
+                console.error(err);
+                window.location.href = "/library/login";
+            });
+    </script>
+
+</body>
+</html>

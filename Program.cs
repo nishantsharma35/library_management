@@ -4,6 +4,8 @@ using library_management.repository.internalinterface;
 using Microsoft.EntityFrameworkCore;
 using library_management.Repositories.Classes;
 using library_management.Controllers;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,7 +34,19 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true; // Ensures session cookie is accessible only via HTTP
     options.Cookie.IsEssential = true; // Ensures cookie is essential
 });
-
+builder.Services.AddHttpClient();
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+})
+.AddCookie()
+.AddGoogle(options =>
+{
+    options.ClientId = "451272492291-evpt01qddi8oqkdnkjfkr6d897c0p2an.apps.googleusercontent.com";
+    options.ClientSecret = "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";
+    options.CallbackPath = "/signin-google"; // or whatever you’ve set
+});
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddMemoryCache();
 var app = builder.Build();

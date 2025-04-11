@@ -240,7 +240,7 @@ public partial class dbConnect : DbContext
             entity.Property(e => e.VerificationStatus)
                 .HasMaxLength(30)
                 .IsUnicode(false);
-
+            entity.Property(e => e.IsGoogleAccount).HasDefaultValue(false);
             entity.HasOne(d => d.Library) // Library table se relation banayega
                .WithMany(p => p.Member) // Ek Library ke multiple Members ho sakte hain
                .HasForeignKey(d => d.LibraryId) // Foreign Key define kar raha hai
