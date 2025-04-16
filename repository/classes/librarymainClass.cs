@@ -316,6 +316,80 @@ return await _connect.Memberships
                 return new { success = false, message = "Error: " + ex.Message };
             }
         }
+
+
+
+        public async Task<Member> GetUserData(int id)
+        {
+            return await _connect.Members.FirstOrDefaultAsync(x => x.Id == id);
+        }
+        public async Task<object> UpdateUserDetailsAsync(Member user)
+        {
+            var existingUser = await _connect.Members.FirstOrDefaultAsync(u => u.Id == user.Id);
+
+            if (existingUser == null)
+            {
+                return new { success = false, message = "User not found." };
+            }
+
+            if (user.profilefile != null)
+            {
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                const long maxFileSize = 5 * 1024 * 1024; // 5 MB limit
+
+                string fileExtension = Path.GetExtension(user.profilefile.FileName).ToLower();
+                if (!allowedExtensions.Contains(fileExtension))
+                {
+                    return new { success = false, message = "Invalid file type. Only .jpg, .jpeg, .png, and .gif are allowed." };
+                }
+
+                if (user.profilefile.Length > maxFileSize)
+                {
+                    return new { success = false, message = "File size exceeds the maximum allowed size of 5 MB." };
+                }
+
+                string uploadFolder = Path.Combine(_environment.WebRootPath, "images");
+                Directory.CreateDirectory(uploadFolder); // Ensure directory exists
+
+                string uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(user.profilefile.FileName);
+                string filePath = Path.Combine(uploadFolder, uniqueFileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await user.profilefile.CopyToAsync(stream);
+                }
+
+                existingUser.Picture = "/images/" + uniqueFileName;
+            }
+
+            existingUser.Name = user.Name;
+            existingUser.Gender = user.Gender;
+            existingUser.Phoneno = user.Phoneno;
+            existingUser.Gender = user.Gender;
+            existingUser.State = user.State;
+            existingUser.City = user.City;
+            existingUser.Address = user.Address;
+            existingUser.Email = user.Email;
+
+            if (user.profilefile != null)
+            {
+                existingUser.Picture = user.Picture;
+            }
+
+            await _connect.SaveChangesAsync();
+
+            // Send email notification
+            string subject = "Your profile has been updated";
+            string body = $"Hello {existingUser.Name},<br><br>Your profile details have been successfully updated.<br><br>Thank you!";
+            await _emailSender.SendEmailAsync(existingUser.Email, subject, body);
+
+            return new { success = true, message = "Profile updated successfully!" };
+        }
     }
+
+
+
+
 }
+//}
 

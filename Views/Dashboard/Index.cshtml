@@ -117,43 +117,24 @@
                     </div>
                 </div>
 
-
+           
                 <!-- Pie Chart -->
                 <div class="col-xl-4 col-lg-5">
                     <div class="card shadow mb-4">
-                        <!-- Card Header - Dropdown -->
+                        <!-- Card Header -->
                         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                            <h6 class="m-0 font-weight-bold text-primary">Revenue Sources</h6>
-                            <div class="dropdown no-arrow">
-                                @* <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> *@
-                                @*     <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i> *@
-                                @* </a> *@
-                                @* <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink"> *@
-                                @*     <div class="dropdown-header">Dropdown Header:</div> *@
-                                @*     <a class="dropdown-item" href="#">Action</a> *@
-                                @*     <a class="dropdown-item" href="#">Another action</a> *@
-                                @*     <div class="dropdown-divider"></div> *@
-                                @*     <a class="dropdown-item" href="#">Something else here</a> *@
-                                @* </div> *@
-                            </div>
+                            <h6 class="m-0 font-weight-bold text-primary">Fine Payment Status</h6>
                         </div>
+
                         <!-- Card Body -->
                         <div class="card-body">
-
-                            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                <h6 class="m-0 font-weight-bold text-primary">Doughnut Chart Overview</h6>
-                                <div class="dropdown no-arrow">
-                                </div>
-                            </div>
                             <div class="chart-pie pt-4 pb-2">
-                                <canvas id="myPieChart" width="448" height="306" style="display: block; height: 245px; width: 359px;" class="chartjs-render-monitor"></canvas>
+                                <canvas id="myPieChart"></canvas>
                             </div>
-
-                            <div id="pieChartLegend" class="mt-4 text-center small">
-                                <!-- Dynamic legend labels will be injected here -->
+                            <div id="fineChartLegend" class="mt-4 text-center small">
+                                <!-- Paid / Unpaid -->
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
@@ -194,7 +175,7 @@
                         <div class="d-flex align-items-center justify-content-between">
                             <div class="text-left">
                                 <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                   Books Stock
+                                    Books Stock
                                 </div>
                                 <div class="h6 mb-0 font-weight-bold text-gray-800">
                                     Total Books Stock: @Model.TotalBooks<br>
@@ -291,9 +272,138 @@
 
         </div>
     }
-    @section Scripts {
-        <script src="~/libraryjs/dashboard.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    @if (Model.RoleId == 3)
+    {
+        <!-- Content Row -->
+        <div class="row">
+            <!-- Total Libraries Joined -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-primary shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="text-left">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                    Libraries Joined
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalJoinedLibraries</div>
+                            </div>
+                            <div class="text-right">
+                                <i class="fas fa-university fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Borrowed Books -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="text-left">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                    Borrowed Books
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalBorrowedBooks</div>
+                            </div>
+                            <div class="text-right">
+                                <i class="fas fa-book-reader fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Overdue Books -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-warning shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="text-left">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                    Overdue Books
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalOverdueBooks</div>
+                            </div>
+                            <div class="text-right">
+                                <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Fine -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-danger shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="text-left">
+                                <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                    Pending Fine (₹)
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">₹@Model.TotalPendingFine</div>
+                            </div>
+                            <div class="text-right">
+                                <i class="fas fa-rupee-sign fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content row -->
+        <div class="row">
+            <!-- Monthly Borrow & Return Stats -->
+            <div class="col-xl-8 col-lg-7">
+                <div class="card shadow mb-4">
+                    <!-- Card Header with Year Filter -->
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">Monthly Borrow & Return Stats</h6>
+                        <div class="form-inline">
+                            <label for="yearSelect" class="mr-2">Year:</label>
+                            <select class="form-control" id="yearSelect" onchange="loadMemberBorrowReturnChart(this.value)">
+                                <!-- Year options will be dynamically added here -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Graph Area -->
+                    <div class="card-body">
+                        <canvas id="borrowMemberReturnChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fine Payment Status -->
+            <div class="col-xl-4 col-lg-5">
+                <div class="card shadow mb-4">
+                    <!-- Card Header -->
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">Fine Payment Status</h6>
+                    </div>
+
+                    <!-- Card Body -->
+                    <div class="card-body">
+                        <div class="chart-pie pt-4 pb-2">
+                            <canvas id="fineMemberChart"></canvas>
+                        </div>
+                        <div id="fineChartLegend" class="mt-4 text-center small">
+                            <!-- Paid / Unpaid -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 
     }
+</div>
+@section Scripts {
+    <script src="~/libraryjs/dashboard.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+}

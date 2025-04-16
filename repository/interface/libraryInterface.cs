@@ -32,6 +32,11 @@ namespace library_management.repository.internalinterface
 
         Task<object> AddLibrarianAsync(Member librarian, int adminLibraryId);
 
+
+
+        Task<Member> GetUserData(int id);
+        Task<object> UpdateUserDetailsAsync(Member user);
+
         //Task<List<string>> getallstate();
 
         //Task<List<string>> getcities(string state1);

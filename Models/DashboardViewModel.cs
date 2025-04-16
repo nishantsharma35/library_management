@@ -19,5 +19,13 @@
         public int ReturnCount { get; set; }
 
         public int? RoleId { get; set; } // <-- Add this property
+
+        public int TotalJoinedLibraries { get; set; }
+        public int TotalBorrowedBooks { get; set; }
+        public int TotalOverdueBooks { get; set; }
+        public decimal TotalPendingFine { get; set; }
+
+        
+
     }
 }
