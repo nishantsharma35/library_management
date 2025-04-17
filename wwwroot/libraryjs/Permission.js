@@ -134,10 +134,14 @@ function savePermission() {
         contentType: "application/json",
         data: JSON.stringify(data),
         success: function (response) {
-            alert(response.message);
+            showToast(response.message);
+
             if (response.success) {
-                location.reload();
+                setTimeout(function () {
+                    location.reload();
+                }, 3000); 
             }
+
             //alert("Permission saved successfully!");
         },
         error: function (xhr) {

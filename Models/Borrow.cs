@@ -25,6 +25,9 @@ public partial class Borrow
     public int LibraryId { get; set; }
     [NotMapped]  // Ye database me store nahi hoga, sirf runtime pe use hoga
     public decimal FineAmount { get; set; }
+    public string? otp { get; set; }
+
+    public DateTime? otpexpires { get; set; }
 
     public virtual Book Book { get; set; } = null!;
 

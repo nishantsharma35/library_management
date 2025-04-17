@@ -13,6 +13,16 @@ namespace library_management.repository.classes
             _context = context;
         }
 
+        public Member GetMember(int id)
+        {
+            return _context.Members.Where(x => x.Id == id).Select(member => new Member
+            {
+                Id = member.Id,
+                Name = member.Name,
+                Picture = member.Picture
+            }).FirstOrDefault();
+        }
+
         public async Task<List<SidebarModel>> GetTabsByRoleIdAsync(int roleId)
         {
             var tabs = await (from t in _context.TblTabs

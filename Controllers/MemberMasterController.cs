@@ -182,32 +182,32 @@ namespace library_management.Controllers
         {
             try
             {
-                if (user.Id > 0)
-                {
-                    Member resData = _memberMasterInterface.checkExistence(user.Name, user.Email, user.Id);
-                    if (resData != null)
-                    {
-                        if (resData.Email == user.Email)
-                        {
-                            return Json(new { success = false, message = "Email already exists" });
-                        }
-                        if (resData.Name == user.Name)
-                        {
-                            return Json(new { success = false, message = "Username already exists" });
-                        }
-                    }
-                }
-                else
-                {
-                    if (await _libraryInterface.ismembernameexitsAsync(user.Name))
-                    {
-                        return Json(new { success = false, message = "Username already exists - edit" });
-                    }
-                    if (await _libraryInterface.isemailexitsAsync(user.Email))
-                    {
-                        return Json(new { success = false, message = "Email already exists - edit" });
-                    }
-                }
+                //if (user.Id > 0)
+                //{
+                //    Member resData = _memberMasterInterface.checkExistence(user.Name, user.Email, user.Id);
+                //    if (resData != null)
+                //    {
+                //        if (resData.Email == user.i)
+                //        {
+                //            return Json(new { success = false, message = "Email already exists" });
+                //        }
+                //        if (resData.Name == user.Name)
+                //        {
+                //            return Json(new { success = false, message = "Username already exists" });
+                //        }
+                //    }
+                //}
+                //else
+                //{
+                //    if (await _libraryInterface.ismembernameexitsAsync(user.Name))
+                //    {
+                //        return Json(new { success = false, message = "Username already exists - edit" });
+                //    }
+                //    if (await _libraryInterface.isemailexitsAsync(user.Email))
+                //    {
+                //        return Json(new { success = false, message = "Email already exists - edit" });
+                //    }
+                //}
                 string username = user.Name;
                 string address = user.Address;
                 string password = user.Password;

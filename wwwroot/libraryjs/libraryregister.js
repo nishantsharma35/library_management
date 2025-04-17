@@ -68,13 +68,13 @@
             contentType: false,
             data: formdata,
             success: function (result) {
-                alert(result.message);
+                showToast(result.message, "success");
                 if (result.success) {
                     window.location.href = '/Dashboard';
                 }
             },
             error: function () {
-                alert('An error occurred while registering the user');
+                showToast('An error occurred while registering the user');
             }
         });
     });

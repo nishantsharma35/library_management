@@ -335,14 +335,18 @@ return await _connect.Memberships
             if (user.profilefile != null)
             {
                 var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
-                const long maxFileSize = 5 * 1024 * 1024; // 5 MB limit
 
+                // Maximum allowed file size (5 MB in bytes)
+                const long maxFileSize = 5 * 1024 * 1024;
+
+                // Get file extension and check if it is allowed
                 string fileExtension = Path.GetExtension(user.profilefile.FileName).ToLower();
                 if (!allowedExtensions.Contains(fileExtension))
                 {
                     return new { success = false, message = "Invalid file type. Only .jpg, .jpeg, .png, and .gif are allowed." };
                 }
 
+                // Check file size
                 if (user.profilefile.Length > maxFileSize)
                 {
                     return new { success = false, message = "File size exceeds the maximum allowed size of 5 MB." };
@@ -358,8 +362,7 @@ return await _connect.Memberships
                 {
                     await user.profilefile.CopyToAsync(stream);
                 }
-
-                existingUser.Picture = "/images/" + uniqueFileName;
+                user.Picture = "/images/" + uniqueFileName;
             }
 
             existingUser.Name = user.Name;

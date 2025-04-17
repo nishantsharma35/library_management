@@ -211,24 +211,6 @@ namespace library_management.Controllers
                     }
 
                 }
-                // Role wise redirection
-                //switch (data.RoleId)
-                //{
-                //    case 1:
-                //        RedirectTo = "SuperAdminDashboard"; // Super Admin
-                //        break;
-                //    case 2:
-                //        RedirectTo = "AdminDashboard"; // Admin
-                //        break;
-                //    case 3:
-                //        RedirectTo = "MemberDashboard"; // Member
-                //        break;
-                //    default:
-                //        RedirectTo = "Dashboard"; // Default fallback
-                //        break;
-                //}
-
-                // Reset login attempts after successful login
                 _memoryCache.Remove(attemptKey);
                 return Json(new { success = true, message = "Login successful!" , res = RedirectTo });
             }

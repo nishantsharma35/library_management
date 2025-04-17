@@ -16,14 +16,13 @@
                         <h6 class="m-0 font-weight-bold text-primary">Profile Picture</h6>
                     </div>
                     <div class="card-body text-center">
-                        <img src="@Model.profilefile" class="img-profile rounded-circle mb-3"
+                        <img src="@Model.Picture" id="previewImg" class="img-profile rounded-circle mb-3"
                              style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #ddd;">
 
-                       
-                            <div class="custom-file">
-                                <input type="file" class="custom-file-input" id="imgInp" asp-for="profilefile">
-                                <label class="custom-file-label" for="imgInp"></label>
-                            </div>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="imgInp" asp-for="profilefile">
+                        </div>
+
                         
 
                         <h5 class="mt-3">@Model.Name</h5>
@@ -79,6 +78,9 @@
                                 <a href="/Dashboard" class="btn btn-secondary">Cancel</a>
                                 <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#create">Reset Password</button>
                             </div>
+                        <input type="hidden" id="selectedState" value="@Model.State" />
+                        <input type="hidden" id="selectedCity" value="@Model.City" />
+
                     </div>
                 </div>
             </div>

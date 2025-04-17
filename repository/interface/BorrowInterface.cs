@@ -4,7 +4,7 @@ namespace library_management.repository.internalinterface
 {
     public interface BorrowInterface
     {
-        Task<bool> BorrowBookAsync(int memberId, int bookId, int libraryId, DateTime issueDate, DateTime dueDate);
+        Task<int> BorrowBookAsync(int memberId, int bookId, int libraryId, DateTime issueDate, DateTime dueDate);
 
         Task<bool> UpdateLibraryStockOnReturnAsync(Borrow borrowRecord);
         Task<bool> ReturnBookAsync(int borrowId);
@@ -14,5 +14,6 @@ namespace library_management.repository.internalinterface
         Task<Borrow> GetBorrowRecordByIdAsync(int borrowId);
 
         Task<List<Borrow>> GetBorrowedBooksByMemberIdAsync(int memberId);
+        Task<bool> VerifyOtpAsync(int borrowId, string enteredOtp);
     }
 }

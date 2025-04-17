@@ -18,9 +18,11 @@
                 processData: false,
                 contentType: false,
                 success: function (response) {
-                    alert(response.message);
-                    if (response.success) {
-                        window.location.href = '/Dashboard';
+                    showToast(result.message, "success");
+                    if (result.success) {
+                        setTimeout(() => {
+                            window.location.href = '/Dashboard';
+                        }, 1500);
                     }
                 },
                 complete: function () {
@@ -29,7 +31,7 @@
                     btnLoader.addClass("d-none");
                 },
                 error: function () {
-                    alert("Something went wrong!");
+                    showToast("Something went wrong!");
                 }
             });
         }, 2000); // Delay for loader effect

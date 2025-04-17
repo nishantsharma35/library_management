@@ -47,6 +47,11 @@ namespace library_management.Controllers
 
         public async Task<object> AddMember(Member user, int libraryId)
         {
+            bool needMembership = false;
+            if(user.Id == 0)
+            {
+                needMembership = true;
+            }
             var UpdatedUser = await _context.Members.FirstOrDefaultAsync(u => u.Id == user.Id);
             string imgPath = "";
 
@@ -107,7 +112,7 @@ namespace library_management.Controllers
             await _context.SaveChangesAsync(); // 🟢 yahan tak user.Id generate ho chuka hoga
 
             // ✅ Add Membership after user is saved
-            if (user.Id > 0)
+            if (user.Id > 0 && needMembership)
             {
                 var membership = new Membership
                 {

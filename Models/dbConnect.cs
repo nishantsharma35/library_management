@@ -88,6 +88,11 @@ public partial class dbConnect : DbContext
             entity.Property(e => e.IssueDate).HasColumnType("datetime");
             entity.Property(e => e.LibraryId).HasColumnName("libraryID");
             entity.Property(e => e.ReturnDate).HasColumnType("datetime");
+            entity.Property(e => e.otp)
+                .HasMaxLength(6)
+                .IsUnicode(false)
+                .HasColumnName("OTP");
+            entity.Property(e => e.otpexpires).HasColumnType("datetime");
             entity.Property(e => e.Status)
                 .HasMaxLength(20)
                 .IsUnicode(false);

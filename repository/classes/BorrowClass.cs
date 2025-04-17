@@ -1,24 +1,30 @@
-﻿using library_management.Models;
+﻿using DocumentFormat.OpenXml.Bibliography;
+using DocumentFormat.OpenXml.Spreadsheet;
+using library_management.Models;
 using library_management.repository.internalinterface;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 
 namespace library_management.repository.classes
 {
     public class BorrowClass : BorrowInterface
     {
         private readonly dbConnect _connect;
+        private readonly EmailSenderInterface _emailSender;
 
-        public BorrowClass(dbConnect connect)
+        public BorrowClass(dbConnect connect, EmailSenderInterface emailSenderInterface)
         {
             _connect = connect;
+            _emailSender = emailSenderInterface;
         }
 
 
-        public async Task<bool> BorrowBookAsync(int memberId, int bookId, int libraryId, DateTime issueDate, DateTime dueDate)
+        public async Task<int> BorrowBookAsync(int memberId, int bookId, int libraryId, DateTime issueDate, DateTime dueDate)
         {
             Console.WriteLine($"LOG: Borrowing Book - Member {memberId}, Book {bookId}, Library {libraryId}");
 
+            string email = _connect.Members.Where(x=>x.Id== memberId).Select(y=>y.Email).FirstOrDefault();
             var alreadyBorrowed = await _connect.Borrows
                 .AnyAsync(b => b.MemberId == memberId
                             && b.BookId == bookId
@@ -28,8 +34,10 @@ namespace library_management.repository.classes
             if (alreadyBorrowed)
             {
                 Console.WriteLine($"❌ ERROR: Member {memberId} has already borrowed Book {bookId} from Library {libraryId}");
-                return false;
+                return 0;
             }
+            var otp = _emailSender.GenerateOtp();
+            var otpexpiry = DateTime.Now.AddMinutes(5);
 
             var borrow = new Borrow
             {
@@ -38,15 +46,53 @@ namespace library_management.repository.classes
                 LibraryId = libraryId,
                 IssueDate = issueDate,
                 DueDate = dueDate,
-                Status = "Borrowed",
-                ReturnDate = null
+                Status = "Pending",
+                ReturnDate = null,
+                otp = otp,
+                otpexpires = otpexpiry
             };
+            string subject = "Your Borrow Request OTP Verification";
+            string body = $"Dear {borrow.MemberId},<br><br>Your request to borrow the book <b>{bookId}</b> has been received.<br><br>To complete the process, please use the following OTP to verify your request:<br><br><b>{otp}</b><br><br>This OTP will expire in 5 minutes.<br><br>Regards,<br>Library Team";
+
+            await _emailSender.SendEmailAsync(email, subject, body);
 
             _connect.Borrows.Add(borrow);
             await _connect.SaveChangesAsync();
+            return borrow.BorrowId;;
+        }
 
+        public async Task<bool> VerifyOtpAsync(int borrowId, string enteredOtp)
+        {
+            var borrowRecord = await _connect.Borrows
+                .Where(b => b.BorrowId == borrowId)
+                .FirstOrDefaultAsync();
+
+            if (borrowRecord == null)
+            {
+                Console.WriteLine("❌ ERROR: Borrow record not found.");
+                return false;
+            }
+
+            if (borrowRecord.otp != enteredOtp)
+            {
+                Console.WriteLine("❌ ERROR: OTP does not match.");
+                return false;
+            }
+
+            if (borrowRecord.otpexpires < DateTime.Now)
+            {
+                Console.WriteLine("❌ ERROR: OTP has expired.");
+                return false;
+            }
+
+            borrowRecord.Status = "Borrowed";
+            _connect.Borrows.Update(borrowRecord);
+            await _connect.SaveChangesAsync();
+            // OTP verification successful
             return true;
         }
+
+
 
 
         //public async Task<bool> BorrowBookAsync(int memberId, int bookId, int libraryId, DateTime issueDate, DateTime dueDate)

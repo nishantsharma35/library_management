@@ -1,4 +1,5 @@
-﻿using library_management.repository.internalinterface;
+﻿using DocumentFormat.OpenXml.Office2010.Excel;
+using library_management.repository.internalinterface;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
@@ -38,6 +39,8 @@ namespace library_management.Controllers
             {
                 var tabs = await _sidebar.GetTabsByRoleIdAsync(roleId.Value); // Async call
                 ViewBag.SidebarTabs = tabs;
+                var member = _sidebar.GetMember((int)userId);
+                ViewBag.memberdetails = member;
             }
 
             await next(); // Continue with the action execution

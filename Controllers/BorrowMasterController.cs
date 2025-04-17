@@ -1,4 +1,5 @@
-﻿using library_management.Models;
+﻿using DocumentFormat.OpenXml.Drawing.Charts;
+using library_management.Models;
 using library_management.repository.internalinterface;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -142,26 +143,42 @@ namespace library_management.Controllers
             // ✅ Validation: Borrow object check karo
             if (borrow == null || borrow.MemberId == 0 || borrow.BookId == 0 || borrow.IssueDate == default || borrow.DueDate == default || borrow.Status == "Borrowed")
             {
-                TempData["Error"] = "Invalid data!";
-                return RedirectToAction("AddBorrow");
+                //TempData["Error"] = "Invalid data!";
+                return Json(new { success = false, message = "invalid data" });
             }
 
             // ✅ BorrowBookAsync method me LibraryId pass karo
-            bool isBorrowed = await _borrowInterface.BorrowBookAsync(borrow.MemberId, borrow.BookId, libraryId, borrow.IssueDate, borrow.DueDate);
+            int borrowId = await _borrowInterface.BorrowBookAsync(borrow.MemberId, borrow.BookId, libraryId, borrow.IssueDate, borrow.DueDate);
 
-            if (isBorrowed)
+            if (borrowId > 0)
             {
-                TempData["Success"] = "Book borrowed successfully!";
-                return RedirectToAction("BorrowList");
+                //TempData["Success"] = "Book borrowed successfully!";
+                //return RedirectToAction("BorrowList");
+                return Json(new { success = true, message = "Book borrowed successfully!", borrowId});
+
             }
             else
             {
-                TempData["Error"] = "Failed to borrow book!";
-                return RedirectToAction("AddBorrow");
+                //TempData["Error"] = "Failed to borrow book!";
+                //return RedirectToAction("AddBorrow");
+
+                return Json(new { success = false, message = "Failed to borrow book!" });
             }
         }
 
 
+        [HttpPost]
+        public async Task<IActionResult> VerifyOTP( string otp, int borrowId)
+        {
+            if (await _borrowInterface.VerifyOtpAsync(borrowId,otp)) // 🔁 Replace with actual logic
+            {
+                return Json(new { success = true });
+            }
+            else
+            {
+                return Json(new { success = false, message = "Invalid OTP." });
+            }
+        }
 
 
         //[HttpPost]
