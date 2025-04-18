@@ -10,6 +10,7 @@ using Microsoft.Extensions.Caching.Memory;
 using NuGet.Protocol.Plugins;
 using System.Net.Http;
 using System.Security.Claims;
+using library_management.DTO;
 
 namespace library_management.Controllers
 {
@@ -695,6 +696,33 @@ namespace library_management.Controllers
         {
             HttpContext.Session.Clear();
             return RedirectToAction("Login", "library");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDTO model)
+        {
+            if (string.IsNullOrWhiteSpace(model.oldPassword) || string.IsNullOrWhiteSpace(model.newPassword))
+            {
+                return BadRequest(new { success = false, message = "All fields are required." });
+            }
+
+            int userId = HttpContext.Session.GetInt32("UserId").Value; // Get logged-in user ID
+            var user = await _db.Members.FindAsync(userId);
+
+            if (user == null || !BCrypt.Net.BCrypt.Verify(model.oldPassword, user.Password))
+            {
+                return BadRequest(new { success = false, message = "Old password is incorrect." });
+            }
+
+            if (model.newPassword.Length < 8)
+            {
+                return BadRequest(new { success = false, message = "Password must be at least 8 characters." });
+            }
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(model.newPassword);
+            await _db.SaveChangesAsync();
+
+            return Ok(new { success = true, message = "Password changed successfully." });
         }
     }
 }

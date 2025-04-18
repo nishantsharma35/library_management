@@ -77,13 +77,90 @@
                 <button type="submit" class="btn btn-success mt-3">@(Model.BookId > 0 ? "Update Book" : "Add Book")</button>
                 <a asp-action="BookList" class="btn btn-secondary mt-3">Cancel</a>
             </form>
+            <!-- 🔘 Mass Import Button -->
+            <div class="mt-4">
+                <a class="btn btn-info"
+                   data-bs-toggle="modal"
+                   data-bs-target="#recents">
+                    @* <img src="~/assets/img/icons/transcation.svg" alt="icon" class="me-1" /> *@
+                    Mass Import books
+                </a>
         </div>
     </div>
 </div>
 
+    <!-- 📦 Mass Import Modal -->
+    <div class="modal fade" id="recents" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Mass Import Books</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                    </button>
+                </div>
+                <div class="modal-body text-center">
+                    <a href="/BookMaster/DownloadSampleFile" class="btn btn-primary mb-3">
+                        <i class="fas fa-download"></i> Download Sample File
+                    </a>
+
+                    <form id="uploadForm" enctype="multipart/form-data" class="p-3 border rounded shadow-sm bg-light">
+                        <label for="excelFile" class="form-label fw-semibold">Upload Excel File</label>
+                        <input type="file" id="excelFile" name="excelFile" class="form-control mb-3" required />
+
+                        <label for="imageZip" class="form-label fw-semibold">Upload Image Zip File</label>
+                        <input type="file" id="imageZip" name="imageZip" class="form-control mb-3" required />
+
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-upload"></i> Submit
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
-}
-
-
 <script src="~/bookjs/bookjs.js"></script>
+
+        <script>
+            $("#uploadForm").submit(function (e) {
+                e.preventDefault();
+                var formData = new FormData(this);
+
+                $.ajax({
+                    url: "/BookMaster/UploadSampleFile",
+                    type: "POST",
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: "success",
+                                title: "Success!",
+                                text: response.message,
+                                showDenyButton: true,
+                                confirmButtonText: "Download File",
+                                denyButtonText: "Close"
+                            }).then((result) => {
+                                if (result.isConfirmed && response.fileData) {
+                                    var fileBytes = atob(response.fileData);
+                                    var blob = new Blob([new Uint8Array([...fileBytes].map(c => c.charCodeAt(0)))], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+                                    var link = document.createElement("a");
+                                    link.href = window.URL.createObjectURL(blob);
+                                    link.download = response.fileName;
+                                    link.click();
+                                }
+                            });
+                        } else {
+                            Swal.fire("Error!", response.message, "error");
+                        }
+                    },
+                    error: function () {
+                        Swal.fire("Error!", "Something went wrong. Please try again.", "error");
+                    }
+                });
+            });
+        </script>
+}

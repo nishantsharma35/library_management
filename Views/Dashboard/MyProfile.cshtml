@@ -2,7 +2,10 @@
 @{
     ViewData["Title"] = "MyProfile";
 }
+<head>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
+</head>
 <div class="container-fluid">
     <h1 class="h3 mb-4 text-gray-800">My Profile</h1>
 
@@ -89,5 +92,135 @@
     </form>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<div class="modal fade" id="create" tabindex="-1" aria-labelledby="create" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-lg rounded-3">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Change Password</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="changePasswordForm">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label for="OldPassword" class="form-label">Old Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-eye toggle-password" data-target="OldPassword" style="cursor: pointer;"></i>
+                                </span>
+                                <input type="password" class="form-control" id="OldPassword" placeholder="Enter old password">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="NewPassword" class="form-label">New Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-eye toggle-password" data-target="NewPassword" style="cursor: pointer;"></i>
+                                </span>
+                                <input type="password" class="form-control" id="NewPassword" placeholder="Enter new password">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="ConfirmPassword" class="form-label">Confirm Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-eye toggle-password" data-target="ConfirmPassword" style="cursor: pointer;"></i>
+                                </span>
+                                <input type="password" class="form-control" id="ConfirmPassword" placeholder="Confirm new password">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-flex justify-content-end">
+                        <button id="btnChangePassword" type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-save me-1"></i>Submit
+                        </button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i>Cancel
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="~/libraryjs/updatedetails.js"></script>
+    <script>
+                document.getElementById("btnChangePassword").addEventListener("click", function (e) {
+            e.preventDefault();
+
+            let oldPassword = document.getElementById("OldPassword").value.trim();
+            let newPassword = document.getElementById("NewPassword").value.trim();
+            let confirmPassword = document.getElementById("ConfirmPassword").value.trim();
+
+            // Basic Validation
+            if (!oldPassword || !newPassword || !confirmPassword) {
+                showToast("All fields are required.","warning");
+                return;
+            }
+
+            if (newPassword.length < 8) {
+                showToast("New password must be at least 8 characters long.","warning");
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                showToast("New password and Confirm password do not match.","warning");
+                return;
+            }
+
+            // AJAX Request to Backend
+            fetch('/library/ChangePassword', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    oldPassword: oldPassword,
+                    newPassword: newPassword
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast("Password changed successfully.","success");
+                    document.getElementById("changePasswordForm").reset();
+                } else {
+                    showToast(data.message || "Failed to change password.","error");
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        });
+
+    </script>
+    <script>
+        document.querySelectorAll('.toggle-password').forEach(function (icon) {
+            icon.addEventListener('click', function () {
+                const inputId = this.getAttribute('data-target');
+                const input = document.getElementById(inputId);
+
+                if (input) {
+                    if (input.type === "password") {
+                        input.type = "text";
+                        this.classList.remove("fa-eye");
+                        this.classList.add("fa-eye-slash");
+                    } else {
+                        input.type = "password";
+                        this.classList.remove("fa-eye-slash");
+                        this.classList.add("fa-eye");
+                    }
+                }
+            });
+        });
+    </script>
+
+}

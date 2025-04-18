@@ -7,6 +7,10 @@ using CsvHelper;
 using System.Globalization;
 using CsvHelper.Configuration;
 using static library_management.Models.Book;
+using System.IO.Compression;
+using OfficeOpenXml;
+using ClosedXML.Excel;
+using System.Diagnostics;
 
 namespace library_management.Controllers
 {
@@ -46,7 +50,7 @@ namespace library_management.Controllers
             {
                 return RedirectToAction("UnauthorisedAccess", "Error");
             }
-           
+
         }
 
 
@@ -100,7 +104,7 @@ namespace library_management.Controllers
             {
                 return RedirectToAction("UnauthorisedAccess", "Error");
             }
-            
+
         }
 
 
@@ -147,7 +151,7 @@ namespace library_management.Controllers
             {
                 return RedirectToAction("UnauthorisedAccess", "Error");
             }
-            
+
         }
 
 
@@ -244,118 +248,307 @@ namespace library_management.Controllers
             }
         }
 
-        [HttpGet]
-        public IActionResult BulkUpload()
+        //[HttpGet]
+        //public IActionResult BulkUpload()
+        //{
+        //    string permissionType = GetUserPermission("Bulk book adding");
+        //    if (permissionType == "CanEdit" || permissionType == "FullAccess")
+        //    {
+        //        return View(); // Ensure that BulkUpload.cshtml exists in Views/BookMaster
+        //    }
+        //    else
+        //    {
+        //        return RedirectToAction("UnauthorisedAccess", "Error");
+        //    }
+
+
+        //}
+
+        public IActionResult DownloadSampleFile()
         {
-            string permissionType = GetUserPermission("Bulk book adding");
-            if (permissionType == "CanEdit" || permissionType == "FullAccess")
+            // Create a new workbook & sheet
+            var workbook = new XLWorkbook();
+            var sheet = workbook.Worksheets.Add("Sample");
+
+            // Add headers
+
+            sheet.Cell(1, 1).Value = "Book Title";
+            sheet.Cell(1, 2).Value = "GenreId";  // Dropdown applied here
+            sheet.Cell(1, 3).Value = "ISBN";
+            sheet.Cell(1, 4).Value = "Publisher";
+            sheet.Cell(1, 5).Value = "Publication Year";
+            sheet.Cell(1, 6).Value = "Edition";
+            sheet.Cell(1, 7).Value = "Language";
+            sheet.Cell(1, 8).Value = "Author";
+            sheet.Cell(1, 9).Value = "Book Image Path";
+            sheet.Cell(1, 10).Value = "Stock";
+
+            // Fetch categories from DB
+            var categories = _context.Genres.Select(c => c.GenreName).ToList();
+
+            // Add categories to a hidden sheet
+            var categorySheet = workbook.Worksheets.Add("Genres");
+
+            for (int i = 0; i < categories.Count; i++)
             {
-                return View(); // Ensure that BulkUpload.cshtml exists in Views/BookMaster
-            }
-            else
-            {
-                return RedirectToAction("UnauthorisedAccess", "Error");
+                categorySheet.Cell(i + 1, 1).Value = categories[i];
             }
 
-           
+            // Hide the category sheet (so users don't see it)
+            categorySheet.Hide();
+
+            // Apply dropdown list to Category column (B2:B100)
+            var categoryRange = sheet.Range("B2:B100");
+            var categoryValidation = categoryRange.CreateDataValidation();
+            categoryValidation.List(categorySheet.Range($"A1:A{categories.Count}"));
+
+            // Save to MemoryStream & return as file
+            byte[] fileBytes;
+
+            using (var stream = new MemoryStream())
+            {
+                workbook.SaveAs(stream);
+                fileBytes = stream.ToArray();
+            }
+
+            return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "SampleFile.xlsx");
+
         }
+
 
 
         [HttpPost]
-        public IActionResult BulkUpload(IFormFile csvFile)
+        public async Task<IActionResult> UploadSampleFile(IFormFile excelFile, IFormFile imageZip)
         {
-            if (csvFile == null || csvFile.Length == 0)
+            var allowedExtensions = new HashSet<string> { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+            var stream = new MemoryStream();
+
+            if (excelFile == null || imageZip == null)
+                return BadRequest("Please upload both Excel file and Image ZIP folder.");
+
+            if (!imageZip.FileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
             {
-                TempData["Error"] = "Please upload a valid CSV file.";
-                return RedirectToAction("BulkUpload");
+                return Json(new { success = false, message = "Invalid file format. Only .zip files are allowed for image upload." });
             }
+            // Extract ZIP file
+            var imageFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot\\Bookimages");
+            Directory.CreateDirectory(imageFolderPath);
 
-            try
+            using (var zipStream = new MemoryStream())
             {
-                using (var reader = new StreamReader(csvFile.OpenReadStream()))
-                using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+                await imageZip.CopyToAsync(zipStream);
+                zipStream.Seek(0, SeekOrigin.Begin);
+
+                using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Read))
                 {
-                    csv.Context.RegisterClassMap<Book.BookCsvMap>(); // ✅ CSV Mapping
-                    var books = csv.GetRecords<Book>().ToList();
-
-                    if (books.Any())
+                    foreach (var entry in archive.Entries)
                     {
-                        int newBooksAdded = 0;
-                        int existingBooksUpdated = 0;
+                        string extension = Path.GetExtension(entry.Name).ToLower();
 
-                        // ✅ Step 2: Session me LibraryId set/update karo
-                        int? sessionLibraryId = HttpContext.Session.GetInt32("LibraryId");
-
-                        if (sessionLibraryId == null || sessionLibraryId == 0)
+                        // ❌ Reject non-image files
+                        if (!allowedExtensions.Contains(extension))
                         {
-                            int newLibraryId = _bookServiceInterface.GetLoggedInLibrarianLibraryId();
-                            HttpContext.Session.SetInt32("LibraryId", newLibraryId);
-                            sessionLibraryId = newLibraryId;
+                            return Json(new { success = false, message = "only image files are allowed inside the zip" });
                         }
 
-                        int libraryId = sessionLibraryId.Value;
-                        Console.WriteLine($" Using Library ID: {libraryId}");
-
-                        foreach (var book in books)
+                        // ✅ Move valid images
+                        var filePath = Path.Combine(imageFolderPath, entry.Name);
+                        if (!System.IO.File.Exists(filePath))
                         {
-                            var existingBook = _context.Books.FirstOrDefault(b => b.Isbn == book.Isbn);
-
-                            if (existingBook != null)
-                            {
-                                var libraryBook = _context.LibraryBooks
-                                    .FirstOrDefault(lb => lb.BookId == existingBook.BookId && lb.LibraryId == libraryId);
-
-                                if (libraryBook != null)
-                                {
-                                    libraryBook.Stock += 1; // ✅ Stock update ho raha hai
-                                    existingBooksUpdated++;
-                                }
-                                else
-                                {
-                                    _context.LibraryBooks.Add(new LibraryBook
-                                    {
-                                        BookId = existingBook.BookId,
-                                        LibraryId = libraryId,
-                                        Stock = 1
-                                    });
-                                    newBooksAdded++;
-                                }
-                            }
-                            else
-                            {
-                                _context.Books.Add(book);
-                                _context.SaveChanges(); // ✅ ID generate karne ke liye SaveChanges() zaroori hai
-
-                                _context.LibraryBooks.Add(new LibraryBook
-                                {
-                                    BookId = book.BookId,
-                                    LibraryId = libraryId,
-                                    Stock = 1
-                                });
-
-                                newBooksAdded++;
-                            }
+                            entry.ExtractToFile(filePath);
                         }
-                        _context.SaveChanges(); // ✅ Sab changes save karne ke liye
-
-                        Console.WriteLine($" Import Completed: {newBooksAdded} new books added, {existingBooksUpdated} books updated in stock.");
-                        TempData["Success"] = $" Import Completed: {newBooksAdded} new books added, {existingBooksUpdated} books updated in stock.";
-                    }
-                    else
-                    {
-                        Console.WriteLine(" No valid books found in the CSV file.");
-                        TempData["Error"] = " No valid books found in the CSV file.";
                     }
                 }
             }
-            catch (Exception ex)
+
+
+
+            if (excelFile == null || excelFile.Length == 0)
             {
-                TempData["Error"] = $"Error processing file: {ex.Message}";
+                return Json(new { success = false, message = "File is empty." });
             }
 
-            return RedirectToAction("BulkUpload");
-        }
+            if (!excelFile.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+            {
+                return Json(new { success = false, message = "Invalid file format. Only .xlsx files are allowed." });
+            }
 
+            //Class file code
+            try
+            {
+                int userId = (int)HttpContext.Session.GetInt32("UserId");
+                int roleId = (int)HttpContext.Session.GetInt32("UserRoleId");
+
+
+
+                var resultList = new List<ImportStatusModel>();
+
+                    excelFile.CopyTo(stream);
+                    using (var workbook = new XLWorkbook(stream))
+                    {
+                        var sheet = workbook.Worksheet(1);
+                        var rows = sheet.RowsUsed().Skip(1); // Skip header row
+                        int libraryId = _bookServiceInterface.GetLoggedInLibrarianLibraryId(); //  Service Se Call
+                        foreach (var row in rows)
+                        {
+                            var BookTitle = row.Cell(1).GetString();
+                            var GenreName = row.Cell(2).GetString();
+                            var ISBN = row.Cell(3).GetString();
+                            var Publisher = row.Cell(4).GetString();
+                            var PublicationYear = row.Cell(5).GetValue<int>();
+                            var Edition = row.Cell(6).GetString();
+                            var Language = row.Cell(7).GetString();
+                            var Author = row.Cell(8).GetString();
+                            var ImagePath = row.Cell(9).GetString();
+                            var Stock = row.Cell(10).GetValue<int>();
+
+                            var importStatus = new ImportStatusModel
+                            {
+                                Name = BookTitle,
+                                Status = "Pending",
+                                Message = ""
+                            };
+
+                            // 🛠 Validate Data
+                            if (string.IsNullOrEmpty(BookTitle))
+                            {
+                                importStatus.Status = "Failed";
+                                importStatus.Message = "First and Last Name are required.";
+                            }
+                            else if (string.IsNullOrEmpty(GenreName) || GenreName == "0")
+                            {
+                                importStatus.Status = "Failed";
+                                importStatus.Message = "Username is required.";
+                            }
+                            else if (string.IsNullOrEmpty(ISBN))
+                            {
+                                importStatus.Status = "Failed";
+                                importStatus.Message = "Password is required.";
+                            }
+                            else if (PublicationYear == 0)
+                            {
+                                importStatus.Status = "Failed";
+                                importStatus.Message = "Password is required.";
+                            }
+                            else if (string.IsNullOrEmpty(Publisher))
+                            {
+                                importStatus.Status = "Failed";
+                                importStatus.Message = "Password is required.";
+                            }
+                            else if (string.IsNullOrEmpty(Edition))
+                            {
+                                importStatus.Status = "Failed";
+                                importStatus.Message = "Password is required.";
+                            }
+                            else if (string.IsNullOrEmpty(Language))
+                            {
+                                importStatus.Status = "Failed";
+                                importStatus.Message = "Password is required.";
+                            }
+                            else if (string.IsNullOrEmpty(Author))
+                            {
+                                importStatus.Status = "Failed";
+                                importStatus.Message = "Password is required.";
+                            }
+                            else if (string.IsNullOrEmpty(ImagePath))
+                            {
+                                importStatus.Status = "Failed";
+                                importStatus.Message = "Password is required.";
+                            }
+                            else if (Stock == 0)
+                            {
+                                importStatus.Status = "Failed";
+                                importStatus.Message = "Password is required.";
+                            }
+
+                            else
+                            {
+                                // 🛠 Fetch required data BEFORE making async calls
+                                var genre = await _context.Genres
+                                    .Where(x => x.GenreName == GenreName)
+                                    .Select(x => x.GenreId)
+                                    .FirstOrDefaultAsync();
+
+                                if (genre == 0)
+                                {
+                                    importStatus.Status = "Failed";
+                                    importStatus.Message = "Invalid Role";
+                                }
+                                else
+                                {
+                                    // ✅ Insert into tblUsers
+                                    var book = new Book
+                                    {
+                                        Title = BookTitle,
+                                        Publisher = Publisher,
+                                        PublicationYear = PublicationYear,
+                                        GenreId = genre,
+                                        Isbn = ISBN,
+                                        Edition = Edition,
+                                        Language = Language,
+                                        Author = Author,
+                                        bookimagepath = @"\Bookimages\" + ImagePath
+                                    };
+
+                                    await _bookServiceInterface.AddBook(book, libraryId, Stock); // Ensure SaveUsers is properly async
+
+                                    importStatus.Status = "Success";
+                                }
+                            }
+
+                            resultList.Add(importStatus);
+                        }
+                    }
+
+
+
+                    //Output File Generation
+
+                using (var workbook = new XLWorkbook())
+                {
+                    var sheet = workbook.Worksheets.Add("Import Status");
+
+                    // Headers
+                    sheet.Cell("A1").Value = "Name";
+                    sheet.Cell("B1").Value = "Status";
+                    sheet.Cell("C1").Value = "Message";
+
+                    int row = 2;
+                    foreach (var result in resultList)
+                    {
+                        sheet.Cell(row, 1).Value = result.Name;
+                        sheet.Cell(row, 2).Value = result.Status;
+                        sheet.Cell(row, 3).Value = result.Message;
+                        row++;
+                    }
+
+                    workbook.SaveAs(stream);
+                }
+
+
+
+
+
+
+
+                var fileBytes = stream.ToArray();
+
+                // Convert to Base64 to store temporarily
+                string fileBase64 = Convert.ToBase64String(fileBytes);
+
+                return Json(new
+                {
+                    success = true,
+                    message = "File uploaded successfully!",
+                    fileData = fileBase64,
+                    fileName = "OutputOfSampleFile.xlsx"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred: " + ex.Message });
+            }
+        }
 
     }
 }

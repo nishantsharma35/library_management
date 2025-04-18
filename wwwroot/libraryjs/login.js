@@ -1,5 +1,18 @@
 ﻿$(document).ready(function () {
+    const toggleIcon = document.getElementById("passwordToggleIcon");
+    const passwordInput = document.getElementById("passwordField");
 
+    toggleIcon.addEventListener("click", function () {
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text";
+            toggleIcon.classList.remove("fa-lock");
+            toggleIcon.classList.add("fa-lock-open");
+        } else {
+            passwordInput.type = "password";
+            toggleIcon.classList.remove("fa-lock-open");
+            toggleIcon.classList.add("fa-lock");
+        }
+    });
     $("#forgotPassword").validate({
         rules: {
             Email: {
@@ -86,15 +99,15 @@
         }
     });
 
-    $('#showPasswordCheckbox').on('change', function () {
-        const passwordField = document.getElementById("Password");
-        if (this.checked) {
-            passwordField.type = "text";
-        } else {
-            passwordField.type = "password";
-            }
-    });
-
+    //$('#showPasswordCheckbox').on('change', function () {
+    //    const passwordField = document.getElementById("Password");
+    //    if (this.checked) {
+    //        passwordField.type = "text";
+    //    } else {
+    //        passwordField.type = "password";
+    //        }
+    //});
+    
 
 
     $("#loginForm").validate({

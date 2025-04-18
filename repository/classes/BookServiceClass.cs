@@ -70,7 +70,12 @@ namespace library_management.repository.classes
         public async Task<object> AddBook(Book book, int libraryId, int stock)
         {
             var existingBook = await _context.Books.FirstOrDefaultAsync(b => b.Isbn == book.Isbn);
-            string imgPath = "";
+            string imgPath  = "";
+
+            if(book.bookimagepath != null)
+            {
+                imgPath = book.bookimagepath;
+            }
 
             // Image handling logic
             if (book.bookImage != null)
