@@ -27,71 +27,157 @@
 
 
 
-        <div class="row justify-content-center">
+        @* <div class="row justify-content-center"> *@
 
-            <div class="col-xl-10 col-lg-12 col-md-9">
+        @*     <div class="col-xl-10 col-lg-12 col-md-9"> *@
 
-                <div class="card o-hidden border-0 shadow-lg my-5">
-                    <div class="card-body p-0">
-                        <!-- Nested Row within Card Body -->
-                        <div class="row">
-                            <div class="col-lg-6 d-none d-lg-block bg-password-image"></div>
-                            <div class="col-lg-6">
-                                <div class="p-5">
-                                    <div class="text-center">
-                                        <h1 class="h4 text-gray-900 mb-2">OTP CHECKING</h1>
-                                    </div>
+        @*         <div class="card o-hidden border-0 shadow-lg my-5"> *@
+        @*             <div class="card-body p-0"> *@
+        @*                 <!-- Nested Row within Card Body --> *@
+        @*                 <div class="row"> *@
+        @*                     <div class="col-lg-6 d-none d-lg-block bg-password-image"></div> *@
+        @*                     <div class="col-lg-6"> *@
+        @*                         <div class="p-5"> *@
+        @*                             <div class="text-center"> *@
+        @*                                 <h1 class="h4 text-gray-900 mb-2">OTP CHECKING</h1> *@
+        @*                             </div> *@
                                     
-                            <form id="OtpCheck" method="post" class="user">
-                                <label asp-for="Otp">OTP : </label>
-                                <input type="text" asp-for="Otp" placeholder="Enter your otp here" style="inset-inline"/>
+        @*                     <form id="OtpCheck" method="post" class="user"> *@
+        @*                         <label asp-for="Otp">OTP : </label> *@
+        @*                         <input type="text" asp-for="Otp" placeholder="Enter your otp here" style="inset-inline"/> *@
 
 
-                                <div class="visually-hidden">
-                                    <input asp-for="Email" value="@Context.Session.GetString("UserEmail")" readonly />
-                                </div>
+        @*                         <div class="visually-hidden"> *@
+        @*                             <input asp-for="Email" value="@Context.Session.GetString("UserEmail")" readonly /> *@
+        @*                         </div> *@
 
                                     
 
                                       
-                                 <input type="hidden" name="otp" id="otp-hidden" />
+        @*                          <input type="hidden" name="otp" id="otp-hidden" /> *@
                                       
 
-                                <div class="resend-wrap mt-4 text-center">
-                                    <p class="text-muted big">Didn't receive the code? </p>
-                                        <button id="resend-btn"
-                                                class="btn btn-primary btn-sm rounded-pill shadow-sm"
-                                                style="min-width: 120px; margin-top:10px;">
-                                            Resend OTP
-                                        </button>
+        @*                         <div class="resend-wrap mt-4 text-center"> *@
+        @*                             <p class="text-muted big">Didn't receive the code? </p> *@
+        @*                                 <button id="resend-btn" *@
+        @*                                         class="btn btn-primary btn-sm rounded-pill shadow-sm" *@
+        @*                                         style="min-width: 120px; margin-top:10px;"> *@
+        @*                                     Resend OTP *@
+        @*                                 </button> *@
                                    
-                                    <p id="timer" class="mt-2 text-secondary fw-semibold small">Time remaining: 01:00</p>
+        @*                             <p id="timer" class="mt-2 text-secondary fw-semibold small">Time remaining: 01:00</p> *@
+        @*                         </div> *@
+
+        @*                                 <div class="form-login"> *@
+        @*                                         <button type="submit" id="btnSubmit" class="btn btn-primary btn-user btn-block">Submit</button> *@
+        @*                                 </div> *@
+        @*                             </form> *@
+        @*                             <hr> *@
+        @*                                 <div class="text-center"> *@
+        @*                                 <a class="small" asp-action="login">Already have an account? Login!</a> *@
+        @*                             </div> *@
+        @*                         </div> *@
+        @*                     </div> *@
+        @*                 </div> *@
+        @*             </div> *@
+        @*         </div> *@
+        @*     </div> *@
+        @* </div> *@
+
+
+<div class="row justify-content-center">
+    <div class="col-xl-10 col-lg-12 col-md-9">
+        <div class="card o-hidden border-0 shadow-lg my-5">
+            <div class="card-body p-0">
+                <!-- Nested Row within Card Body -->
+                <div class="row">
+                    <div class="col-lg-6 d-none d-lg-block bg-password-image"></div>
+                    <div class="col-lg-6">
+                        <div class="p-5">
+                            <div class="text-center">
+                                <h1 class="h4 text-gray-900 mb-4">OTP Verification</h1>
+                            </div>
+
+                            <form id="OtpCheck" method="post" class="user">
+                                <!-- Hidden email field -->
+                                <input type="hidden" asp-for="Email" value="@Context.Session.GetString("UserEmail")" />
+
+                                <!-- OTP Boxes -->
+                                <div class="d-flex justify-content-center mb-3">
+                                    <input type="text" maxlength="1" class="otp-input form-control mx-1 text-center" />
+                                    <input type="text" maxlength="1" class="otp-input form-control mx-1 text-center" />
+                                    <input type="text" maxlength="1" class="otp-input form-control mx-1 text-center" />
+                                    <input type="text" maxlength="1" class="otp-input form-control mx-1 text-center" />
+                                    <input type="text" maxlength="1" class="otp-input form-control mx-1 text-center" />
+                                    <input type="text" maxlength="1" class="otp-input form-control mx-1 text-center" />
                                 </div>
 
-                                        <div class="form-login">
-                                                <button type="submit" id="btnSubmit" class="btn btn-primary btn-user btn-block">Submit</button>
-                                        </div>
-                                    </form>
-                                    <hr>
-                                        <div class="text-center">
-                                        <a class="small" asp-action="login">Already have an account? Login!</a>
-                                    </div>
+                                <!-- Hidden combined OTP field for model binding -->
+                                <input type="hidden" asp-for="Otp" id="Otp" />
+
+                                <!-- Timer and Resend -->
+                                @* <div class="text-center mb-3"> *@
+                                @*     <p id="timer" class="text-danger fw-bold">Time remaining: 01:00</p> *@
+                                @*     <div id="resend-section" style="display: none;"> *@
+                                @*         <button id="resend-btn" type="button" class="btn btn-link p-0">Resend OTP</button> *@
+                                @*     </div> *@
+                                @* </div> *@
+
+                                <!-- Submit Button -->
+                                <div class="form-group">
+                                    <button type="submit" id="submit-btn" class="btn btn-primary btn-user btn-block">Verify OTP</button>
                                 </div>
+                            </form>
+
+                            <hr />
+                            <div class="text-center">
+                                <a class="small" asp-action="login">Already have an account? Login!</a>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    
+    </div>
+</div>
 
+<!-- Optional CSS -->
+<style>
+    .otp-input {
+        width: 45px;
+        height: 45px;
+        font-size: 20px;
+        text-align: center;
+    }
+</style>
 
 
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
         <script src="~/libraryjs/Otpcheck.js"></script>
-    }
+    }<script>
+             document.getElementById("OtpCheck").addEventListener("submit", function (e) {
+                 const inputs = document.querySelectorAll(".otp-input");
+                 let otp = "";
+                 inputs.forEach(input => {
+                     otp += input.value.trim();
+                 });
+                 document.getElementById("Otp").value = otp;
+             });
+
+             // Optional: Auto move focus to next input
+             const otpInputs = document.querySelectorAll(".otp-input");
+             otpInputs.forEach((input, index) => {
+                 input.addEventListener("input", () => {
+                     if (input.value.length === 1 && index < otpInputs.length - 1) {
+                         otpInputs[index + 1].focus();
+                     }
+                 });
+             });
+    </script>
+
+
     <script src="~/assets/vendor/jquery/jquery.min.js"></script>
     <script src="~/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 

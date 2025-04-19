@@ -250,8 +250,11 @@ namespace library_management.Controllers
                     return Json(new { success = false, message = "Email Already Exits" });
                 }
                 HttpContext.Session.SetString("UserEmail", model.Email);
-                HttpContext.Session.SetInt32("RoleId", model.RoleId);
-                return Json(await _libraryInterface.AddmemberAsync(model));
+                HttpContext.Session.SetInt32("UserRoleId", model.RoleId);
+                var result = await _libraryInterface.AddmemberAsync(model);
+                HttpContext.Session.SetInt32("MemberId", model.Id);
+                return Json(result);
+
             }
             catch (Exception)
             {
@@ -340,7 +343,7 @@ namespace library_management.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Otpcheck(Models.Member user)
+        public async Task<IActionResult> Otpcheck([FromForm]Models.Member user)
         {
             try
             {
@@ -349,7 +352,7 @@ namespace library_management.Controllers
                     if (await _libraryInterface.OtpVerification(user.Otp))
                     {
                         await _libraryInterface.updateStatus(user.Email);
-                        int id = (int) HttpContext.Session.GetInt32("UserRoleId");
+                        int id =  HttpContext.Session.GetInt32("UserRoleId") ?? 0 ;
 
                         string adminEmail = "nishantsharma3637@gmail.com";
                         string subject = "New User Registration - Pending Approval";
@@ -370,10 +373,9 @@ namespace library_management.Controllers
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString);
-                return Json(new { success = false, message = "Unkown error occured" });
-
+                return Json(new { success = false, message = "Unknown error occurred", error = e.Message });
             }
+
         }
 
         [HttpGet]

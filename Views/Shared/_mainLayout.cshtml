@@ -19,6 +19,7 @@
 
     <!-- Custom styles for this template -->
     <link href="~/assets/css/sb-admin-2.min.css" rel="stylesheet">
+    <link href="~/assets/css/Sidebaricons.css" rel="stylesheet">
 
     <!-- Custom styles for this page -->
   
@@ -101,7 +102,7 @@
                        data-toggle="@(hasSubTabs ? "collapse" : "")"
                        data-target="@(hasSubTabs ? "#collapse-" + tab.TabId : "")"
                        aria-expanded="false" aria-controls="collapse-@tab.TabId">
-                        <i class="fas fa-fw fa-folder"></i>
+                        <i class="sidebar-icon @tab.IconPath"></i>
                         <span>@tab.TabName</span>
                     </a>
                     @if (hasSubTabs)
@@ -111,8 +112,11 @@
                                 <h6 class="collapse-header">@tab.TabName:</h6>
                                 @foreach (var subTab in tab.SubTabs)
                                 {
-                                    <a class="collapse-item" href="@subTab.TabUrl">@subTab.TabName</a>
+                                    <a class="collapse-item" href="@subTab.TabUrl">
+                                        <i class="sidebar-icon @subTab.IconPath"></i> @subTab.TabName
+                                    </a>
                                 }
+
                             </div>
                         </div>
                     }

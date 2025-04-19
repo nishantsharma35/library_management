@@ -6,6 +6,7 @@ using library_management.Repositories.Classes;
 using library_management.Controllers;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,20 +14,21 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddDbContext<dbConnect>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DbContext")));
-builder.Services.AddScoped<libraryInterface , librarymainClass>();
+builder.Services.AddScoped<libraryInterface, librarymainClass>();
 builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
 builder.Services.AddSingleton<EmailSenderInterface, EmailSenderClass>();
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddScoped<loginInterface, loginClass>();
-builder.Services.AddScoped<ISidebarRepository , SidebarRepository>();
-builder.Services.AddScoped<MemberMasterInterface , MemberMasterClass>();
+builder.Services.AddScoped<ISidebarRepository, SidebarRepository>();
+builder.Services.AddScoped<MemberMasterInterface, MemberMasterClass>();
 builder.Services.AddScoped<AdminInterface, AdminMasterClass>();
 builder.Services.AddScoped<MembershipInterface, MembershipClass>();
 builder.Services.AddScoped<BookServiceInterface, BookServiceClass>();
 builder.Services.AddScoped<BorrowInterface, BorrowClass>();
-builder.Services.AddScoped<FineInterface,FineClass>();
-builder.Services.AddScoped<ReportsInterface,ReportsClasses>();
-builder.Services.AddScoped<PermisionHelperInterface,PermisionHelperClass>();
+builder.Services.AddScoped<FineInterface, FineClass>();
+builder.Services.AddScoped<ReportsInterface, ReportsClasses>();
+builder.Services.AddScoped<PermisionHelperInterface, PermisionHelperClass>();
+builder.Services.AddScoped<PaymentInterface, PaymentClass>();
 
 builder.Services.AddSession(options =>
 {
@@ -47,6 +49,9 @@ builder.Services.AddAuthentication(options =>
     options.ClientSecret = "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";
     options.CallbackPath = "/signin-google"; // or whatever you’ve set
 });
+builder.Services.Configure<RazorpaySettingClass>(builder.Configuration.GetSection("Razorpay"));
+builder.Services.AddSingleton(resolver =>
+    resolver.GetRequiredService<IOptions<RazorpaySettingClass>>().Value);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddMemoryCache();
 var app = builder.Build();

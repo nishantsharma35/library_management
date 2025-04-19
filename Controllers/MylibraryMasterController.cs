@@ -250,8 +250,11 @@ namespace library_management.Controllers
             TempData["Success"] = "Return request sent to Admin.";
             return RedirectToAction("BorrowedBooks");
         }
+
+
         [HttpPost]
-        public async Task<IActionResult> PayFine(int fineId, decimal payAmount)
+        [ActionName("PayFineMember")]
+        public async Task<IActionResult> PayFineMember([FromBody] int fineId, decimal payAmount)
         {
             int memberId = HttpContext.Session.GetInt32("MemberId") ?? 0; // Get logged-in member ID
 
@@ -292,6 +295,19 @@ namespace library_management.Controllers
             fine.PaidAmount += payAmount;
             fine.PaymentDate = DateTime.Now;
             fine.PaymentStatus = fine.PaidAmount >= fine.FineAmount ? "Paid" : "Partially Paid";
+            
+            
+            var transaction = new TblTransaction
+            {
+                FineId = fine.FineId,
+                AmountPaid = (int)payAmount,
+                PaymentDate = DateTime.Now,
+                PaymentMode = "Online", // Ya aap UI se bhi bhej sakte ho
+                Reference = $"TXN_{Guid.NewGuid().ToString().Substring(0, 8)}"
+            };
+
+            await _fineInterface.AddTransactionAsync(transaction);
+
 
             await _fineInterface.UpdateFineAsync(fine);
 
@@ -328,7 +344,7 @@ namespace library_management.Controllers
             );
 
 
-            TempData["Success"] = "Fine payment successful!";
+            TempData["Success"] = "Fine payment and transaction recorded successfully!";
             return RedirectToAction("BorrowedBooks");
         }
 

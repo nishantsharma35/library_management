@@ -74,11 +74,10 @@
                                                 }
                                                 else if (borrow.Status == "Returned" && fine > 0 && paymentStatus != "Paid")
                                                 {
-                                                    <form asp-action="PayFine" asp-controller="MyLibraryMaster" method="post">
-                                                        <input type="hidden" name="fineId" value="@borrow.Fine?.FineId" />
-                                                        <input type="number" name="payAmount" placeholder="Enter Payment Amount" required />
-                                                        <button type="submit" class="btn btn-danger">Pay Fine</button>
-
+                                                    <form class="FinePaymentForm">
+                                                        <input type="hidden" name="fineId" id="fineId" value="@borrow.Fine.FineId" />
+                                                        <input type="number" name="payAmount" id="payAmount" min="1" max="@(borrow.Fine.FineAmount - borrow.Fine.PaidAmount)" required />
+                                                        <button type="submit" class="btn btn-success">Pay Fine</button>
                                                     </form>
                                                 }
                                                 else if (borrow.Status == "Returned" && fine > 0 && paymentStatus == "Paid")
@@ -106,6 +105,8 @@
 </div>
 @section Scripts {
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="~/libraryjs/Payment.js"></script>
     <script>
         $(document).ready(function () {
             $('#dataTable').DataTable({
@@ -118,6 +119,7 @@
             });
         });
     </script>
+   
 }
 
 @* @model List<Borrow> *@

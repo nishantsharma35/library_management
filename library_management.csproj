@@ -22,11 +22,11 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
+    <PackageReference Include="Razorpay" Version="3.1.4" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="wwwroot\libraryimages\" />
-    <Folder Include="wwwroot\assets\" />
     <Folder Include="wwwroot\Bookimages\" />
   </ItemGroup>
 

@@ -22,4 +22,8 @@ public partial class Fine
     public virtual Borrow Borrow { get; set; } = null!;
 
     public virtual Library? Library { get; set; }
+    public virtual ICollection<TblTransaction> TblTransactions { get; set; } = new List<TblTransaction>();
+
+
+
 }

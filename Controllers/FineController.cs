@@ -149,6 +149,138 @@ namespace library_management.Controllers
         //    return RedirectToAction("ViewFine", new { borrowId = fine.BorrowId });
         //}
 
+        //[HttpPost]
+        //public async Task<IActionResult> PayFine([FromBody] Fine fineData)
+        //{
+        //    var fine = await _fineInterface.GetFineByIdAsync(fineData.FineId);
+        //    var borrow = await _borrowInterface.GetBorrowRecordByIdAsync(fine.BorrowId); // Ensure Borrow and Member are loaded
+        //    var member = borrow?.Member; // Ensure Member is not null
+
+        //    // If member is still null, log an error or handle accordingly
+
+        //    if (fine == null)
+        //    {
+        //        TempData["Error"] = "Fine not found!";
+        //        return RedirectToAction("BorrowList", "BorrowMaster");
+        //    }
+
+        //    // Check if the payment amount is greater than the remaining fine
+        //    decimal remainingAmount = fine.FineAmount - fine.PaidAmount;
+        //    if (fineData.FineAmount > remainingAmount)
+        //    {
+        //        TempData["Error"] = "Payment amount exceeds remaining fine!";
+        //        return RedirectToAction("BorrowList", "BorrowMaster");
+        //    }
+
+        //    // Update paid amount and payment status based on the partial payment
+        //    fine.PaidAmount += fineData.FineAmount;
+        //    if (fine.PaidAmount >= fine.FineAmount)
+        //    {
+        //        fine.PaymentStatus = "Paid";
+        //    }
+        //    fine.PaymentDate = DateTime.Now;
+
+        //    await _fineInterface.UpdateFineAsync(fine); // Update fine in DB
+
+        //    // Send email notification about the partial payment
+        //    string subject = "Fine Payment Confirmation";
+        //    string memberName = fine.Borrow?.Member?.Name ?? "Guest"; // Default to "Guest" if Member is null
+
+        //    string body = fine.Borrow?.Member != null
+        //        ? $"Dear {fine.Borrow.Member.Name},\n\n" +
+        //          $"You have made a payment of ₹{fineData.FineAmount} towards your fine.\n\n" +
+        //          $"Remaining Amount: ₹{fine.FineAmount - fine.PaidAmount}\n\n"
+        //        : "Dear Member,\n\nYour fine has been updated.";
+
+        //    // If fully paid, update email body
+        //    if (fine.PaymentStatus == "Paid")
+        //    {
+        //        body += "Your fine has been fully paid. Thank you for using our service!";
+        //    }
+        //    else
+        //    {
+        //        body += "Please pay the remaining amount to fully clear your fine.";
+        //    }
+
+        //    string recipientEmail = fine.Borrow?.Member?.Email ?? "defaultEmail@example.com"; // Default email if null
+
+        //    // ✅ Generate Fine Receipt PDF
+        //    byte[] pdfBytes =  _fineInterface.GenerateFineReceiptPdf(fine);
+
+        //    // ✅ Send Email with PDF Attachment
+        //    await _emailService.SendEmailWithAttachment(recipientEmail, subject, body, pdfBytes, $"Fine_Receipt_{fine.FineId}.pdf");
+
+
+        //    TempData["Success"] = "Fine payment processed successfully!";
+        //    return RedirectToAction("BorrowList", "BorrowMaster");
+        //}
+
+
+
+
+        //[HttpPost]
+        //public async Task<IActionResult> PayFine([FromBody] Fine fineData)
+        //{
+        //    var fine = await _fineInterface.GetFineByIdAsync(fineData.FineId);
+        //    var borrow = await _borrowInterface.GetBorrowRecordByIdAsync(fine.BorrowId);
+        //    var member = borrow?.Member;
+
+        //    if (fine == null)
+        //    {
+        //        TempData["Error"] = "Fine not found!";
+        //        return RedirectToAction("BorrowList", "BorrowMaster");
+        //    }
+
+        //    decimal remainingAmount = fine.FineAmount - fine.PaidAmount;
+        //    if (fineData.FineAmount > remainingAmount)
+        //    {
+        //        TempData["Error"] = "Payment amount exceeds remaining fine!";
+        //        return RedirectToAction("BorrowList", "BorrowMaster");
+        //    }
+
+        //    // ✅ Save Transaction Before Updating Fine
+        //    var transaction = new TblTransaction
+        //    {
+        //        FineId = fine.FineId,
+        //        AmountPaid = (int)fineData.FineAmount,
+        //        PaymentDate = DateTime.Now,
+        //        PaymentMode = "Cash", // Ya aap UI se bhi bhej sakte ho
+        //        Reference = "Manual Payment"
+        //    };
+
+        //    await _fineInterface.AddTransactionAsync(transaction); // ✅ Add to DB (Make sure interface/service is set)
+
+        //    // ✅ Update fine with paid amount and status
+        //    fine.PaidAmount += fineData.FineAmount;
+        //    if (fine.PaidAmount >= fine.FineAmount)
+        //    {
+        //        fine.PaymentStatus = "Paid";
+        //    }
+        //    fine.PaymentDate = DateTime.Now;
+
+        //    await _fineInterface.UpdateFineAsync(fine);
+
+        //    // ✅ Send Email
+        //    string subject = "Fine Payment Confirmation";
+        //    string body = member != null
+        //        ? $"Dear {member.Name},\n\nYou have made a payment of ₹{fineData.FineAmount} towards your fine.\nRemaining Amount: ₹{fine.FineAmount - fine.PaidAmount}\n\n"
+        //        : "Dear Member,\n\nYour fine has been updated.\n\n";
+
+        //    if (fine.PaymentStatus == "Paid")
+        //        body += "Your fine has been fully paid. Thank you for using our service!";
+        //    else
+        //        body += "Please pay the remaining amount to fully clear your fine.";
+
+        //    string recipientEmail = member?.Email ?? "defaultEmail@example.com";
+        //    byte[] pdfBytes = _fineInterface.GenerateFineReceiptPdf(fine);
+        //    await _emailService.SendEmailWithAttachment(recipientEmail, subject, body, pdfBytes, $"Fine_Receipt_{fine.FineId}.pdf");
+
+        //    TempData["Success"] = "Fine payment and transaction recorded successfully!";
+        //    return RedirectToAction("BorrowList", "BorrowMaster");
+        //}
+
+
+
         [HttpPost]
         public async Task<IActionResult> PayFine(int fineId, decimal payAmount)
         {
@@ -180,6 +312,18 @@ namespace library_management.Controllers
             }
             fine.PaymentDate = DateTime.Now;
 
+
+            var transaction = new TblTransaction
+            {
+                FineId = fine.FineId,
+                AmountPaid = (int)payAmount,
+                PaymentDate = DateTime.Now,
+                PaymentMode = "Cash", // Ya aap UI se bhi bhej sakte ho
+                Reference = "Manual Payment"
+            };
+
+            await _fineInterface.AddTransactionAsync(transaction);
+
             await _fineInterface.UpdateFineAsync(fine); // Update fine in DB
 
             // Send email notification about the partial payment
@@ -205,17 +349,15 @@ namespace library_management.Controllers
             string recipientEmail = fine.Borrow?.Member?.Email ?? "defaultEmail@example.com"; // Default email if null
 
             // ✅ Generate Fine Receipt PDF
-            byte[] pdfBytes =  _fineInterface.GenerateFineReceiptPdf(fine);
+            byte[] pdfBytes = _fineInterface.GenerateFineReceiptPdf(fine);
 
             // ✅ Send Email with PDF Attachment
             await _emailService.SendEmailWithAttachment(recipientEmail, subject, body, pdfBytes, $"Fine_Receipt_{fine.FineId}.pdf");
 
 
-            TempData["Success"] = "Fine payment processed successfully!";
+            TempData["Success"] = "Fine payment and transaction recorded successfully!";
             return RedirectToAction("BorrowList", "BorrowMaster");
         }
-
-
 
 
         private decimal CalculateFine(Borrow borrowRecord)

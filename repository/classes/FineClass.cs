@@ -123,6 +123,12 @@ namespace library_management.repository.classes
             }
         }
 
+        public async Task AddTransactionAsync(TblTransaction transaction)
+        {
+            _context.TblTransactions.Add(transaction);
+            await _context.SaveChangesAsync();
+        }
+
 
 
         //public async Task<decimal> CalculateFineAsync(int borrowId)

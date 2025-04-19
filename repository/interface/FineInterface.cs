@@ -10,6 +10,7 @@ namespace library_management.repository.internalinterface
         Task<bool> UpdateFineAsync(Fine fine);
 
         Task<decimal> CalculateFineAsync(int borrowId);
+        Task AddTransactionAsync(TblTransaction transaction);
 
         byte[] GenerateFineReceiptPdf(Fine fine);
 

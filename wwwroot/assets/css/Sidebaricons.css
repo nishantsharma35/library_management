@@ -1,0 +1,132 @@
+﻿body {
+    /* Sidebar Icons for Library Management System */
+
+
+ .icon-dashboard::before
+{
+    content: "\1F4CA"; /* 📊 Dashboard */
+}
+/* Add a gap between Tab Name and Icon */
+
+.icon-membermanagement::before {
+    content: "\1F465"; /* 👥 Members */
+}
+
+.icon-bookmanagement::before {
+    content: "\1F4D6"; /* 📖 Books */
+}
+
+.icon-borrowmanagemet::before {
+    content: "\1F4E5"; /* 📥 Borrow */
+}
+
+.icon-reportsandanalytics::before {
+    content: "\1F4C8"; /* 📈 Reports */
+}
+
+.icon-systemsettings::before {
+    content: "\2699"; /* ⚙️ Settings */
+}
+
+.icon-addmember::before {
+    content: "\2795"; /* ➕ Add */
+}
+
+.icon-viewmember::before {
+    content: "\1F465"; /* 👥 View Members */
+}
+
+.icon-viewbook::before {
+    content: "\1F4D6"; /* 📖 View Books */
+}
+
+.icon-addbook::before {
+    content: "\1F4D5"; /* 📕 Add Book */
+}
+
+.icon-adminmanagement::before {
+    content: "\1F464"; /* 👤 Admin */
+}
+
+.icon-adminlist::before {
+    content: "\1F4CB"; /* 📋 List */
+}
+
+.icon-membersite::before {
+    content: "\1F3E0"; /* 🏠 Member Site */
+}
+
+.icon-addborrower::before {
+    content: "\2795"; /* ➕ Borrower */
+}
+
+.icon-borrowerlist::before {
+    content: "\1F4CB"; /* 📋 Borrowers */
+}
+
+.icon-changefineamount::before {
+    content: "\1F4B8"; /* 💸 Fine */
+}
+
+.icon-mylibrary::before {
+    content: "\1F3DB"; /* 🏛️ Library */
+}
+
+.icon-borrowedbooks::before {
+    content: "\1F4DA"; /* 📚 Borrowed */
+}
+
+.icon-availablebook::before {
+    content: "\1F4D6"; /* 📖 Available */
+}
+
+.icon-employees::before {
+    content: "\1F9D1"; /* 👤 Employees */
+}
+
+.icon-addpermission::before {
+    content: "\1F510"; /* 🔐 Permission */
+}
+
+.icon-addlibrarian::before {
+    content: "\1F9D1"; /* 👤 Librarian */
+}
+
+.icon-managememberapproval::before {
+    content: "\2705"; /* ✅ Approvals */
+}
+
+.icon-superadminreports::before {
+    content: "\1F4C8"; /* 📈 Super Admin Reports */
+}
+
+.icon-libraryadminreport::before {
+    content: "\1F4CA"; /* 📊 Library Admin Report */
+}
+
+.icon-yourreport::before {
+    content: "\1F4CB"; /* 📋 Your Report */
+}
+
+.icon-pendingborrows::before {
+    content: "\23F3"; /* ⏳ Pending Borrow */
+}
+
+.icon-pendingreturn::before {
+    content: "\1F501"; /* 🔁 Return */
+}
+
+.sidebar .sidebar-brand-text {
+    color: #ffffff !important;
+}
+.sidebar .sidebar-icon,
+.sidebar .nav-link i,
+.sidebar .sidebar-brand-icon i {
+    color: #ffffff !important;
+}
+.sidebar .nav-link:hover i,
+.sidebar .nav-link:hover span {
+    color: #f8f9fc !important; /* Light shade on hover */
+}
+
+

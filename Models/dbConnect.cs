@@ -37,6 +37,8 @@ public partial class dbConnect : DbContext
 
     public virtual DbSet<TblTab> TblTabs { get; set; }
 
+    public virtual DbSet<TblTransaction> TblTransactions { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
         => optionsBuilder.UseSqlServer("Server=NISHANTSHARMA\\SQLEXPRESS;Database=library_management_main;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true");
@@ -54,24 +56,20 @@ public partial class dbConnect : DbContext
             entity.Property(e => e.bookimagepath)
                 .IsUnicode(false)
                 .HasColumnName("bookimagepath");
+            entity.Property(e => e.Edition)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("1st Edition");
             entity.Property(e => e.GenreId).HasColumnName("GenreID");
             entity.Property(e => e.Isbn)
                 .HasMaxLength(50)
                 .HasColumnName("ISBN");
-            entity.Property(e => e.Publisher).HasMaxLength(255);
-            entity.Property(e => e.Title).HasMaxLength(255);
-
-            entity.Property(e => e.Edition)
-        .HasMaxLength(20)
-        .HasColumnName("Edition")
-        .HasDefaultValue("1st Edition");
-
             entity.Property(e => e.Language)
                 .HasMaxLength(50)
-                .HasColumnName("Language")
+                .IsUnicode(false)
                 .HasDefaultValue("English");
-
-
+            entity.Property(e => e.Publisher).HasMaxLength(255);
+            entity.Property(e => e.Title).HasMaxLength(255);
 
             entity.HasOne(d => d.Genre).WithMany(p => p.Books)
                 .HasForeignKey(d => d.GenreId)
@@ -87,25 +85,22 @@ public partial class dbConnect : DbContext
             entity.Property(e => e.DueDate).HasColumnType("datetime");
             entity.Property(e => e.IssueDate).HasColumnType("datetime");
             entity.Property(e => e.LibraryId).HasColumnName("libraryID");
-            entity.Property(e => e.ReturnDate).HasColumnType("datetime");
             entity.Property(e => e.otp)
                 .HasMaxLength(6)
                 .IsUnicode(false)
-                .HasColumnName("OTP");
-            entity.Property(e => e.otpexpires).HasColumnType("datetime");
+                .HasColumnName("otp");
+            entity.Property(e => e.otpexpires)
+                .HasColumnType("datetime")
+                .HasColumnName("otpexpires");
+            entity.Property(e => e.ReturnDate).HasColumnType("datetime");
             entity.Property(e => e.Status)
                 .HasMaxLength(20)
                 .IsUnicode(false);
 
-            //entity.HasOne(d => d.Book).WithMany(p => p.Borrows)
-            //    .HasForeignKey(d => d.BookId)
-            //    .OnDelete(DeleteBehavior.ClientSetNull)
-            //    .HasConstraintName("FK_Borrow_Book");
-            modelBuilder.Entity<Borrow>()
-      .HasOne(b => b.Book)
-      .WithMany(b => b.Borrows)  // ✅ Correct Navigation
-      .HasForeignKey(b => b.BookId)
-      .OnDelete(DeleteBehavior.Restrict); // ✅ 
+            entity.HasOne(d => d.Book).WithMany(p => p.Borrows)
+                .HasForeignKey(d => d.BookId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Borrow_Book");
 
             entity.HasOne(d => d.Library).WithMany(p => p.Borrows)
                 .HasForeignKey(d => d.LibraryId)
@@ -164,7 +159,6 @@ public partial class dbConnect : DbContext
             entity.Property(e => e.LibraryId).HasColumnName("libraryID");
             entity.Property(e => e.Address).IsUnicode(false);
             entity.Property(e => e.AdminId).HasColumnName("AdminID");
-            entity.Property(e => e.LibraryFineAmount).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.City)
                 .HasMaxLength(30)
                 .IsUnicode(false);
@@ -172,6 +166,7 @@ public partial class dbConnect : DbContext
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
+            entity.Property(e => e.LibraryFineAmount).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.LibraryImagePath).IsUnicode(false);
             entity.Property(e => e.Libraryname)
                 .HasMaxLength(20)
@@ -222,7 +217,9 @@ public partial class dbConnect : DbContext
                 .IsUnicode(false)
                 .HasColumnName("gender");
             entity.Property(e => e.IsEmailVerified).HasDefaultValue(false);
+            entity.Property(e => e.IsGoogleAccount).HasDefaultValue(false);
             entity.Property(e => e.Joiningdate).HasColumnName("joiningdate");
+            entity.Property(e => e.LibraryId).HasColumnName("libraryID");
             entity.Property(e => e.Name)
                 .HasMaxLength(150)
                 .IsUnicode(false);
@@ -245,11 +242,11 @@ public partial class dbConnect : DbContext
             entity.Property(e => e.VerificationStatus)
                 .HasMaxLength(30)
                 .IsUnicode(false);
-            entity.Property(e => e.IsGoogleAccount).HasDefaultValue(false);
-            entity.HasOne(d => d.Library) // Library table se relation banayega
-               .WithMany(p => p.Member) // Ek Library ke multiple Members ho sakte hain
-               .HasForeignKey(d => d.LibraryId) // Foreign Key define kar raha hai
-               .HasConstraintName("FK_Member_Library");
+
+            entity.HasOne(d => d.Library).WithMany(p => p.Member)
+                .HasForeignKey(d => d.LibraryId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_Member_Library");
         });
 
         modelBuilder.Entity<Membership>(entity =>
@@ -322,6 +319,27 @@ public partial class dbConnect : DbContext
             entity.Property(e => e.TabUrl)
                 .HasMaxLength(255)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<TblTransaction>(entity =>
+        {
+            entity.HasKey(e => e.TransactionId).HasName("PK__TblTrans__55433A6BEF8AD363");
+
+            entity.ToTable("TblTransaction");
+
+            entity.Property(e => e.PaymentDate)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.PaymentMode)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.Reference)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.Fine).WithMany(p => p.TblTransactions)
+                .HasForeignKey(d => d.FineId)
+                .HasConstraintName("FK__TblTransa__FineI__73DA2C14");
         });
 
         OnModelCreatingPartial(modelBuilder);
