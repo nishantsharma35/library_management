@@ -75,10 +75,12 @@
                                                 else if (borrow.Status == "Returned" && fine > 0 && paymentStatus != "Paid")
                                                 {
                                                     <form class="FinePaymentForm">
-                                                        <input type="hidden" name="fineId" id="fineId" value="@borrow.Fine.FineId" />
-                                                        <input type="number" name="payAmount" id="payAmount" min="1" max="@(borrow.Fine.FineAmount - borrow.Fine.PaidAmount)" required />
-                                                        <button type="submit" class="btn btn-success">Pay Fine</button>
+                                                        <input type="hidden" class="razorFineId" value="@borrow.Fine.FineId" />
+                                                        <input type="hidden" class="TransactionType" value="online" />
+                                                        <input type="number" class="razorFineAmount" max="@(borrow.Fine.FineAmount - borrow.Fine.PaidAmount)" required />
+                                                        <button type="submit" class="btnSubmitPayment btn btn-success">Pay Fine</button>
                                                     </form>
+
                                                 }
                                                 else if (borrow.Status == "Returned" && fine > 0 && paymentStatus == "Paid")
                                                 {

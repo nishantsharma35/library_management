@@ -1,8 +1,495 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    Layout = null;
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+
+<html class="no-js" lang="">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <title>Paperbyte-Library Management System</title>
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="shortcut icon"
+          type="image/x-icon"
+          href="landingpageassets/img/logo/logo.png" />
+    <!-- Place favicon.ico in the root directory -->
+    <!-- ======== CSS here ======== -->
+    <link rel="stylesheet" href="landingpageassets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="landingpageassets/css/lineicons.css" />
+    <link rel="stylesheet" href="landingpageassets/css/animate.css" />
+    <link rel="stylesheet" href="landingpageassets/css/main.css" />
+    
+    <style>
+        .hero-section .hero-img img {
+            max-height: 550px;
+            width: 100%;
+            object-fit: contain;
+        }
+
+    </style>
+
+</head>
+<body>
+    <!--[if lte IE 9]>
+      <p class="browserupgrade">
+        You are using an <strong>outdated</strong> browser. Please
+        <a href="https://browsehappy.com/">upgrade your browser</a> to improve
+        your experience and security.
+      </p>
+    <![endif]-->
+    <!-- ======== preloader start ======== -->
+    <div class="preloader">
+        <div class="loader">
+            <div class="spinner">
+                <div class="spinner-container">
+                    <div class="spinner-rotator">
+                        <div class="spinner-left">
+                            <div class="spinner-circle"></div>
+                        </div>
+                        <div class="spinner-right">
+                            <div class="spinner-circle"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- preloader end -->
+    <!-- ======== header start ======== -->
+    <header class="header">
+        <div class="navbar-area">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-12">
+                        <nav class="navbar navbar-expand-lg">
+                            <a class="navbar-brand" href="index.html">
+                                <img src="landingpageassets/img/logo/logo.png" alt="Logo" style="height:40px;"/>
+                            </a>
+                            <button class="navbar-toggler"
+                                    type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#navbarSupportedContent"
+                                    aria-controls="navbarSupportedContent"
+                                    aria-expanded="false"
+                                    aria-label="Toggle navigation">
+                                <span class="toggler-icon"></span>
+                                <span class="toggler-icon"></span>
+                                <span class="toggler-icon"></span>
+                            </button>
+
+                            <div class="collapse navbar-collapse sub-menu-bar"
+                                 id="navbarSupportedContent">
+                                <ul id="nav" class="navbar-nav ms-auto">
+                                    <li class="nav-item">
+                                        <a class="page-scroll" href="#home">Home</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="page-scroll" href="#features">Features</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="page-scroll" href="#about">About</a>
+                                    </li>
+
+                                    <li class="nav-item">
+                                        <a class="page-scroll" href="#why">Why</a>
+                                    </li>
+                                    @* <li class="nav-item"> *@
+                                    @*     <a href="javascript:void(0)">Pricing</a> *@
+                                    @* </li> *@
+                                    @* <li class="nav-item"> *@
+                                    @*     <a href="javascript:void(0)">Clients</a> *@
+                                    @* </li> *@
+                                </ul>
+                            </div>
+                            <!-- navbar collapse -->
+                        </nav>
+                        <!-- navbar -->
+                    </div>
+                </div>
+                <!-- row -->
+            </div>
+            <!-- container -->
+        </div>
+        <!-- navbar area -->
+    </header>
+    <!-- ======== header end ======== -->
+    <!-- ======== hero-section start ======== -->
+    <section id="home" class="hero-section">
+        <div class="container">
+            <div class="row align-items-center position-relative">
+                <div class="col-lg-6">
+                    <div class="hero-content">
+                        <h1 class="wow fadeInUp" data-wow-delay=".4s">
+                            Welcome to PaperByte – Your Smart Library Assistant
+                        </h1>
+                        <p class="wow fadeInUp" data-wow-delay=".6s">
+                            Manage books, members, and library operations effortlessly.
+                        </p>
+                        <a href="/library/Login" class="main-btn border-btn btn-hover wow fadeInUp" data-wow-delay=".6s">
+                            Login
+                        </a>
+                        <a href="#features" class="scroll-bottom">
+                            <i class="lni lni-arrow-down"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="hero-img wow fadeInUp" data-wow-delay=".5s">
+                        <img src="landingpageassets/img/hero/page2.png" alt="Library Illustration" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======== hero-section end ======== -->
+    <!-- ======== feature-section start ======== -->
+    <section id="features" class="feature-section pt-120">
+        <div class="container">
+            <div class="row justify-content-center">
+
+                <div class="col-lg-4 col-md-8 col-sm-10">
+                    <div class="single-feature">
+                        <div class="icon">
+                            <i class="lni lni-book"></i>
+                        </div>
+                        <div class="content">
+                            <h3>Book Management</h3>
+                            <p>
+                                Easily manage book inventory, categories, authors, and availability status.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-8 col-sm-10">
+                    <div class="single-feature">
+                        <div class="icon">
+                            <i class="lni lni-users"></i>
+                        </div>
+                        <div class="content">
+                            <h3>Member Tracking</h3>
+                            <p>
+                                Maintain detailed records of library members, their activity, and borrowed books.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-8 col-sm-10">
+                    <div class="single-feature">
+                        <div class="icon">
+                            <i class="lni lni-reload"></i>
+                        </div>
+                        <div class="content">
+                            <h3>Issue & Return System</h3>
+                            <p>
+                                Streamlined process for issuing, returning, and tracking overdue books with fine management.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+    <!-- ======== feature-section end ======== -->
+
+    <!-- ======== about-section start ======== -->
+    <section id="about" class="about-section pt-150">
+        <div class="container">
+            <div class="row align-items-center">
+
+                <div class="col-xl-6 col-lg-6">
+                    <div class="about-img">
+                        <img src="landingpageassets/img/hero/page3.png" alt="Library System Overview" class="w-100" />
+                        <img src="landingpageassets/img/about/about-left-shape.svg" alt="" class="shape shape-1" />
+                        <img src="landingpageassets/img/about/left-dots.svg" alt="" class="shape shape-2" />
+                    </div>
+                </div>
+
+                <div class="col-xl-6 col-lg-6">
+                    <div class="about-content">
+                        <div class="section-title mb-30">
+                            <h2 class="mb-25 wow fadeInUp" data-wow-delay=".2s">
+                                Simplifying Library Operations with PaperByte
+                            </h2>
+                            <p class="wow fadeInUp" data-wow-delay=".4s">
+                                PaperByte is a modern Library Management System designed for schools, colleges, and public libraries.
+                                It helps you efficiently manage books, users, issue/return workflows, and generate useful reports
+                                with just a few clicks. Whether you run a small institution or a large academic library, PaperByte adapts to your needs.
+                            </p>
+                        </div>
+                        <a href="#features" class="main-btn btn-hover border-btn wow fadeInUp" data-wow-delay=".6s">
+                            Explore Features
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+    <!-- ======== about-section end ======== -->
+
+    <!-- ======== about2-section start ======== -->
+    <section id="about" class="about-section pt-150">
+        <div class="container">
+            <div class="row align-items-center">
+
+                <div class="col-xl-6 col-lg-6">
+                    <div class="about-content">
+                        <div class="section-title mb-30">
+                            <h2 class="mb-25 wow fadeInUp" data-wow-delay=".2s">
+                                Intuitive, Powerful & Ready to Use
+                            </h2>
+                            <p class="wow fadeInUp" data-wow-delay=".4s">
+                                PaperByte is designed to be simple enough for anyone to use, yet powerful enough to handle the full complexity of library operations. From book cataloging to return reminders, every feature is streamlined to save your time.
+                            </p>
+                        </div>
+                        <ul>
+                            <li>Fast Book Issuing & Returns</li>
+                            <li>Role-Based Access Control</li>
+                            <li>Automated Reports & Overdue Alerts</li>
+                        </ul>
+                        <a href="#contact" class="main-btn btn-hover border-btn wow fadeInUp" data-wow-delay=".6s">
+                            Contact Us
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-xl-6 col-lg-6 order-first order-lg-last">
+                    <div class="about-img-2">
+                        <img src="landingpageassets/img/about/lastimg.png" alt="Library Features" class="w-100" />
+                        <img src="landingpageassets/img/about/about-right-shape.svg" alt="" class="shape shape-1" />
+                        <img src="landingpageassets/img/about/right-dots.svg" alt="" class="shape shape-2" />
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+    <!-- ======== about2-section end ======== -->
+    <!-- ======== why-section start ======== -->
+    <section id="why" class="feature-extended-section pt-100">
+        <div class="feature-extended-wrapper">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-xxl-5 col-xl-6 col-lg-8 col-md-9">
+                        <div class="section-title text-center mb-60">
+                            <h2 class="mb-25 wow fadeInUp" data-wow-delay=".2s">
+                                Why Choose PaperByte
+                            </h2>
+                            <p class="wow fadeInUp" data-wow-delay=".4s">
+                                A reliable, user-friendly and powerful library management system that helps you streamline operations and empower readers.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+
+                    <div class="col-lg-4 col-md-6">
+                        <div class="single-feature-extended">
+                            <div class="icon">
+                                <i class="lni lni-display"></i>
+                            </div>
+                            <div class="content">
+                                <h3>Modern UI</h3>
+                                <p>
+                                    Clean and intuitive user interface for librarians, students, and admins with minimal learning curve.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 col-md-6">
+                        <div class="single-feature-extended">
+                            <div class="icon">
+                                <i class="lni lni-leaf"></i>
+                            </div>
+                            <div class="content">
+                                <h3>Lightweight & Responsive</h3>
+                                <p>
+                                    Accessible from any device — desktop, tablet, or mobile — with fast loading and smooth transitions.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 col-md-6">
+                        <div class="single-feature-extended">
+                            <div class="icon">
+                                <i class="lni lni-grid-alt"></i>
+                            </div>
+                            <div class="content">
+                                <h3>Built-in Features</h3>
+                                <p>
+                                    From issue-return logs to overdue fine tracking, PaperByte covers all core library operations.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 col-md-6">
+                        <div class="single-feature-extended">
+                            <div class="icon">
+                                <i class="lni lni-code"></i>
+                            </div>
+                            <div class="content">
+                                <h3>ASP.NET Core MVC</h3>
+                                <p>
+                                    Built on Microsoft’s robust web framework, offering security, scalability, and performance.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 col-md-6">
+                        <div class="single-feature-extended">
+                            <div class="icon">
+                                <i class="lni lni-layers"></i>
+                            </div>
+                            <div class="content">
+                                <h3>Modular Architecture</h3>
+                                <p>
+                                    Easily extendable modules like Reports, Payments, Notifications, and Role-based Access Control.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 col-md-6">
+                        <div class="single-feature-extended">
+                            <div class="icon">
+                                <i class="lni lni-rocket"></i>
+                            </div>
+                            <div class="content">
+                                <h3>Fast & Reliable</h3>
+                                <p>
+                                    Optimized database queries and backend processing to deliver consistent performance under load.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- ======== why-section end ======== -->
+
+    <!-- ======== contact-section start ======== -->
+    <section id="contact" class="subscribe-section pt-120">
+        <div class="container">
+            <div class="subscribe-wrapper img-bg">
+                <div class="row align-items-center">
+
+                    <div class="col-xl-6 col-lg-7">
+                        <div class="section-title mb-15">
+                            <h2 class="text-white mb-25">Get in Touch with PaperByte</h2>
+                            <p class="text-white pr-5">
+                                Have questions or want a live demo? We’d love to hear from you. Reach out to learn how PaperByte can help manage your library efficiently.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-xl-6 col-lg-5">
+                        <form action="mailto:nishantsharma3637@gmail.com" method="POST" enctype="text/plain" class="subscribe-form">
+                            <input type="email"
+                                   name="email"
+                                   id="email"
+                                   placeholder="Your Email"
+                                   required />
+                            <button type="submit" class="main-btn btn-hover">
+                                Contact Us
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- ======== contact-section end ======== -->
+    <!-- ======== footer start ======== -->
+    <footer class="footer">
+        <div class="container">
+            <div class="widget-wrapper">
+                <div class="row">
+
+                    <!-- Logo and Description -->
+                    <div class="col-xl-4 col-lg-4 col-md-6">
+                        <div class="footer-widget">
+                            <div class="logo mb-30 d-flex align-items-center">
+                                <a href="index.html" class="d-flex align-items-center text-white text-decoration-none">
+                                    <img src="landingpageassets/img/logo/logo.png" alt="PaperByte Logo" style="height: 40px; margin-right: 10px;" />
+                                    <span style="font-size: 20px; font-weight: 600;">PaperByte</span>
+                                </a>
+                            </div>
+
+                            <p class="desc mb-30 text-white">
+                                PaperByte is your smart and scalable Library Management System, built for schools, colleges, and public libraries.
+                            </p>
+                            <ul class="socials">
+                                <li><a href="#"><i class="lni lni-facebook-filled"></i></a></li>
+                                <li><a href="#"><i class="lni lni-twitter-filled"></i></a></li>
+                                <li><a href="#"><i class="lni lni-instagram-filled"></i></a></li>
+                                <li><a href="#"><i class="lni lni-linkedin-original"></i></a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Quick Links -->
+                    <div class="col-xl-2 col-lg-2 col-md-6">
+                        <div class="footer-widget">
+                            <h3>Quick Links</h3>
+                            <ul class="links">
+                                <li><a href="#home">Home</a></li>
+                                <li><a href="#features">Features</a></li>
+                                <li><a href="#about">About</a></li>
+                                <li><a href="#contact">Contact</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Resources -->
+                    <div class="col-xl-3 col-lg-3 col-md-6">
+                        <div class="footer-widget">
+                            <h3>Resources</h3>
+                            <ul class="links">
+                                <li><a href="#">Privacy Policy</a></li>
+                                <li><a href="#">Terms of Service</a></li>
+                                <li><a href="#">User Guide</a></li>
+                                <li><a href="#">Support</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Contact Info -->
+                    <div class="col-xl-3 col-lg-3 col-md-6">
+                        <div class="footer-widget">
+                            <h3>Contact</h3>
+                            <ul class="links">
+                                <li>Email: <a href="mailto:nishantsharma3637@gmail.com">support@paperbyte.com</a></li>
+                                <li>Phone: +91 98765 43210</li>
+                                @* <li>Address: Your Campus/Office Address</li> *@
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- ======== footer end ======== -->
+
+    <!-- ======== scroll-top ======== -->
+    <a href="#" class="scroll-top btn-hover">
+        <i class="lni lni-chevron-up"></i>
+    </a>
+
+    <!-- ======== JS here ======== -->
+    <script src="landingpageassets/js/bootstrap.bundle.min.js"></script>
+    <script src="landingpageassets/js/wow.min.js"></script>
+    <script src="landingpageassets/js/main.js"></script>
+</body>
+</html>

@@ -47,15 +47,16 @@
                                                 <td>@borrow.IssueDate.ToShortDateString()</td>
                                                 <td>@borrow.DueDate.ToShortDateString()</td>
                                                 <td>
-                                                    <form asp-action="ApproveReturn" asp-controller="BorrowMaster" method="post">
+                                                    <form asp-action="ApproveReturn" asp-controller="BorrowMaster" method="post" style="display:inline;">
                                                         <input type="hidden" name="borrowId" value="@borrow.BorrowId" />
                                                         <button type="submit" class="btn btn-success">Approve</button>
                                                     </form>
-                                                    <form asp-action="RejectReturn" asp-controller="BorrowMaster" method="post">
+                                                    <form asp-action="RejectReturn" asp-controller="BorrowMaster" method="post" style="display:inline;">
                                                         <input type="hidden" name="borrowId" value="@borrow.BorrowId" />
                                                         <button type="submit" class="btn btn-danger">Reject</button>
                                                     </form>
                                                 </td>
+
                                             </tr>
                                         }
                                     </tbody>

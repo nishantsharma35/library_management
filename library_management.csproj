@@ -30,4 +30,12 @@
     <Folder Include="wwwroot\Bookimages\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="wwwroot\landingpageassets\.DS_Store" />
+    <None Include="wwwroot\landingpageassets\css\.DS_Store" />
+    <None Include="wwwroot\landingpageassets\img\.DS_Store" />
+    <None Include="wwwroot\landingpageassets\img\logo\.DS_Store" />
+    <None Include="wwwroot\landingpageassets\js\.DS_Store" />
+  </ItemGroup>
+
 </Project>

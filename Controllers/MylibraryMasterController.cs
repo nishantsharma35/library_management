@@ -226,7 +226,7 @@ namespace library_management.Controllers
         public IActionResult RequestReturn(int borrowId)
         {
             int memberId = HttpContext.Session.GetInt32("MemberId") ?? 0;
-            int libraryId = HttpContext.Session.GetInt32("LibraryId") ?? 0;
+            int libraryId = GetLoggedInLibraryId();
 
 
             if (memberId == 0 || libraryId == 0)
@@ -253,8 +253,7 @@ namespace library_management.Controllers
 
 
         [HttpPost]
-        [ActionName("PayFineMember")]
-        public async Task<IActionResult> PayFineMember([FromBody] int fineId, decimal payAmount)
+        public async Task<IActionResult> PayFine([FromBody] FinePaymentRequest payModel)
         {
             int memberId = HttpContext.Session.GetInt32("MemberId") ?? 0; // Get logged-in member ID
 
@@ -264,7 +263,7 @@ namespace library_management.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var fine = await _fineInterface.GetFineByIdAsync(fineId);
+            var fine = await _fineInterface.GetFineByIdAsync(payModel.FineId);
             if (fine == null || fine.Borrow == null || fine.Borrow.MemberId != memberId)
             {
                 TempData["Error"] = "Invalid fine details!";
@@ -282,7 +281,7 @@ namespace library_management.Controllers
 
             // Check if payment is valid
             decimal remainingAmount = fine.FineAmount - fine.PaidAmount;
-            if (payAmount > remainingAmount)
+            if (payModel.Amount > remainingAmount)
             {
                 TempData["Error"] = "Payment exceeds remaining fine!";
                 return RedirectToAction("BorrowedBooks");
@@ -292,15 +291,15 @@ namespace library_management.Controllers
             fine.LibraryId = libraryId;
 
             // Update fine details
-            fine.PaidAmount += payAmount;
+            fine.PaidAmount += payModel.Amount;
             fine.PaymentDate = DateTime.Now;
             fine.PaymentStatus = fine.PaidAmount >= fine.FineAmount ? "Paid" : "Partially Paid";
-            
-            
+
+
             var transaction = new TblTransaction
             {
                 FineId = fine.FineId,
-                AmountPaid = (int)payAmount,
+                AmountPaid = (int)payModel.Amount,
                 PaymentDate = DateTime.Now,
                 PaymentMode = "Online", // Ya aap UI se bhi bhej sakte ho
                 Reference = $"TXN_{Guid.NewGuid().ToString().Substring(0, 8)}"
@@ -320,7 +319,7 @@ namespace library_management.Controllers
 
             string body = fine.Borrow?.Member != null
                 ? $"Dear {memberName},\n\n" +
-                  $"You have made a payment of ₹{payAmount} towards your fine.\n\n" +
+                  $"You have made a payment of ₹{payModel.Amount} towards your fine.\n\n" +
                   $"Remaining Amount: ₹{fine.FineAmount - fine.PaidAmount}\n\n"
                 : "Dear Member,\n\nYour fine has been updated.";
 
@@ -345,8 +344,12 @@ namespace library_management.Controllers
 
 
             TempData["Success"] = "Fine payment and transaction recorded successfully!";
-            return RedirectToAction("BorrowedBooks");
+            return Ok(new { success = true });
         }
+
+
+
+
 
         [HttpGet]
         public IActionResult GetBooksByLibrary(int libraryId)

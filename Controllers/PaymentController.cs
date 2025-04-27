@@ -20,9 +20,9 @@ namespace library_management.Controllers
             int amountInPaise = (int)(model.FineAmount * 100); // Razorpay needs paise
             string receiptId = "rcpt_" + model.FineId;
 
-            var fineId = await _payment.CreatePaymentAsync(amountInPaise, "INR", receiptId);
+            var orderId = await _payment.CreatePaymentAsync(amountInPaise, "INR", receiptId);
 
-            return Ok(new {success = true, fineId = fineId});
+            return Ok(new { success = true, orderId = orderId });
         }
     }
 }

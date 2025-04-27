@@ -360,9 +360,6 @@ namespace library_management.Controllers
                     }
                 }
             }
-
-
-
             if (excelFile == null || excelFile.Length == 0)
             {
                 return Json(new { success = false, message = "File is empty." });
@@ -413,52 +410,52 @@ namespace library_management.Controllers
                             if (string.IsNullOrEmpty(BookTitle))
                             {
                                 importStatus.Status = "Failed";
-                                importStatus.Message = "First and Last Name are required.";
+                                importStatus.Message = "BookTitle are required.";
                             }
                             else if (string.IsNullOrEmpty(GenreName) || GenreName == "0")
                             {
                                 importStatus.Status = "Failed";
-                                importStatus.Message = "Username is required.";
+                                importStatus.Message = "GenreName is required.";
                             }
                             else if (string.IsNullOrEmpty(ISBN))
                             {
                                 importStatus.Status = "Failed";
-                                importStatus.Message = "Password is required.";
+                                importStatus.Message = "ISBN is required.";
                             }
                             else if (PublicationYear == 0)
                             {
                                 importStatus.Status = "Failed";
-                                importStatus.Message = "Password is required.";
+                                importStatus.Message = "PublicationYear is required.";
                             }
                             else if (string.IsNullOrEmpty(Publisher))
                             {
                                 importStatus.Status = "Failed";
-                                importStatus.Message = "Password is required.";
+                                importStatus.Message = "Publisher is required.";
                             }
                             else if (string.IsNullOrEmpty(Edition))
                             {
                                 importStatus.Status = "Failed";
-                                importStatus.Message = "Password is required.";
+                                importStatus.Message = "Edition is required.";
                             }
                             else if (string.IsNullOrEmpty(Language))
                             {
                                 importStatus.Status = "Failed";
-                                importStatus.Message = "Password is required.";
+                                importStatus.Message = "Language is required.";
                             }
                             else if (string.IsNullOrEmpty(Author))
                             {
                                 importStatus.Status = "Failed";
-                                importStatus.Message = "Password is required.";
+                                importStatus.Message = "Author is required.";
                             }
                             else if (string.IsNullOrEmpty(ImagePath))
                             {
                                 importStatus.Status = "Failed";
-                                importStatus.Message = "Password is required.";
+                                importStatus.Message = "ImagePath is required.";
                             }
                             else if (Stock == 0)
                             {
                                 importStatus.Status = "Failed";
-                                importStatus.Message = "Password is required.";
+                                importStatus.Message = "Stock is required.";
                             }
 
                             else
@@ -472,7 +469,7 @@ namespace library_management.Controllers
                                 if (genre == 0)
                                 {
                                     importStatus.Status = "Failed";
-                                    importStatus.Message = "Invalid Role";
+                                    importStatus.Message = "Invalid genre";
                                 }
                                 else
                                 {

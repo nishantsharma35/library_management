@@ -9,13 +9,17 @@
 <link href="~/assets/css/sb-admin-2.min.css" rel="stylesheet">
 
 <style>
-    .bg-login-image {
-        background-image: url('/images/loginimage.jpg'); /* 👈 yaha apni image ka path set karo */
-        background-size: cover;
+    .bg-login-left {
+        background-image: url('/images/loginimage.png');
+        background-size: contain;
+        background-repeat: no-repeat;
         background-position: center;
         height: 100%;
+        /* padding: 20px; /* 👈 thoda image andar aayega */ */
+        padding: 40px 20px 40px 20px; /* top right bottom left */
     }
 </style>
+
 
 <div class="container">
 
@@ -26,7 +30,9 @@
                 <div class="card-body p-0">
                     <!-- Nested Row within Card Body -->
                     <div class="row">
-                        <div class="col-lg-6 d-none d-lg-block bg-login-image"></div> <!-- 👈 Image wala section -->
+                        <div class="col-lg-6 d-none d-lg-block p-0">
+                            <img src="/images/loginimage.png" class="img-fluid h-100 w-100" style="object-fit: contain;" />
+                        </div>
 
                         <div class="col-lg-6">
                             <div class="p-5">
@@ -169,7 +175,7 @@
 @*                                             Submit *@
 @*                                         </button> *@
 @*                                    </div>  *@
-                                   
+
 
 @*                                 </form> *@
 @*                                 <hr> *@

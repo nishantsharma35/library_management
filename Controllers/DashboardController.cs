@@ -86,8 +86,12 @@ namespace library_management.Controllers
                     .Count(b => b.MemberId == memberId && b.ReturnDate == null && b.DueDate < DateTime.Now);
 
                 model.TotalPendingFine = _context.Fines
-                    .Where(f => f.Borrow.MemberId == memberId && f.PaymentStatus == "Pending")
-                    .Sum(f => (decimal?)f.FineAmount - f.PaidAmount) ?? 0;
+    .Where(f => f.Borrow.MemberId == memberId
+        && (f.FineAmount > f.PaidAmount))
+    .Sum(f => (decimal?)(f.FineAmount - f.PaidAmount)) ?? 0m;
+
+
+
             }
 
             return View(model); // Make sure this line is present
@@ -311,8 +315,8 @@ namespace library_management.Controllers
         [HttpGet]
         public async Task<IActionResult> MyProfile()
         {
-            
-                int userId = (int)HttpContext.Session.GetInt32("UserId");
+
+            int userId = (int)HttpContext.Session.GetInt32("UserId");
             //Member userData = await _context.Members.FirstOrDefaultAsync(x => x.Id == UserId);
             //return View(userData);
             if (userId == 0)

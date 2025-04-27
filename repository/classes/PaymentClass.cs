@@ -11,8 +11,7 @@ namespace library_management.repository.classes
         {
             _razorpaySettings = razorpaySettings;
         }
-
-        public Task<string> CreatePaymentAsync(int amountInPaise, string currency, string receipt)
+        public async Task<string> CreatePaymentAsync(int amountInPaise, string currency, string receipt)
         {
             RazorpayClient client = new RazorpayClient(_razorpaySettings.KeyId, _razorpaySettings.KeySecret);
 
@@ -24,8 +23,7 @@ namespace library_management.repository.classes
 
             Order order = client.Order.Create(options);
 
-            return Task.FromResult(order["id"].ToString());
-
-    }
+            return order["id"].ToString(); // Return Razorpay OrderId
+        }
     }
 }

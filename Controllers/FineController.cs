@@ -54,33 +54,92 @@ namespace library_management.Controllers
         {
             using (MemoryStream stream = new MemoryStream())
             {
-                Document document = new Document();
+                Document document = new Document(PageSize.A4, 50, 50, 25, 25);
                 PdfWriter writer = PdfWriter.GetInstance(document, stream);
                 document.Open();
 
-                // ✅ Set font style
-                var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 16, BaseColor.BLACK);
-                var normalFont = FontFactory.GetFont(FontFactory.HELVETICA, 12, BaseColor.BLACK);
+                // 🔠 Fonts
+                var headerFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 18, BaseColor.BLACK);
+                var labelFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12, BaseColor.DARK_GRAY);
+                var valueFont = FontFactory.GetFont(FontFactory.HELVETICA, 12, BaseColor.BLACK);
 
-                // ✅ Add Title
-                document.Add(new Paragraph("Library Fine Receipt", titleFont));
-                document.Add(new Paragraph("\n")); // Line break
+                // 🔄 Fetch data
+                var borrow = _context.Borrows.FirstOrDefault(b => b.BorrowId == fine.BorrowId);
+                var member = _context.Members.FirstOrDefault(m => m.Id == borrow.MemberId);
+                var book = _context.Books.FirstOrDefault(b => b.BookId == borrow.BookId);
+                var library = _context.Libraries.FirstOrDefault(l => l.LibraryId == borrow.LibraryId);
 
-                // ✅ Add Fine Details
-                document.Add(new Paragraph($"Fine ID: {fine.FineId}", normalFont));
-                document.Add(new Paragraph($"Borrow ID: {fine.BorrowId}", normalFont));
-                document.Add(new Paragraph($"Amount: ₹{fine.FineAmount}", normalFont));
-                document.Add(new Paragraph($"Paid Amount: ₹{fine.PaidAmount}", normalFont));
-                document.Add(new Paragraph($"Payment Status: {fine.PaymentStatus}", normalFont));
-                document.Add(new Paragraph($"Date: {DateTime.Now:dd-MM-yyyy HH:mm}", normalFont));
+                string memberName = member?.Name ?? "Unknown";
+                string bookTitle = book?.Title ?? "Unknown";
+                string libraryName = library?.Libraryname ?? "Unknown Library";
+
+                // 🏛 Title
+                Paragraph title = new Paragraph($"{libraryName} - Fine Receipt", headerFont)
+                {
+                    Alignment = Element.ALIGN_CENTER,
+                    SpacingAfter = 20f
+                };
+                document.Add(title);
+
+                // 📋 Table setup
+                PdfPTable table = new PdfPTable(2);
+                table.WidthPercentage = 70;
+                table.HorizontalAlignment = Element.ALIGN_CENTER;
+                table.SpacingBefore = 10f;
+                table.SpacingAfter = 10f;
+
+                float[] columnWidths = { 1.5f, 2f };
+                table.SetWidths(columnWidths);
+
+                // Utility to add centered cells
+                void AddCenteredCell(string text, Font font)
+                {
+                    var cell = new PdfPCell(new Phrase(text, font))
+                    {
+                        Border = Rectangle.NO_BORDER,
+                        HorizontalAlignment = Element.ALIGN_CENTER,
+                        PaddingBottom = 8f
+                    };
+                    table.AddCell(cell);
+                }
+
+                // Add data rows
+                AddCenteredCell("Member Name", labelFont);
+                AddCenteredCell(memberName, valueFont);
+
+                AddCenteredCell("Book Title", labelFont);
+                AddCenteredCell(bookTitle, valueFont);
+
+                AddCenteredCell("Borrow Date", labelFont);
+                AddCenteredCell(borrow?.IssueDate.ToString("dd-MM-yyyy") ?? "-", valueFont);
+
+                AddCenteredCell("Amount", labelFont);
+                AddCenteredCell($"₹{fine.FineAmount}", valueFont);
+
+                AddCenteredCell("Paid Amount", labelFont);
+                AddCenteredCell($"₹{fine.PaidAmount}", valueFont);
+
+                AddCenteredCell("Payment Status", labelFont);
+                AddCenteredCell(fine.PaymentStatus, valueFont);
+
+                AddCenteredCell("Receipt Date", labelFont);
+                AddCenteredCell(DateTime.Now.ToString("dd-MM-yyyy HH:mm"), valueFont);
+
+                document.Add(table);
+
+                // 🧾 Footer
+                Paragraph footer = new Paragraph("Thank you for using PaperByte Library System.", valueFont)
+                {
+                    Alignment = Element.ALIGN_CENTER,
+                    SpacingBefore = 20f
+                };
+                document.Add(footer);
 
                 document.Close();
                 writer.Close();
 
-                // ✅ Ensure stream is converted before returning
                 byte[] fileBytes = stream.ToArray();
-
-                return File(fileBytes, "application/pdf", $"Fine_Receipt_{fine.FineId}.pdf");
+                return File(fileBytes, "application/pdf", $"Fine_Receipt_{memberName.Replace(" ", "_")}_{fine.FineId}.pdf");
             }
         }
 
