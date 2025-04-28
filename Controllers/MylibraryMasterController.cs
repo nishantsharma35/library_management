@@ -128,7 +128,7 @@ namespace library_management.Controllers
 
             if (memberId == 0 || libraryId == 0)
             {
-                return Unauthorized();
+                return Json(new { success = false, message = "Unauthorized request." });
             }
 
             // Check if book is available in the library
@@ -136,8 +136,7 @@ namespace library_management.Controllers
 
             if (libraryBook == null)
             {
-                TempData["Error"] = "Invalid book selection.";
-                return RedirectToAction("AvailableBooks");
+                return Json(new { success = false, message = "Invalid book selection." });
             }
 
             // **Create borrow request (without reducing stock)**
@@ -155,9 +154,10 @@ namespace library_management.Controllers
             _context.SaveChanges();
 
             Console.WriteLine($"✅ Borrow Request Inserted: Member {memberId} | Library {libraryId} | Book {bookId}");
+            return Json(new { success = true, message = "Borrow request sent successfully! Waiting for admin approval." });
 
-            TempData["Success"] = "Borrow request sent successfully! Waiting for admin approval.";
-            return RedirectToAction("AvailableBooks");
+            //TempData["Success"] = "Borrow request sent successfully! Waiting for admin approval.";
+            //return RedirectToAction("AvailableBooks");
         }
 
 
@@ -231,7 +231,7 @@ namespace library_management.Controllers
 
             if (memberId == 0 || libraryId == 0)
             {
-                return Unauthorized();
+                return Json(new { success = false, message = "Unauthorized request." });
             }
 
             var borrowRecord = _context.Borrows
@@ -239,16 +239,14 @@ namespace library_management.Controllers
 
             if (borrowRecord == null)
             {
-                TempData["Error"] = "Invalid return request.";
-                return RedirectToAction("BorrowedBooks");
+                return Json(new { success = false, message = "Invalid return request." });
             }
 
             // Update Status to 'Pending Return'
             borrowRecord.Status = "Pending Return";
             _context.SaveChanges();
 
-            TempData["Success"] = "Return request sent to Admin.";
-            return RedirectToAction("BorrowedBooks");
+            return Json(new { success = true, message = "Return request sent to Admin." });
         }
 
 

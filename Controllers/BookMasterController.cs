@@ -169,11 +169,18 @@ namespace library_management.Controllers
 
                 if (success)
                 {
-                    TempData["SuccessMessage"] = message;
-                    return RedirectToAction("BookList");
+                    return Json(new { success = true, message = message });
                 }
 
-                ModelState.AddModelError("", message);
+                return Json(new { success = false, message = message });
+
+                //if (success)
+                //{
+                //    TempData["SuccessMessage"] = message;
+                //    return RedirectToAction("BookList");
+                //}
+
+                //ModelState.AddModelError("", message);
             }
             ViewBag.Genres = _context.Genres.Any() ? _context.Genres.ToList() : new List<Genre>();
             ViewBag.LibraryId = libraryId; // Error aaye to LibraryId retain ho
@@ -380,126 +387,126 @@ namespace library_management.Controllers
 
                 var resultList = new List<ImportStatusModel>();
 
-                    excelFile.CopyTo(stream);
-                    using (var workbook = new XLWorkbook(stream))
+                excelFile.CopyTo(stream);
+                using (var workbook = new XLWorkbook(stream))
+                {
+                    var sheet = workbook.Worksheet(1);
+                    var rows = sheet.RowsUsed().Skip(1); // Skip header row
+                    int libraryId = _bookServiceInterface.GetLoggedInLibrarianLibraryId(); //  Service Se Call
+                    foreach (var row in rows)
                     {
-                        var sheet = workbook.Worksheet(1);
-                        var rows = sheet.RowsUsed().Skip(1); // Skip header row
-                        int libraryId = _bookServiceInterface.GetLoggedInLibrarianLibraryId(); //  Service Se Call
-                        foreach (var row in rows)
+                        var BookTitle = row.Cell(1).GetString();
+                        var GenreName = row.Cell(2).GetString();
+                        var ISBN = row.Cell(3).GetString();
+                        var Publisher = row.Cell(4).GetString();
+                        var PublicationYear = row.Cell(5).GetValue<int>();
+                        var Edition = row.Cell(6).GetString();
+                        var Language = row.Cell(7).GetString();
+                        var Author = row.Cell(8).GetString();
+                        var ImagePath = row.Cell(9).GetString();
+                        var Stock = row.Cell(10).GetValue<int>();
+
+                        var importStatus = new ImportStatusModel
                         {
-                            var BookTitle = row.Cell(1).GetString();
-                            var GenreName = row.Cell(2).GetString();
-                            var ISBN = row.Cell(3).GetString();
-                            var Publisher = row.Cell(4).GetString();
-                            var PublicationYear = row.Cell(5).GetValue<int>();
-                            var Edition = row.Cell(6).GetString();
-                            var Language = row.Cell(7).GetString();
-                            var Author = row.Cell(8).GetString();
-                            var ImagePath = row.Cell(9).GetString();
-                            var Stock = row.Cell(10).GetValue<int>();
+                            Name = BookTitle,
+                            Status = "Pending",
+                            Message = ""
+                        };
 
-                            var importStatus = new ImportStatusModel
-                            {
-                                Name = BookTitle,
-                                Status = "Pending",
-                                Message = ""
-                            };
+                        // 🛠 Validate Data
+                        if (string.IsNullOrEmpty(BookTitle))
+                        {
+                            importStatus.Status = "Failed";
+                            importStatus.Message = "BookTitle are required.";
+                        }
+                        else if (string.IsNullOrEmpty(GenreName) || GenreName == "0")
+                        {
+                            importStatus.Status = "Failed";
+                            importStatus.Message = "GenreName is required.";
+                        }
+                        else if (string.IsNullOrEmpty(ISBN))
+                        {
+                            importStatus.Status = "Failed";
+                            importStatus.Message = "ISBN is required.";
+                        }
+                        else if (PublicationYear == 0)
+                        {
+                            importStatus.Status = "Failed";
+                            importStatus.Message = "PublicationYear is required.";
+                        }
+                        else if (string.IsNullOrEmpty(Publisher))
+                        {
+                            importStatus.Status = "Failed";
+                            importStatus.Message = "Publisher is required.";
+                        }
+                        else if (string.IsNullOrEmpty(Edition))
+                        {
+                            importStatus.Status = "Failed";
+                            importStatus.Message = "Edition is required.";
+                        }
+                        else if (string.IsNullOrEmpty(Language))
+                        {
+                            importStatus.Status = "Failed";
+                            importStatus.Message = "Language is required.";
+                        }
+                        else if (string.IsNullOrEmpty(Author))
+                        {
+                            importStatus.Status = "Failed";
+                            importStatus.Message = "Author is required.";
+                        }
+                        else if (string.IsNullOrEmpty(ImagePath))
+                        {
+                            importStatus.Status = "Failed";
+                            importStatus.Message = "ImagePath is required.";
+                        }
+                        else if (Stock == 0)
+                        {
+                            importStatus.Status = "Failed";
+                            importStatus.Message = "Stock is required.";
+                        }
 
-                            // 🛠 Validate Data
-                            if (string.IsNullOrEmpty(BookTitle))
-                            {
-                                importStatus.Status = "Failed";
-                                importStatus.Message = "BookTitle are required.";
-                            }
-                            else if (string.IsNullOrEmpty(GenreName) || GenreName == "0")
-                            {
-                                importStatus.Status = "Failed";
-                                importStatus.Message = "GenreName is required.";
-                            }
-                            else if (string.IsNullOrEmpty(ISBN))
-                            {
-                                importStatus.Status = "Failed";
-                                importStatus.Message = "ISBN is required.";
-                            }
-                            else if (PublicationYear == 0)
-                            {
-                                importStatus.Status = "Failed";
-                                importStatus.Message = "PublicationYear is required.";
-                            }
-                            else if (string.IsNullOrEmpty(Publisher))
-                            {
-                                importStatus.Status = "Failed";
-                                importStatus.Message = "Publisher is required.";
-                            }
-                            else if (string.IsNullOrEmpty(Edition))
-                            {
-                                importStatus.Status = "Failed";
-                                importStatus.Message = "Edition is required.";
-                            }
-                            else if (string.IsNullOrEmpty(Language))
-                            {
-                                importStatus.Status = "Failed";
-                                importStatus.Message = "Language is required.";
-                            }
-                            else if (string.IsNullOrEmpty(Author))
-                            {
-                                importStatus.Status = "Failed";
-                                importStatus.Message = "Author is required.";
-                            }
-                            else if (string.IsNullOrEmpty(ImagePath))
-                            {
-                                importStatus.Status = "Failed";
-                                importStatus.Message = "ImagePath is required.";
-                            }
-                            else if (Stock == 0)
-                            {
-                                importStatus.Status = "Failed";
-                                importStatus.Message = "Stock is required.";
-                            }
+                        else
+                        {
+                            // 🛠 Fetch required data BEFORE making async calls
+                            var genre = await _context.Genres
+                                .Where(x => x.GenreName == GenreName)
+                                .Select(x => x.GenreId)
+                                .FirstOrDefaultAsync();
 
+                            if (genre == 0)
+                            {
+                                importStatus.Status = "Failed";
+                                importStatus.Message = "Invalid genre";
+                            }
                             else
                             {
-                                // 🛠 Fetch required data BEFORE making async calls
-                                var genre = await _context.Genres
-                                    .Where(x => x.GenreName == GenreName)
-                                    .Select(x => x.GenreId)
-                                    .FirstOrDefaultAsync();
-
-                                if (genre == 0)
+                                // ✅ Insert into tblUsers
+                                var book = new Book
                                 {
-                                    importStatus.Status = "Failed";
-                                    importStatus.Message = "Invalid genre";
-                                }
-                                else
-                                {
-                                    // ✅ Insert into tblUsers
-                                    var book = new Book
-                                    {
-                                        Title = BookTitle,
-                                        Publisher = Publisher,
-                                        PublicationYear = PublicationYear,
-                                        GenreId = genre,
-                                        Isbn = ISBN,
-                                        Edition = Edition,
-                                        Language = Language,
-                                        Author = Author,
-                                        bookimagepath = @"\Bookimages\" + ImagePath
-                                    };
+                                    Title = BookTitle,
+                                    Publisher = Publisher,
+                                    PublicationYear = PublicationYear,
+                                    GenreId = genre,
+                                    Isbn = ISBN,
+                                    Edition = Edition,
+                                    Language = Language,
+                                    Author = Author,
+                                    bookimagepath = @"\Bookimages\" + ImagePath
+                                };
 
-                                    await _bookServiceInterface.AddBook(book, libraryId, Stock); // Ensure SaveUsers is properly async
+                                await _bookServiceInterface.AddBook(book, libraryId, Stock); // Ensure SaveUsers is properly async
 
-                                    importStatus.Status = "Success";
-                                }
+                                importStatus.Status = "Success";
                             }
-
-                            resultList.Add(importStatus);
                         }
+
+                        resultList.Add(importStatus);
                     }
+                }
 
 
 
-                    //Output File Generation
+                //Output File Generation
 
                 using (var workbook = new XLWorkbook())
                 {

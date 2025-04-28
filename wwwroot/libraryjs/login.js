@@ -13,40 +13,52 @@
             toggleIcon.classList.add("fa-lock");
         }
     });
-    $("#forgotPassword").validate({
-        rules: {
-            Email: {
-                required: true,
-                email: true
-            }
-        },
-        messages: {
-            Email: {
-                required: "Please enter your Email.",
-                email: "Not a valid email"
-            }
-        },
 
-        submitHandler: function (form, event) {
-            event.preventDefault()
-            const formData = new FormData(form);
 
-            // AJAX submission
-            $.ajax({
-                url: '/library/ForgotPassword',
-                type: 'POST',
-                processData: false,
-                contentType: false,
-                data: formData,
-                success: function (result) {
-                    alert(result.message);
-                },
-                error: function () {
-                    alert('An error occurred while sending the email.');
-                }
-            });
-        }
-    });
+    //$("#forgotPassword").validate({
+    //    rules: {
+    //        Email: {
+    //            required: true,
+    //            email: true
+    //        }
+    //    },
+    //    messages: {
+    //        Email: {
+    //            required: "Please enter your Email.",
+    //            email: "Not a valid email"
+    //        }
+    //    },
+
+    //    submitHandler: function (form, event) {
+    //        event.preventDefault();
+    //        const formData = new FormData(form);
+
+    //        // Manually add the Email value (if required)
+    //        formData.append("Email", $("#Email").val());
+
+    //        // AJAX submission
+    //        $.ajax({
+    //            url: '/library/ForgotPassword',
+    //            type: 'POST',
+    //            processData: false,
+    //            contentType: false,
+    //            data: formData,
+    //            success: function (result) {
+    //                if (result.message) {
+    //                    // Show success toast with message from backend
+    //                    showToast(result.message, 'success');
+    //                } else {
+    //                    // Show error toast if no message is returned
+    //                    showToast('Unknown response from server.', 'error');
+    //                }
+    //            },
+    //            error: function () {
+    //                // Show error toast if AJAX fails
+    //                showToast('An error occurred while sending the email.', 'error');
+    //            }
+    //        });
+    //    }
+    //});
 
 
     $("#ResetPassword").validate({
@@ -87,13 +99,13 @@
                 contentType: false,
                 data: formData,
                 success: function (result) {
-                    alert(result.message);
+                    showToast(result.message, 'success');
                     if (result.success) {
                         window.location.href = '/library/login';
                     }
                 },
                 error: function () {
-                    alert('An error occurred while registering the user.');
+                    showToast('An error occurred while registering the user.');
                 }
             });
         }
@@ -128,7 +140,6 @@
             }
         },
 
-
         submitHandler: function (form, event) {
             event.preventDefault()
             const formData = new FormData(form);
@@ -136,6 +147,7 @@
             const btnLoader = $("#btnLoader");
             btnRegister.prop("disabled", true);
             btnLoader.removeClass("d-none");
+
             // AJAX submission
             $.ajax({
                 url: '/library/Login',
@@ -144,14 +156,18 @@
                 contentType: false,
                 data: formData,
                 success: function (result) {
-                    alert(result.message);
                     if (result.success) {
+                        // Show success toast
+                        showToast(result.message, 'success');
+
                         if (result.res != "Dashboard") {
                             window.location.href = "/library/" + result.res;
-                        }
-                        else {
+                        } else {
                             window.location.href = '/Dashboard';
                         }
+                    } else {
+                        // Show error toast
+                        showToast(result.message, 'error');
                     }
                 },
                 complete: function () {
@@ -160,10 +176,35 @@
                     btnLoader.addClass("d-none");
                 },
                 error: function () {
-                    alert('An error occurred while login.');
+                    // Show error toast
+                    showToast('An error occurred while login.', 'error');
                 }
             });
         }
     });
+
+    function showToast(message, icon = 'success') {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: icon,
+            title: message,
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+            customClass: {
+                popup: 'custom-toast-popup',
+                title: 'custom-toast-title'
+            },
+            iconColor: icon === 'success' ? '#28a745' :
+                icon === 'error' ? '#dc3545' :
+                    icon === 'warning' ? '#ffc107' : '#17a2b8',
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+    }
+
 });
 

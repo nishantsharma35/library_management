@@ -406,10 +406,22 @@ namespace library_management.Controllers
         [HttpPost]
         public async Task<IActionResult> ForgotPassword(Models.Member user)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Invalid email address.");
+            }
+
             HttpContext.Session.SetString("ForgotPassEmail", user.Email);
             var res = await _login.TokenSenderViaEmail(user.Email);
-            return Ok(res);
+
+            if (res == null)
+            {
+                return BadRequest("Error in sending email.");
+            }
+
+            return Ok(new { message = "Password reset link has been sent to your email." });
         }
+
 
         [HttpGet]
         public IActionResult ResetPassword(string token)
@@ -510,50 +522,6 @@ namespace library_management.Controllers
             var name = result.Principal.Identity.Name;
 
             var user = await _db.Members.FirstOrDefaultAsync(u => u.Email == email);
-
-            //if (user != null && user.IsGoogleAccount == false)
-            //{
-            //    return Json(new { success = false, message = "This email is already registered manually. Use Email/Password to login." });
-            //}
-
-            //if (user != null && user.IsGoogleAccount == true)
-            //{
-
-
-            //    //if (user.RoleId <= 2)
-            //    //    shopData = _db.TblShops.FirstOrDefault(x => x.AdminId == user.UserId);
-            //    //else
-            //    //    shopData = _db.TblShops.FirstOrDefault(x => x.AdminId == user.AdminRef);
-
-            //    //if (shopData != null)
-            //    //    HttpContext.Session.SetInt32("ShopId", shopData.ShopId);
-
-            //    HttpContext.Session.SetInt32("UserId", user.Id);
-            //    HttpContext.Session.SetInt32("UserRoleId", user.RoleId);
-            //    HttpContext.Session.SetString("UserEmail", email);
-
-
-            //    // Check conditions and return messages accordingly
-            //    //if (user.RoleId == 2)
-            //    //{
-            //    //    if (!await _users.hasShopDetails(user.UserId))
-            //    //        return Json(new { success = false, message = "Shop details are missing. Please complete you shop details.", redirect = Url.Action("ShopDetails", "Auth") });
-
-            //    //    if (!await _users.hasAdminDoc(user.UserId))
-            //    //        return Json(new { success = false, message = "Documents are not uploaded yet.", redirect = Url.Action("AdminDoc", "Auth") });
-            //    //}
-
-            //    //if (info != null)
-            //    //{
-            //    //    if (user.VerificationStatus == "Rejected")
-            //    //        return Json(new { success = false, message = "Your account is rejected. Contact support." });
-
-            //    //    if (user.VerificationStatus == "Pending")
-            //    //        return Json(new { success = false, message = "Your account is pending verification." });
-            //    //}
-
-            //    return Json(new { success = true, message = "Login successful!", redirect = Url.Action("", "Dashboard") });
-            //}
 
             if (user != null && user.IsGoogleAccount == true)
             {

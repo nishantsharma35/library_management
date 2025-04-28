@@ -1,7 +1,7 @@
 ﻿@model Library
 
 @{
-    //Layout = "/Views/Shared/_mainLayout.cshtml";
+    Layout = "/Views/Shared/_mainLayout.cshtml";
     ViewData["Title"] = "Library Fine Update";
 }
 <div class="container-fluid">
@@ -9,18 +9,18 @@
 
     <div class="card shadow mb-4">
         <div class="card-body">
-            <form method="post" asp-controller="BorrowMaster" asp-action="UpdateLibraryFine">
+            <form id="updatelibraryfine" method="post" asp-controller="BorrowMaster" asp-action="UpdateLibraryFine">
                 <div class="form-group">
                     <label for="fineAmount" class="font-weight-bold">Fine Amount (₹ per day):</label>
                     <input type="number" class="form-control" id="fineAmount" name="fineAmount" value="@Model.LibraryFineAmount" step="0.01" required />
                 </div>
                 <button type="submit" class="btn btn-primary">Update Fine</button>
             </form>
-
-            @if (TempData["Success"] != null)
-            {
-                <div class="alert alert-success mt-3">@TempData["Success"]</div>
-            }
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="~/bookjs/updatelibraryfine.js"></script>
+}
+

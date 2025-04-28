@@ -4,13 +4,14 @@
     Layout = "/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Login";
 }
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" />
 
 <link href="~/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
 <link href="~/assets/css/sb-admin-2.min.css" rel="stylesheet">
 
 <style>
     .bg-login-left {
-        background-image: url('/images/loginimage.png');
+        background-image: url('/images/login.png');
         background-size: contain;
         background-repeat: no-repeat;
         background-position: center;
@@ -101,6 +102,8 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+
     <script src="~/libraryjs/login.js"></script>
     <script src="~/assets/vendor/jquery/jquery.min.js"></script>
     <script src="~/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>

@@ -10,7 +10,7 @@
             <h3 class="m-0">@(Model.BookId > 0 ? "Edit Book" : "Add New Book")</h3>
         </div>
         <div class="card-body">
-            <form asp-action="AddBook" method="post" enctype="multipart/form-data">
+            <form id="addBookForm" asp-action="AddBook" method="post" enctype="multipart/form-data">
                 <input type="hidden" asp-for="BookId" />
 
                 <div class="form-group">

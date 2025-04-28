@@ -47,7 +47,7 @@
                                                 <td>@borrow.IssueDate.ToShortDateString()</td>
                                                 <td>@borrow.DueDate.ToShortDateString()</td>
                                                 <td>
-                                                    <form asp-action="ApproveReturn" asp-controller="BorrowMaster" method="post" style="display:inline;">
+                                                    <form id="pendingreturn" asp-action="ApproveReturn" asp-controller="BorrowMaster" method="post" style="display:inline;">
                                                         <input type="hidden" name="borrowId" value="@borrow.BorrowId" />
                                                         <button type="submit" class="btn btn-success">Approve</button>
                                                     </form>
@@ -83,5 +83,6 @@
             });
         });
     </script>
+    <script src="~/memberportal/approverejectborrow.js"></script>
 }
 

@@ -1,10 +1,10 @@
-﻿$('#addBookForm').on('submit', function (e) {
-    e.preventDefault();
+﻿$('#pendingreturn').on('submit', function (e) {
+    e.preventDefault(); // Prevent form default submission
 
     var formData = new FormData(this);
 
     $.ajax({
-        url: '/BookMaster/AddBook',   // Controller ka sahi URL
+        url: '/BorrowMaster/ApproveReturn',   // Correct URL for the action method
         type: 'POST',
         data: formData,
         contentType: false,
@@ -12,10 +12,9 @@
         success: function (response) {
             if (response.success) {
                 showToast(response.message, 'success');
-                $('#addBookForm')[0].reset(); // Form reset
-                // Optionally: Redirect to BookList after few seconds
+                $('#pendingreturn')[0].reset(); // Reset the form after submission
                 setTimeout(function () {
-                    window.location.href = '/BookMaster/BookList';
+                    window.location.href = '/BorrowMaster/BorrowList'; // Redirect after success
                 }, 2000);
             } else {
                 showToast(response.message, 'error');

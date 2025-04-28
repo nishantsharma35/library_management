@@ -351,16 +351,14 @@ namespace library_management.Controllers
 
             if (fine == null)
             {
-                TempData["Error"] = "Fine not found!";
-                return RedirectToAction("BorrowList", "BorrowMaster");
+                return Json(new { success = false, message = "Fine not found!" });
             }
 
             // Check if the payment amount is greater than the remaining fine
             decimal remainingAmount = fine.FineAmount - fine.PaidAmount;
             if (payAmount > remainingAmount)
             {
-                TempData["Error"] = "Payment amount exceeds remaining fine!";
-                return RedirectToAction("BorrowList", "BorrowMaster");
+                return Json(new { success = false, message = "Payment amount exceeds remaining fine!" });
             }
 
             // Update paid amount and payment status based on the partial payment
@@ -414,8 +412,7 @@ namespace library_management.Controllers
             await _emailService.SendEmailWithAttachment(recipientEmail, subject, body, pdfBytes, $"Fine_Receipt_{fine.FineId}.pdf");
 
 
-            TempData["Success"] = "Fine payment and transaction recorded successfully!";
-            return RedirectToAction("BorrowList", "BorrowMaster");
+            return Json(new { success = true, message = "Fine payment and transaction recorded successfully!" });
         }
 
 

@@ -263,9 +263,17 @@ namespace library_management.Controllers
             int result = await _connect.SaveChangesAsync();
             Console.WriteLine($"SaveChanges Result: {result}");
 
+            if (result > 0)
+            {
+                return Json(new { success = true, message = "Book returned successfully!" });
+            }
+            else
+            {
+                return Json(new { success = false, message = "Failed to return the book. Please try again." });
+            }
 
-            TempData["Success"] = "Book returned successfully!";
-            return RedirectToAction("BorrowList");
+            //TempData["Success"] = "Book returned successfully!";
+            //return RedirectToAction("BorrowList");
         }
 
 
@@ -340,7 +348,7 @@ namespace library_management.Controllers
             {
                 return RedirectToAction("UnauthorisedAccess", "Error");
             }
-                    }
+         }
 
         [HttpPost]
         public async Task<IActionResult> UpdateLibraryFine(decimal fineAmount)
@@ -354,8 +362,10 @@ namespace library_management.Controllers
             library.LibraryFineAmount = fineAmount;
             await _connect.SaveChangesAsync();
 
-            TempData["Success"] = "Fine updated successfully!";
-            return RedirectToAction("BorrowList");
+
+            return Json(new { success = true, message = "Fine updated successfully!" });
+            //TempData["Success"] = "Fine updated successfully!";
+            //return RedirectToAction("BorrowList");
         }
 
         [HttpGet]
@@ -466,8 +476,7 @@ namespace library_management.Controllers
 
             if (borrow == null)
             {
-                TempData["Error"] = "Invalid return request.";
-                return RedirectToAction("PendingReturns");
+                return Json(new { success = false, message = "Invalid return request." });
             }
 
             borrow.ReturnDate = DateTime.Now;
@@ -524,9 +533,9 @@ namespace library_management.Controllers
                 libraryBook.Stock += 1;
                 _connect.SaveChanges();
             }
-
-            TempData["Success"] = "Book returned successfully.";
-            return RedirectToAction("BorrowList");
+            return Json(new { success = true, message = "Return request Approved!" });
+            //TempData["Success"] = "Book returned successfully.";
+            //return RedirectToAction("BorrowList");
         }
 
 

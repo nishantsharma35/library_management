@@ -1,97 +1,32 @@
 ﻿ @model library_management.Models.Member
 <link href="~/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
 <link href="~/assets/css/sb-admin-2.min.css" rel="stylesheet">
-
-@* <form id="OtpCheck"> *@
-@*     <div> *@
-@*         <label asp-for="Otp">OTP</label> *@
-@*         <input asp-for="Otp" placeholder="Enter your otp here" /> *@
-@*     </div> *@
-
-@*     <div class="visually-hidden"> *@
-@*         <input asp-for="Email" value="@Context.Session.GetString("UserEmail")" readonly /> *@
-@*     </div> *@
-
-@*     <div class="form-login"> *@
-@*         <p id="timer" style="font-size: 14px; color: gray;">Time remaining: 02:00</p> <!-- Timer Display --> *@
-@*     </div> *@
-
-@*     <div id="resend-section" style="display: none; margin-top: 10px;"> *@
-@*         <button id="resend-btn" class="btn btn-secondary">Resend OTP</button> *@
-@*     </div> *@
-
-@*     <div class="form-group"> *@
-@*         <button type="submit" id="btnEnterOtp" class="btn btn-primary">Submit</button> *@
-@*     </div> *@
-@* </form> *@
-
-
-
-        @* <div class="row justify-content-center"> *@
-
-        @*     <div class="col-xl-10 col-lg-12 col-md-9"> *@
-
-        @*         <div class="card o-hidden border-0 shadow-lg my-5"> *@
-        @*             <div class="card-body p-0"> *@
-        @*                 <!-- Nested Row within Card Body --> *@
-        @*                 <div class="row"> *@
-        @*                     <div class="col-lg-6 d-none d-lg-block bg-password-image"></div> *@
-        @*                     <div class="col-lg-6"> *@
-        @*                         <div class="p-5"> *@
-        @*                             <div class="text-center"> *@
-        @*                                 <h1 class="h4 text-gray-900 mb-2">OTP CHECKING</h1> *@
-        @*                             </div> *@
-                                    
-        @*                     <form id="OtpCheck" method="post" class="user"> *@
-        @*                         <label asp-for="Otp">OTP : </label> *@
-        @*                         <input type="text" asp-for="Otp" placeholder="Enter your otp here" style="inset-inline"/> *@
-
-
-        @*                         <div class="visually-hidden"> *@
-        @*                             <input asp-for="Email" value="@Context.Session.GetString("UserEmail")" readonly /> *@
-        @*                         </div> *@
-
-                                    
-
-                                      
-        @*                          <input type="hidden" name="otp" id="otp-hidden" /> *@
-                                      
-
-        @*                         <div class="resend-wrap mt-4 text-center"> *@
-        @*                             <p class="text-muted big">Didn't receive the code? </p> *@
-        @*                                 <button id="resend-btn" *@
-        @*                                         class="btn btn-primary btn-sm rounded-pill shadow-sm" *@
-        @*                                         style="min-width: 120px; margin-top:10px;"> *@
-        @*                                     Resend OTP *@
-        @*                                 </button> *@
-                                   
-        @*                             <p id="timer" class="mt-2 text-secondary fw-semibold small">Time remaining: 01:00</p> *@
-        @*                         </div> *@
-
-        @*                                 <div class="form-login"> *@
-        @*                                         <button type="submit" id="btnSubmit" class="btn btn-primary btn-user btn-block">Submit</button> *@
-        @*                                 </div> *@
-        @*                             </form> *@
-        @*                             <hr> *@
-        @*                                 <div class="text-center"> *@
-        @*                                 <a class="small" asp-action="login">Already have an account? Login!</a> *@
-        @*                             </div> *@
-        @*                         </div> *@
-        @*                     </div> *@
-        @*                 </div> *@
-        @*             </div> *@
-        @*         </div> *@
-        @*     </div> *@
-        @* </div> *@
-
-
+<head>
+    <style>
+        label.error {
+            color: red !important;
+        }
+    </style>
+    <style>
+        .bg-login-left {
+            /* background-image: url('/images/.png'); */
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            height: 100%;
+            /* padding: 20px; /* 👈 thoda image andar aayega */  padding: 40px 20px 40px 20px; /* top right bottom left */
+        }
+    </style>
+</head>
 <div class="row justify-content-center">
     <div class="col-xl-10 col-lg-12 col-md-9">
         <div class="card o-hidden border-0 shadow-lg my-5">
             <div class="card-body p-0">
                 <!-- Nested Row within Card Body -->
                 <div class="row">
-                    <div class="col-lg-6 d-none d-lg-block bg-password-image"></div>
+                    <div class="col-lg-6 d-none d-lg-block p-0">
+                        <img src="/images/otp_confirmed.png" class="img-fluid h-100 w-100" style="object-fit: contain;" />
+                    </div>
                     <div class="col-lg-6">
                         <div class="p-5">
                             <div class="text-center">

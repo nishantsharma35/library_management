@@ -67,7 +67,7 @@
                                             <td>
                                                 @if (borrow.Status == "Borrowed")
                                                 {
-                                                    <form asp-action="RequestReturn" asp-controller="MyLibraryMaster" method="post">
+                                                    <form id="return" asp-action="RequestReturn" asp-controller="MyLibraryMaster" method="post">
                                                         <input type="hidden" name="borrowId" value="@borrow.BorrowId" />
                                                         <button type="submit" class="btn btn-warning">Request Return</button>
                                                     </form>
@@ -121,7 +121,41 @@
             });
         });
     </script>
-   
+   <script>
+        $('#return').on('submit', function (e) {
+            e.preventDefault();
+
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: '/MylibraryMaster/RequestReturn',   // Controller ka sahi URL
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (response) {
+                    if (response.success) {
+                        showToast(response.message, 'success');
+                        $('#return')[0].reset(); // Form reset
+                        // Optionally: Redirect to BookList after few seconds
+                        setTimeout(function () {
+                            window.location.href = '/MylibraryMaster/BorrowedBooks';
+                        }, 2000);
+                    } else {
+                        showToast(response.message, 'error');
+                        // Optional: Show detailed validation errors
+                        if (response.errors) {
+                            console.log(response.errors);
+                        }
+                    }
+                },
+                error: function () {
+                    showToast('Server error occurred!', 'error');
+                }
+            });
+        });
+
+   </script>
 }
 
 @* @model List<Borrow> *@
