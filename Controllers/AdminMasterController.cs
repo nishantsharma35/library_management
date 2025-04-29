@@ -1,4 +1,6 @@
-﻿using library_management.Models;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using library_management.Models;
+using library_management.repository.classes;
 using library_management.repository.internalinterface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -20,7 +22,8 @@ namespace library_management.Controllers
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly PermisionHelperInterface _permission;
         private readonly HttpClient _httpClient;
-        public AdminMasterController(dbConnect connect,EmailSenderInterface sender,ISidebarRepository sidebar,ILogger<AdminMasterController> logger,AdminInterface admin,libraryInterface libraryInterface,IWebHostEnvironment webHostEnvironment,PermisionHelperInterface permisionHelperInterface, IHttpClientFactory httpClientFactory) : base(sidebar)
+        private readonly IActivityRepository _activityRepository;
+        public AdminMasterController(dbConnect connect,EmailSenderInterface sender,ISidebarRepository sidebar,ILogger<AdminMasterController> logger,AdminInterface admin,libraryInterface libraryInterface,IWebHostEnvironment webHostEnvironment,PermisionHelperInterface permisionHelperInterface, IHttpClientFactory httpClientFactory,IActivityRepository activityRepository) : base(sidebar)
         {
             _connect = connect;
             _sender = sender;
@@ -30,6 +33,7 @@ namespace library_management.Controllers
             _webHostEnvironment = webHostEnvironment;
             _permission = permisionHelperInterface;
             _httpClient = httpClientFactory.CreateClient();
+            _activityRepository = activityRepository;
         }
 
         public string GetUserPermission(string action)
@@ -119,6 +123,10 @@ namespace library_management.Controllers
         [HttpPost]
         public async Task<IActionResult> AddAdmin(Library user, IFormFile LibraryFile)
         {
+            int uid = (int)HttpContext.Session.GetInt32("UserId");
+            string userName = _connect.Members.Where(x => x.Id == uid).Select(y => y.Name).FirstOrDefault();
+            string libName = _connect.Libraries.Where(x => x.AdminId == uid).Select(y => y.Libraryname).FirstOrDefault();
+
             try
             {
                 // ✅ Check if Library already exists
@@ -183,6 +191,10 @@ namespace library_management.Controllers
 
                 // ✅ Save Library Data
                 var res = await _adminInterface.AddAdmin(user);
+
+                string type = "added admin details";
+                string desc = $"Superadmin added admin details for {libName}";
+                _activityRepository.AddNewActivity(uid, type, desc);
 
                 return Ok(res);
             }
@@ -285,6 +297,10 @@ namespace library_management.Controllers
         [HttpPost]
         public async Task<IActionResult> ApproveMembership(int id)
         {
+            int userid = (int)HttpContext.Session.GetInt32("UserId");
+            string userName = _connect.Members.Where(x => x.Id == id).Select(y => y.Name).FirstOrDefault();
+            string libName = _connect.Libraries.Where(x => x.AdminId == id).Select(y => y.Libraryname).FirstOrDefault();
+
             var membership = await _connect.Memberships.FindAsync(id);
             if (membership == null)
             {
@@ -294,11 +310,19 @@ namespace library_management.Controllers
             membership.IsActive = true;
             await _connect.SaveChangesAsync();
 
+            string type = "approved member";
+            string desc = $"{userName} approved membership for {libName}";
+            _activityRepository.AddNewActivity(id, type, desc);
+
             return Json(new { success = true, message = "Membership approved successfully!" });
         }
         [HttpPost]
         public async Task<IActionResult> RejectMembership(int id)
         {
+            int userid = (int)HttpContext.Session.GetInt32("UserId");
+            string userName = _connect.Members.Where(x => x.Id == id).Select(y => y.Name).FirstOrDefault();
+            string libName = _connect.Libraries.Where(x => x.AdminId == id).Select(y => y.Libraryname).FirstOrDefault();
+
             var membership = await _connect.Memberships.FindAsync(id);
             if (membership == null)
             {
@@ -307,6 +331,10 @@ namespace library_management.Controllers
 
             membership.IsDeleted = true; // Mark as rejected
             await _connect.SaveChangesAsync();
+
+            string type = "reject member";
+            string desc = $"{userName} reject membership for {libName}";
+            _activityRepository.AddNewActivity(id, type, desc);
 
             return Json(new { success = true, message = "Membership rejected successfully!" });
         }

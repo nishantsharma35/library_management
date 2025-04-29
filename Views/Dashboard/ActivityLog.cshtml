@@ -1,0 +1,84 @@
+﻿@model List<ActivityLogViewModel>
+
+@{
+    var groupedActivities = Model
+        .GroupBy(x => x.Timestamp.Value.Date)
+        .OrderByDescending(g => g.Key);
+}
+
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>Activity Log</h4>
+                <h6>All Activities by Members</h6>
+            </div>
+        </div>
+
+        <!-- Date Range Picker -->
+        <div class="mb-4 d-flex justify-content-end">
+            <input type="text" id="dateRangePicker" class="form-control w-auto" placeholder="Select date range" readonly style="cursor: pointer; max-width: 260px;" />
+        </div>
+
+        <!-- Activity Logs -->
+        <div class="activity">
+            <div class="activity-box">
+                @foreach (var group in groupedActivities)
+                {
+                    <div class="activity-group card mb-4 p-3 bg-light" data-date="@group.Key.ToString("yyyy-MM-dd")">
+                        <h5 class="date-header mb-3 text-center"><strong>@group.Key.ToString("dd MMM yyyy")</strong></h5>
+
+                        @foreach (var activity in group)
+                        {
+                            <div class="activity-item card mb-2 p-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="activity-user">
+                                        <img alt="User Image" src="@activity.ImagePath" class="img-fluid rounded-circle" width="40" height="40">
+                                    </div>
+                                    <div class="activity-content ms-3">
+                                        <p class="activity-description m-0">
+                                            <strong>@activity.MemberName</strong>
+                                            @if (!string.IsNullOrEmpty(activity.LibraryName))
+                                            {
+                                                <span class="text-muted">(@activity.LibraryName)</span>
+                                            }
+                                            <br />
+                                            @activity.Description
+                                        </p>
+                                        <span class="text-muted" style="font-size: 0.85rem;">@activity.Timestamp?.ToString("hh:mm tt")</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const picker = new Litepicker({
+                element: document.getElementById('dateRangePicker'),
+                singleMode: false,
+                format: 'YYYY-MM-DD',
+                setup: (picker) => {
+                    picker.on('selected', (startDate, endDate) => {
+                        const start = new Date(startDate.format('YYYY-MM-DD'));
+                        const end = new Date(endDate.format('YYYY-MM-DD'));
+
+                        document.querySelectorAll('.activity-group').forEach(group => {
+                            const groupDate = new Date(group.getAttribute('data-date'));
+                            group.style.display = (groupDate >= start && groupDate <= end) ? '' : 'none';
+                        });
+                    });
+                }
+            });
+        });
+    </script>
+}

@@ -13,12 +13,13 @@ namespace library_management.Controllers
     {
         private readonly dbConnect _context;
         private readonly ReportsInterface _reportService;
-        //private readonly 
+        private readonly IActivityRepository _activityRepository;
 
-        public ReportsMasterController(dbConnect context,ReportsInterface reportsInterface ,ISidebarRepository sidebar) : base(sidebar)
+        public ReportsMasterController(dbConnect context,ReportsInterface reportsInterface ,ISidebarRepository sidebar, IActivityRepository activityRepository) : base(sidebar)
         {
             _context = context;
             _reportService = reportsInterface;
+            _activityRepository = activityRepository;
         }
 
         [HttpGet]
@@ -65,7 +66,9 @@ namespace library_management.Controllers
             var reportData =  _reportService. GetSuperAdminReport("library1", "book1", null, null, null, null);
             var fineBreakdowns = reportData.MemberFineBreakdowns; // ✅ Ab error nahi aayega
 
-
+            int id = (int)HttpContext.Session.GetInt32("UserId");
+            string userName = _context.Members.Where(x => x.Id == id).Select(y => y.Name).FirstOrDefault();
+            string libName = _context.Libraries.Where(x => x.AdminId == id).Select(y => y.Libraryname).FirstOrDefault();
 
             using (var workbook = new XLWorkbook())
             {
@@ -101,6 +104,11 @@ namespace library_management.Controllers
                 {
                     workbook.SaveAs(stream);
                     var content = stream.ToArray();
+
+                    string type = "superadmin exported file";
+                    string desc = $"{userName} exported the data file";
+                    _activityRepository.AddNewActivity(id, type, desc);
+
                     return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "SuperAdminReports.xlsx");
                 }
             }
@@ -111,8 +119,13 @@ namespace library_management.Controllers
 
         public IActionResult ExportLibraryAdminReport()
         {
+
+            int id = (int)HttpContext.Session.GetInt32("UserId");
+            string userName = _context.Members.Where(x => x.Id == id).Select(y => y.Name).FirstOrDefault();
+            string libName = _context.Libraries.Where(x => x.AdminId == id).Select(y => y.Libraryname).FirstOrDefault();
+
             // ✅ Library Admin ke liye sirf uski library ka data fetch karna hai
-           int libraryId = (int)HttpContext.Session.GetInt32("LibraryId");
+            int libraryId = (int)HttpContext.Session.GetInt32("LibraryId");
             var reportData = _reportService.GetLibraryAdminReport(libraryId);
             if (reportData == null || !reportData.BorrowedBooksReport.Any())
             {
@@ -151,6 +164,11 @@ namespace library_management.Controllers
                 {
                     workbook.SaveAs(stream);
                     var content = stream.ToArray();
+
+                    string type = "admin exported file";
+                    string desc = $"{userName} exported the data file library {libName}";
+                    _activityRepository.AddNewActivity(id, type, desc);
+
                     return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "LibraryAdminReports.xlsx");
                 }
             }
@@ -158,6 +176,11 @@ namespace library_management.Controllers
         [HttpGet]
         public IActionResult ExportMemberReport()
         {
+
+            int id = (int)HttpContext.Session.GetInt32("UserId");
+            string userName = _context.Members.Where(x => x.Id == id).Select(y => y.Name).FirstOrDefault();
+            string libName = _context.Libraries.Where(x => x.AdminId == id).Select(y => y.Libraryname).FirstOrDefault();
+
             var memberId = HttpContext.Session.GetInt32("MemberId");
             if (memberId == null) return Unauthorized();
 
@@ -222,6 +245,13 @@ namespace library_management.Controllers
                 {
                     workbook.SaveAs(stream);
                     var content = stream.ToArray();
+
+                    string type = "member exported file";
+                    string desc = $"{userName} exported the data file";
+                    _activityRepository.AddNewActivity(id, type, desc);
+
+
+
                     return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Member_Report.xlsx");
                 }
             }

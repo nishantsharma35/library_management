@@ -1,22 +1,14 @@
 ﻿ @model library_management.Models.Member
 <link href="~/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
 <link href="~/assets/css/sb-admin-2.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <head>
     <style>
         label.error {
             color: red !important;
         }
     </style>
-    <style>
-        .bg-login-left {
-            /* background-image: url('/images/.png'); */
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            height: 100%;
-            /* padding: 20px; /* 👈 thoda image andar aayega */  padding: 40px 20px 40px 20px; /* top right bottom left */
-        }
-    </style>
+    
 </head>
 <div class="row justify-content-center">
     <div class="col-xl-10 col-lg-12 col-md-9">
@@ -24,9 +16,16 @@
             <div class="card-body p-0">
                 <!-- Nested Row within Card Body -->
                 <div class="row">
-                    <div class="col-lg-6 d-none d-lg-block p-0">
-                        <img src="/images/otp_confirmed.png" class="img-fluid h-100 w-100" style="object-fit: contain;" />
+                    <div class="col-lg-6 d-none d-lg-flex align-items-center justify-content-center p-4 bg-light">
+                        <div class="w-100 text-center">
+                            <img src="/images/otp_confirmed.png"
+                                 class="rounded-circle img-fluid shadow"
+                                 style="width: 300px; height: 300px; object-position: 80% center;" />
+                        </div>
                     </div>
+
+
+
                     <div class="col-lg-6">
                         <div class="p-5">
                             <div class="text-center">
@@ -112,6 +111,7 @@
              });
     </script>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script src="~/assets/vendor/jquery/jquery.min.js"></script>
     <script src="~/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>

@@ -228,13 +228,15 @@
                 contentType: false,
                 data: formdata,
                 success: function (result) {
-                    alert(result.message);
+                    showToast(result.message,"Success");
                     if (result.success) {
-                        window.location.href = '/library/Otpcheck';
+                        setTimeout(function () {
+                            window.location.href = '/library/Otpcheck';
+                        }, 2000);
                     }
                 },
                 error: function () {
-                    alert('an occured while registering the user');
+                    showToast('an occured while registering the user');
                 }
             });
         }

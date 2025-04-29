@@ -11,6 +11,8 @@ using System.IO.Compression;
 using OfficeOpenXml;
 using ClosedXML.Excel;
 using System.Diagnostics;
+using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace library_management.Controllers
 {
@@ -19,11 +21,15 @@ namespace library_management.Controllers
         private readonly dbConnect _context;
         private readonly BookServiceInterface _bookServiceInterface;
         private readonly PermisionHelperInterface _permission;
-        public BookMasterController(dbConnect connect, BookServiceInterface bookServiceInterface, ISidebarRepository sidebar, PermisionHelperInterface permission) : base(sidebar)
+        private readonly IActivityRepository _activityRepository;
+        private readonly libraryInterface _libraryInterface;
+        public BookMasterController(dbConnect connect, BookServiceInterface bookServiceInterface, ISidebarRepository sidebar, PermisionHelperInterface permission, IActivityRepository activityRepository,libraryInterface libraryInterface) : base(sidebar)
         {
             _context = connect;
             _bookServiceInterface = bookServiceInterface;
             _permission = permission;
+            _activityRepository = activityRepository;
+            _libraryInterface = libraryInterface;
         }
         public string GetUserPermission(string action)
         {
@@ -158,6 +164,8 @@ namespace library_management.Controllers
         [HttpPost]
         public async Task<IActionResult> AddBook(Book book, int stock)
         {
+            int id = (int)HttpContext.Session.GetInt32("UserId");
+            string userName = _context.Members.Where(x => x.Id == id).Select(y => y.Name).FirstOrDefault();
             int libraryId = _bookServiceInterface.GetLoggedInLibrarianLibraryId(); //  Service Se Call
             if (ModelState.IsValid)
             {
@@ -169,6 +177,9 @@ namespace library_management.Controllers
 
                 if (success)
                 {
+                    string type = "added book";
+                    string desc = $"{userName} added new book in his library";
+                    _activityRepository.AddNewActivity(id,type, desc);
                     return Json(new { success = true, message = message });
                 }
 
@@ -185,6 +196,8 @@ namespace library_management.Controllers
             ViewBag.Genres = _context.Genres.Any() ? _context.Genres.ToList() : new List<Genre>();
             ViewBag.LibraryId = libraryId; // Error aaye to LibraryId retain ho
             return View(book);
+
+
         }
 
 
@@ -230,6 +243,8 @@ namespace library_management.Controllers
         //[ValidateAntiForgeryToken] // Protect against CSRF attacks
         public IActionResult DeleteUser(int id)
         {
+            int userid = (int)HttpContext.Session.GetInt32("UserId");
+            string userName = _context.Members.Where(x => x.Id == id).Select(y => y.Name).FirstOrDefault();
             if (id == 0)
             {
                 return Json(new { success = false, message = "Invalid user id." });
@@ -245,6 +260,10 @@ namespace library_management.Controllers
 
                 _context.Books.Remove(book);
                 _context.SaveChanges();
+
+                string type = "added book";
+                string desc = $"{userName} added new book in his library";
+                _activityRepository.AddNewActivity(id, type, desc);
 
                 return Json(new { success = true, message = "user deleted successfully." });
             }
@@ -273,6 +292,8 @@ namespace library_management.Controllers
 
         public IActionResult DownloadSampleFile()
         {
+            int id = (int)HttpContext.Session.GetInt32("UserId");
+            string userName = _context.Members.Where(x => x.Id == id).Select(y => y.Name).FirstOrDefault();
             // Create a new workbook & sheet
             var workbook = new XLWorkbook();
             var sheet = workbook.Worksheets.Add("Sample");
@@ -317,7 +338,9 @@ namespace library_management.Controllers
                 workbook.SaveAs(stream);
                 fileBytes = stream.ToArray();
             }
-
+            string type = "added book";
+            string desc = $"{userName} added new book in his library";
+            _activityRepository.AddNewActivity(id, type, desc);
             return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "SampleFile.xlsx");
 
         }
@@ -327,6 +350,10 @@ namespace library_management.Controllers
         [HttpPost]
         public async Task<IActionResult> UploadSampleFile(IFormFile excelFile, IFormFile imageZip)
         {
+
+            int id = (int)HttpContext.Session.GetInt32("UserId");
+            string userName = _context.Members.Where(x => x.Id == id).Select(y => y.Name).FirstOrDefault();
+
             var allowedExtensions = new HashSet<string> { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
             var stream = new MemoryStream();
 
@@ -539,7 +566,9 @@ namespace library_management.Controllers
 
                 // Convert to Base64 to store temporarily
                 string fileBase64 = Convert.ToBase64String(fileBytes);
-
+                string type = "added book";
+                string desc = $"{userName} added new book in his library";
+                _activityRepository.AddNewActivity(id, type, desc);
                 return Json(new
                 {
                     success = true,

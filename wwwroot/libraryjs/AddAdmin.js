@@ -151,9 +151,11 @@
                     contentType: false,
                     data: formData,
                     success: function (result) {
-                        alert(result.message);
+                        showToast(response.message, 'success');
                         if (result.success) {
-                            window.location.href = '/AdminMaster/AdminList';
+                            setTimeout(function () {
+                                window.location.href = '/AdminMaster/AdminList';
+                            }, 2000);
                         }
                     },
                     complete: function () {
@@ -162,7 +164,7 @@
                         btnLoader.addClass("d-none");
                     },
                     error: function () {
-                        alert('An error occurred while registering the user.');
+                        showToast('An error occurred while registering the user.');
                     }
                 });
             }, 2000);

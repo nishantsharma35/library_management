@@ -14,7 +14,7 @@ public partial class dbConnect : DbContext
         : base(options)
     {
     }
-
+    public virtual DbSet<TblActivityLog> TblActivitylogs { get; set; }
     public virtual DbSet<Book> Books { get; set; }
 
     public virtual DbSet<Borrow> Borrows { get; set; }
@@ -45,6 +45,24 @@ public partial class dbConnect : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<TblActivityLog>(entity =>
+        {
+            entity.HasKey(e => e.LogId).HasName("PK__tblActiv__5E5499A8AB2A0263");
+
+            entity.ToTable("tblActivityLogs");
+
+            entity.Property(e => e.LogId).HasColumnName("LogID");
+            entity.Property(e => e.ActivityType)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.Description).IsUnicode(false);
+            entity.Property(e => e.Timestamp)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.UserId).HasColumnName("UserID");
+        });
+
+
         modelBuilder.Entity<Book>(entity =>
         {
             entity.HasKey(e => e.BookId).HasName("PK__Books__3DE0C227A9C2D6D7");

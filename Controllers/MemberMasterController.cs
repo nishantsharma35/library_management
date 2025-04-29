@@ -16,7 +16,9 @@ namespace library_management.Controllers
         private readonly libraryInterface _libraryInterface;
         private readonly PermisionHelperInterface _permission;
         private readonly HttpClient _httpClient;
-        public MemberMasterController(dbConnect context, EmailSenderInterface emailSender, ILogger<MemberMasterController> logger, ISidebarRepository sidebar, MemberMasterInterface memberMasterInterface , libraryInterface libraryInterface,PermisionHelperInterface permision, IHttpClientFactory httpClientFactory) : base(sidebar) 
+        private readonly IActivityRepository _activityRepository;
+
+        public MemberMasterController(dbConnect context, EmailSenderInterface emailSender, ILogger<MemberMasterController> logger, ISidebarRepository sidebar, MemberMasterInterface memberMasterInterface , libraryInterface libraryInterface,PermisionHelperInterface permision, IHttpClientFactory httpClientFactory,IActivityRepository activityRepository) : base(sidebar) 
         {
             _context = context;
             _emailSender = emailSender;
@@ -25,6 +27,7 @@ namespace library_management.Controllers
             _libraryInterface = libraryInterface;
             _permission = permision;
             _httpClient = httpClientFactory.CreateClient();
+            _activityRepository = activityRepository;
         }
 
         public string GetUserPermission(string action)
@@ -110,8 +113,13 @@ namespace library_management.Controllers
         [HttpPost]
         public async Task<IActionResult> ApproveOrRejectUser(int userId, bool approve)
         {
+            int id = (int)HttpContext.Session.GetInt32("UserId");
+            string userName = _context.Members.Where(x => x.Id == id).Select(y => y.Name).FirstOrDefault();
+            string libName = _context.Libraries.Where(x => x.AdminId == id).Select(y => y.Libraryname).FirstOrDefault();
+
             try
             {
+
                 var user = await _context.Members.FirstOrDefaultAsync(u => u.Id == userId);
                 if (user == null) return Json(new { success = false, message = "User not found." });
 
@@ -124,6 +132,11 @@ namespace library_management.Controllers
                     ? $"Hi {user.Name},<br>Your account is approved. Log in to start."
                     : $"Hi {user.Name},<br>Your account is rejected. Please contact support.";
                 await _emailSender.SendEmailAsync(user.Email, subject, body);
+
+                string type = "approved reject member";
+                string desc = $"{userName} approved {user.Name} for {libName}";
+                _activityRepository.AddNewActivity(id, type, desc);
+
 
                 return Json(new { success = true, message = approve ? "User approved." : "User rejected." });
             }
@@ -180,6 +193,9 @@ namespace library_management.Controllers
         [HttpPost]
         public async Task<IActionResult> AddMember(Member user)
         {
+            int uid = (int)HttpContext.Session.GetInt32("UserId");
+            string userName = _context.Members.Where(x => x.Id == uid).Select(y => y.Name).FirstOrDefault();
+            string libName = _context.Libraries.Where(x => x.AdminId == uid).Select(y => y.Libraryname).FirstOrDefault();
             try
             {
                 //if (user.Id > 0)
@@ -242,6 +258,11 @@ namespace library_management.Controllers
                         string subject = "Member account has been updated by the Admin";
                         string body = $"Hello there {user.Name}, your account has been successfully update by the Admin and you can access your account now, some information has been update and your username and email has been mailed regardless of any changes, you can now login under the given credentials. UserName : {user.Name}, Email : {user.Email}, Password : you old same pass. But keep in mind, this is a sensitive information, so plz don't share it with anyone else. Thank you";
                         _emailSender.SendEmailAsync(user.Email, subject, body);
+
+
+                        string type = "admin update member profile";
+                        string desc = $"admin update member profile for {libName}";
+                        _activityRepository.AddNewActivity(uid, type, desc);
                     }
                 }
                 else
@@ -251,8 +272,15 @@ namespace library_management.Controllers
                         string subject = "Member account has been created by the Admin";
                         string body = $"Hello there {username}, welcome to our LMS Application, you account has been successfully created and you can access your account under the given credentials. UserName : {username}, Email : {email}, Password : {password}, Phone : {phone}, Joining Date : {join} and after login, you can fill out your extra informations. But keep in mind, this is a sensitive information, so plz don't share it with anyone else. Thank you";
                         _emailSender.SendEmailAsync(user.Email, subject, body);
+
+                        string type = "admin added member details";
+                        string desc = $"admin {userName} added member details for {libName}";
+                        _activityRepository.AddNewActivity(uid, type, desc);
+
                     }
                 }
+
+               
                 return Ok(res);
             }
             catch (Exception e)
@@ -266,6 +294,10 @@ namespace library_management.Controllers
         [HttpPost]
         public IActionResult DeleteUser(int id)
         {
+            int uid = (int)HttpContext.Session.GetInt32("UserId");
+            string userName = _context.Members.Where(x => x.Id == uid).Select(y => y.Name).FirstOrDefault();
+            string libName = _context.Libraries.Where(x => x.AdminId == uid).Select(y => y.Libraryname).FirstOrDefault();
+
             if (id == 0)
             {
                 return Json(new { success = false, message = "Invalid user id." });
@@ -295,6 +327,9 @@ namespace library_management.Controllers
                     membership.IsDeleted = true;
                     _context.SaveChanges();
                 }
+                string type = "admin deactivate member profile";
+                string desc = $"admin deactivate member profile for {libName}";
+                _activityRepository.AddNewActivity(uid, type, desc);
 
                 return Json(new { success = true, message = "User membership deactivated successfully." });
             }

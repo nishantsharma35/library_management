@@ -29,6 +29,7 @@ builder.Services.AddScoped<FineInterface, FineClass>();
 builder.Services.AddScoped<ReportsInterface, ReportsClasses>();
 builder.Services.AddScoped<PermisionHelperInterface, PermisionHelperClass>();
 builder.Services.AddScoped<PaymentInterface, PaymentClass>();
+builder.Services.AddScoped<IActivityRepository, ActivityRepository>();
 
 builder.Services.AddSession(options =>
 {

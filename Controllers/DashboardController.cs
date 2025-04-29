@@ -368,8 +368,41 @@ namespace library_management.Controllers
             return Content(response, "application/json");
         }
 
+        [Route("ActivityLog")]
+        public IActionResult ActivityLog()
+        {
+            int roleId = (int)HttpContext.Session.GetInt32("UserRoleId");
+            if (roleId != 1) // Only SuperAdmin
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
+
+            var activityLogs = (from log in _context.TblActivitylogs
+                                join member in _context.Members on log.UserId equals member.Id
+                                join membership in _context.Memberships on member.Id equals membership.MemberId into memGroup
+                                from mem in memGroup.DefaultIfEmpty()
+                                join library in _context.Libraries on mem.LibraryId equals library.LibraryId into libGroup
+                                from lib in libGroup.DefaultIfEmpty()
+                                orderby log.Timestamp descending
+                                select new ActivityLogViewModel
+                                {
+                                    LogId = log.LogId,
+                                    UserId = log.UserId,
+                                    ActivityType = log.ActivityType,
+                                    Description = log.Description,
+                                    Timestamp = log.Timestamp,
+                                    ImagePath = member.Picture, // Assuming ImagePath in TblMembers
+                                    MemberName = member.Name,  // Assuming FullName exists
+                                    LibraryName = lib != null ? lib.Libraryname : null
+                                }).ToList();
+
+            return View(activityLogs);
+        }
 
     }
+
+
 }
+
 
 

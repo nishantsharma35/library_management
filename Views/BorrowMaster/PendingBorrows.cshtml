@@ -47,6 +47,7 @@
                                                 <td>@borrow.Member.Name</td>
                                                 <td>@borrow.Book.Title</td>
                                                 <td>@borrow.IssueDate.ToShortDateString()</td>
+                                                @if (ViewBag.PermissionType != "canView"){
                                                 <td>
                                                     <button class="btn btn-success approve-btn" data-id="@borrow.BorrowId">
                                                         <i class="fas fa-check"></i> Approve
@@ -56,6 +57,7 @@
                                                         <i class="fas fa-times"></i> Reject
                                                     </button>
                                                 </td>
+                                                }
                                             </tr>
                                         }
                                     </tbody>

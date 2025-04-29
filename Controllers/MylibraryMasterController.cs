@@ -1,4 +1,5 @@
 ﻿using library_management.Models;
+using library_management.repository.classes;
 using library_management.repository.internalinterface;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -14,13 +15,24 @@ namespace library_management.Controllers
         private readonly FineInterface _fineInterface;
         private readonly EmailSenderInterface _emailService;
         private readonly PermisionHelperInterface _permission;
-        public MylibraryMasterController(ISidebarRepository sidebar, BorrowInterface borrowInterface, dbConnect context, FineInterface fineInterface, EmailSenderInterface emailService, PermisionHelperInterface permission) : base(sidebar)
+        private readonly IActivityRepository _activityRepository;
+
+        public MylibraryMasterController(
+            ISidebarRepository sidebar,
+            BorrowInterface borrowInterface,
+            dbConnect context,
+            FineInterface fineInterface,
+            EmailSenderInterface emailService,
+            PermisionHelperInterface permission,
+            IActivityRepository activityRepository
+        ) : base(sidebar)
         {
             _borrowInterface = borrowInterface;
             _context = context;
             _fineInterface = fineInterface;
             _emailService = emailService;
             _permission = permission;
+            _activityRepository = activityRepository;
         }
 
         public string GetUserPermission(string action)
@@ -40,7 +52,7 @@ namespace library_management.Controllers
         public IActionResult AvailableBooks()
         {
             string permissionType = GetUserPermission("AvailableBook");
-            if (permissionType == "CanView" || permissionType == "FullAccess")
+            if (permissionType == "CanView"||permissionType == "CanEdit" ||permissionType == "FullAccess")
             {
                 int memberId = HttpContext.Session.GetInt32("MemberId") ?? 0;
 
@@ -93,7 +105,7 @@ namespace library_management.Controllers
         public IActionResult BorrowedBooks()
         {
             string permissionType = GetUserPermission("Borrowed books");
-            if (permissionType == "CanView" || permissionType == "FullAccess")
+            if (permissionType == "CanView" || permissionType == "CanEdit" || permissionType == "FullAccess")
             {
                 int memberId = HttpContext.Session.GetInt32("MemberId") ?? 0;
 
@@ -123,6 +135,11 @@ namespace library_management.Controllers
         [HttpPost]
         public IActionResult BorrowBook(int bookId)
         {
+            int id = (int)HttpContext.Session.GetInt32("UserId");
+            string userName = _context.Members.Where(x => x.Id == id).Select(y => y.Name).FirstOrDefault();
+            string libName = _context.Libraries.Where(x => x.AdminId == id).Select(y => y.Libraryname).FirstOrDefault();
+
+
             int memberId = HttpContext.Session.GetInt32("MemberId") ?? 0;
             int libraryId = GetLoggedInLibraryId();
 
@@ -154,6 +171,11 @@ namespace library_management.Controllers
             _context.SaveChanges();
 
             Console.WriteLine($"✅ Borrow Request Inserted: Member {memberId} | Library {libraryId} | Book {bookId}");
+
+            string type = $"borrowed book by member";
+            string desc = $"{userName} requested book from {libName}";
+            _activityRepository.AddNewActivity(id, type, desc);
+
             return Json(new { success = true, message = "Borrow request sent successfully! Waiting for admin approval." });
 
             //TempData["Success"] = "Borrow request sent successfully! Waiting for admin approval.";
@@ -225,6 +247,10 @@ namespace library_management.Controllers
         [HttpPost]
         public IActionResult RequestReturn(int borrowId)
         {
+            int id = (int)HttpContext.Session.GetInt32("UserId");
+            string userName = _context.Members.Where(x => x.Id == id).Select(y => y.Name).FirstOrDefault();
+            string libName = _context.Libraries.Where(x => x.AdminId == id).Select(y => y.Libraryname).FirstOrDefault();
+
             int memberId = HttpContext.Session.GetInt32("MemberId") ?? 0;
             int libraryId = GetLoggedInLibraryId();
 
@@ -246,6 +272,10 @@ namespace library_management.Controllers
             borrowRecord.Status = "Pending Return";
             _context.SaveChanges();
 
+            string type = $"return book by member";
+            string desc = $"{userName} requested book return from {libName}";
+            _activityRepository.AddNewActivity(id, type, desc);
+
             return Json(new { success = true, message = "Return request sent to Admin." });
         }
 
@@ -253,6 +283,11 @@ namespace library_management.Controllers
         [HttpPost]
         public async Task<IActionResult> PayFine([FromBody] FinePaymentRequest payModel)
         {
+            int id = (int)HttpContext.Session.GetInt32("UserId");
+            string userName = _context.Members.Where(x => x.Id == id).Select(y => y.Name).FirstOrDefault();
+            string libName = _context.Libraries.Where(x => x.AdminId == id).Select(y => y.Libraryname).FirstOrDefault();
+
+
             int memberId = HttpContext.Session.GetInt32("MemberId") ?? 0; // Get logged-in member ID
 
             if (memberId == 0)
@@ -340,6 +375,9 @@ namespace library_management.Controllers
                 $"Fine_Receipt_{fine.FineId}.pdf"
             );
 
+            string type = $"fine pay by member";
+            string desc = $"{userName} payed fine due to late return of the book";
+            _activityRepository.AddNewActivity(id, type, desc);
 
             TempData["Success"] = "Fine payment and transaction recorded successfully!";
             return Ok(new { success = true });

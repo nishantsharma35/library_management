@@ -6,6 +6,7 @@ using iTextSharp.text;
 using iTextSharp.text.pdf;
 using System.IO;
 using System.Diagnostics;
+using library_management.repository.classes;
 
 namespace library_management.Controllers
 {
@@ -15,13 +16,33 @@ namespace library_management.Controllers
         private readonly FineInterface _fineInterface;
         private readonly BorrowInterface _borrowInterface;
         private readonly EmailSenderInterface _emailService;
+        private readonly IActivityRepository _activityRepository;
+        private readonly PermisionHelperInterface _permission;
 
-        public FineController(dbConnect connect, FineInterface fineInterface, BorrowInterface borrowInterface, ISidebarRepository sidebar, EmailSenderInterface emailSender) : base(sidebar)
+        public FineController(
+    dbConnect connect,
+    FineInterface fineInterface,
+    BorrowInterface borrowInterface,
+    ISidebarRepository sidebar,
+    EmailSenderInterface emailSender,
+    IActivityRepository activityRepository,
+    PermisionHelperInterface permission) : base(sidebar)
         {
             _borrowInterface = borrowInterface;
             _context = connect;
             _fineInterface = fineInterface;
             _emailService = emailSender;
+            _activityRepository = activityRepository;
+            _permission = permission;
+        }
+
+
+        public string GetUserPermission(string action)
+        {
+            int roleId = HttpContext.Session.GetInt32("UserRoleId").Value;
+            string permissionType = _permission.HasAccess(action, roleId);
+            ViewBag.PermissionType = permissionType;
+            return permissionType;
         }
         public IActionResult Index()
         {
@@ -52,6 +73,10 @@ namespace library_management.Controllers
 
         private IActionResult GenerateFineReceipt(Fine fine)
         {
+            int id = (int)HttpContext.Session.GetInt32("UserId");
+            string userName = _context.Members.Where(x => x.Id == id).Select(y => y.Name).FirstOrDefault();
+            string libName = _context.Libraries.Where(x => x.AdminId == id).Select(y => y.Libraryname).FirstOrDefault();
+
             using (MemoryStream stream = new MemoryStream())
             {
                 Document document = new Document(PageSize.A4, 50, 50, 25, 25);
@@ -139,6 +164,13 @@ namespace library_management.Controllers
                 writer.Close();
 
                 byte[] fileBytes = stream.ToArray();
+                if(fileBytes != null)
+                {
+                    string type = "download fine receipt";
+                    string desc = $"{userName} downloaded fine receipt from {libName}";
+                    _activityRepository.AddNewActivity(id, type, desc);
+                }
+
                 return File(fileBytes, "application/pdf", $"Fine_Receipt_{memberName.Replace(" ", "_")}_{fine.FineId}.pdf");
             }
         }
@@ -343,6 +375,10 @@ namespace library_management.Controllers
         [HttpPost]
         public async Task<IActionResult> PayFine(int fineId, decimal payAmount)
         {
+           int id = (int)HttpContext.Session.GetInt32("UserId");
+            string userName = _context.Members.Where(x => x.Id == id).Select(y => y.Name).FirstOrDefault();
+            string libName = _context.Libraries.Where(x => x.AdminId == id).Select(y => y.Libraryname).FirstOrDefault();
+
             var fine = await _fineInterface.GetFineByIdAsync(fineId);
             var borrow = await _borrowInterface.GetBorrowRecordByIdAsync(fine.BorrowId); // Ensure Borrow and Member are loaded
             var member = borrow?.Member; // Ensure Member is not null
@@ -411,6 +447,9 @@ namespace library_management.Controllers
             // ✅ Send Email with PDF Attachment
             await _emailService.SendEmailWithAttachment(recipientEmail, subject, body, pdfBytes, $"Fine_Receipt_{fine.FineId}.pdf");
 
+            string type = "Pay Fine";
+            string desc = $"{userName} manually Pay fine in cash to his{libName}";
+            _activityRepository.AddNewActivity(id, type, desc);
 
             return Json(new { success = true, message = "Fine payment and transaction recorded successfully!" });
         }
@@ -430,28 +469,49 @@ namespace library_management.Controllers
         [HttpGet]
         public async Task<IActionResult> UpdateFine()
         {
-            var libraries = await _context.Libraries.ToListAsync();
+            string permissionType = GetUserPermission("Admin Management");
+            if (permissionType == "CanEdit" || permissionType == "FullAccess")
+            {
+                var libraries = await _context.Libraries.ToListAsync();
             return View(libraries);
+            }
+            else
+            {
+                return RedirectToAction("UnauthorisedAccess", "Error");
+            }
         }
 
 
         [HttpPost]
         public async Task<IActionResult> UpdateFine(int libraryId, decimal fineAmount)
         {
+            int id = (int)HttpContext.Session.GetInt32("UserId");
+            string userName = _context.Members.Where(x => x.Id == id).Select(y => y.Name).FirstOrDefault();
+            string libName = _context.Libraries.Where(x => x.AdminId == id).Select(y => y.Libraryname).FirstOrDefault();
+
             var library = await _context.Libraries.FindAsync(libraryId);
             if (library == null) return NotFound();
 
             library.LibraryFineAmount = fineAmount;
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = "Fine updated successfully!";
-            return RedirectToAction("UpdateFine");
+            string type = "updated Fine";
+            string desc = $"{userName}updated {libName} library fine";
+            _activityRepository.AddNewActivity(id, type, desc);
+
+            return Json(new { success = true, message = "Fine updated successfully!" });
+            //TempData["Success"] = "Fine updated successfully!";
+            //return RedirectToAction("UpdateFine");
         }
 
 
         [HttpGet]
         public async Task<IActionResult> DownloadFineReceipt(int borrowId)
         {
+            int id = (int)HttpContext.Session.GetInt32("UserId");
+            string userName = _context.Members.Where(x => x.Id == id).Select(y => y.Name).FirstOrDefault();
+            string libName = _context.Libraries.Where(x => x.AdminId == id).Select(y => y.Libraryname).FirstOrDefault();
+
             var fine = await _fineInterface.GetFineByBorrowIdAsync(borrowId);
 
             if (fine == null || fine.PaymentStatus != "Paid")
@@ -492,6 +552,10 @@ namespace library_management.Controllers
 
                 document.Close();
                 writer.Close();
+
+                string type = "download Fine receipt";
+                string desc = $"{userName}downloaded {libName} library fine receipt";
+                _activityRepository.AddNewActivity(id, type, desc);
 
                 return File(ms.ToArray(), "application/pdf", $"Fine_Receipt_{fine.BorrowId}.pdf");
             }

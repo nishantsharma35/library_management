@@ -36,11 +36,13 @@
                     contentType: false,
                     data: formData,
                     success: function (result) {
+                        setTimeout(() => {
                         if (result.success) {
                             window.location.href = '/library/libraryRegistration'
                         } else {
-                            alert(result.message)
+                            showToast(result.message,"success")
                         }
+                    }, 2000);
                     },
                     complete: function () {
                         // Re-enable button and hide loader
@@ -48,7 +50,7 @@
                         btnLoader.addClass("d-none");
                     },
                     error: function () {
-                        alert("Unknown error occurred")
+                        showToast("Unknown error occurred")
                     }
                 });
             }, 2000);

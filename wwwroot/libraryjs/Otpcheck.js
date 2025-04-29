@@ -38,18 +38,18 @@
             method: "GET",
             success: function (data) {
                 if (data.success) {
-                    alert("OTP has been resent to your email.");
+                    showToast("OTP has been resent to your email.");
                     timeRemaining = duration; // Reset the timer
                     resendSection.hide(); // Hide the resend button
                     timerElement.text("Time remaining: 02:00"); // Reset the timer text
                     setInterval(interval); // Restart the interval
                 } else {
-                    alert("Failed to resend OTP. Please try again.");
+                    showToast("Failed to resend OTP. Please try again.");
                 }
             },
             error: function (xhr, status, error) {
                 console.error("Error resending OTP:", error);
-                alert("An error occurred. Please try again.");
+                showToast("An error occurred. Please try again.");
             }
         });
     });
@@ -109,18 +109,20 @@
             data: formData,
             success: function (result) {
                 console.log(result);
-                alert(result.message);
+                showToast(result.message);
 
                 if (result.success) {
+                    setTimeout(function () {
                     if (result.id == 2) {
                         window.location.href = '/library/libraryRegistration';
                     } else {
                         window.location.href = '/Dashboard';
-                    }
+                        }
+                    }, 2000);
                 }
             },
             error: function () {
-                alert('An error occurred while registering the user.');
+                showToast('An error occurred while registering the user.');
             },
             complete: function () {
                 $("#submit-btn").prop("disabled", false); // enable again
