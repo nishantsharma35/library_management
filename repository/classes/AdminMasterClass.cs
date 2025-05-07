@@ -1,4 +1,5 @@
-﻿using library_management.Models;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using library_management.Models;
 using library_management.repository.internalinterface;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
@@ -18,7 +19,8 @@ namespace library_management.repository.classes
 
         public Library checkExistence(string name, int UserId)
         {
-            throw new NotImplementedException();
+            return _connect.Libraries
+                   .FirstOrDefault(l => l.Libraryname == name && l.AdminId != UserId);
         }
 
         public async Task<List<Library>> GetAllAdminsData()

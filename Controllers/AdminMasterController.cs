@@ -120,6 +120,7 @@ namespace library_management.Controllers
             
         }
 
+
         [HttpPost]
         public async Task<IActionResult> AddAdmin(Library user, IFormFile LibraryFile)
         {
@@ -129,38 +130,31 @@ namespace library_management.Controllers
 
             try
             {
-                // ✅ Check if Library already exists
-                if (user.AdminId > 0)
+                bool isUpdate = user.AdminId > 0;
+
+                // 🧠 1. Validation Check
+                if (isUpdate)
                 {
-                    Library resData = _adminInterface.checkExistence(user.Libraryname, user.LibraryId);
-                    if (resData != null && resData.Libraryname == user.Libraryname)
+                    // Update Mode: Check for duplicate name with different ID
+                    Library existingLibrary = _adminInterface.checkExistence(user.Libraryname, user.LibraryId);
+                    //if (existingLibrary != null && existingLibrary.Libraryname == user.Libraryname)
+                    //{
+                    //    return Json(new { success = false, message = "Library name already exists" });
+                    //}
+                }
+                else
+                {
+                    // Add Mode: Ensure new library name is unique
+                    if (await _libraryInterface.ismembernameexitsAsync(user.Libraryname))
                     {
                         return Json(new { success = false, message = "Library name already exists" });
                     }
                 }
-                else
-                {
-                    if (await _libraryInterface.ismembernameexitsAsync(user.Libraryname))
-                    {
-                        return Json(new { success = false, message = "Username already exists - edit" });
-                    }
-                }
 
-                // ✅ Fetching values
-                string username = user.Libraryname;
-                string address = user.Address;
-                int AdminId = Convert.ToInt32(user.AdminId);
-                string startTime = user.StartTime?.ToString() ?? "";
-                string closingTime = user.ClosingTime?.ToString() ?? "";
-                int Pincode = Convert.ToInt32(user.Pincode);
-                string state = user.State;
-                string city = user.City;
-                int id = user.LibraryId;
-
-                // ✅ Image Upload Handling
+                // 🖼️ 2. Handle Image Upload
                 if (LibraryFile != null && LibraryFile.Length > 0)
                 {
-                    // Agar purani image hai to delete karo
+                    // Delete old image (if updating)
                     if (!string.IsNullOrEmpty(user.LibraryImagePath))
                     {
                         string oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", user.LibraryImagePath);
@@ -170,7 +164,7 @@ namespace library_management.Controllers
                         }
                     }
 
-                    // Naya image save karo
+                    // Save new image
                     string fileName = Guid.NewGuid().ToString() + Path.GetExtension(LibraryFile.FileName);
                     string uploadPath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads");
 
@@ -185,25 +179,114 @@ namespace library_management.Controllers
                         await LibraryFile.CopyToAsync(stream);
                     }
 
-                    // Database me image ka naam save karo
                     user.LibraryImagePath = fileName;
                 }
 
-                // ✅ Save Library Data
-                var res = await _adminInterface.AddAdmin(user);
+                // 💾 3. Save to Database (Add or Update)
+                var result = await _adminInterface.AddAdmin(user);
 
-                string type = "added admin details";
-                string desc = $"Superadmin added admin details for {libName}";
-                _activityRepository.AddNewActivity(uid, type, desc);
+                // 📝 4. Activity Log
+                string activityType = isUpdate ? "updated admin details" : "added admin details";
+                string description = $"Superadmin {activityType} for {user.Libraryname}";
+                _activityRepository.AddNewActivity(uid, activityType, description);
 
-                return Ok(res);
+                return Ok(result);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Console.WriteLine(e.ToString());
-                return Json(new { success = false, message = "Unknown error occurred" });
+                Console.WriteLine(ex.ToString());
+                return Json(new { success = false, message = "An unexpected error occurred." });
             }
         }
+
+
+
+
+
+        //[HttpPost]
+        //public async Task<IActionResult> AddAdmin(Library user, IFormFile LibraryFile)
+        //{
+        //    int uid = (int)HttpContext.Session.GetInt32("UserId");
+        //    string userName = _connect.Members.Where(x => x.Id == uid).Select(y => y.Name).FirstOrDefault();
+        //    string libName = _connect.Libraries.Where(x => x.AdminId == uid).Select(y => y.Libraryname).FirstOrDefault();
+
+        //    try
+        //    {
+        //        // ✅ Check if Library already exists
+        //        if (user.AdminId > 0)
+        //        {
+        //            Library resData = _adminInterface.checkExistence(user.Libraryname, user.LibraryId);
+        //            if (resData != null && resData.Libraryname == user.Libraryname)
+        //            {
+        //                return Json(new { success = false, message = "Library name already exists" });
+        //            }
+        //        }
+        //        else
+        //        {
+        //            if (await _libraryInterface.ismembernameexitsAsync(user.Libraryname))
+        //            {
+        //                return Json(new { success = false, message = "Username already exists - edit" });
+        //            }
+        //        }
+
+        //        // ✅ Fetching values
+        //        string username = user.Libraryname;
+        //        string address = user.Address;
+        //        int AdminId = Convert.ToInt32(user.AdminId);
+        //        string startTime = user.StartTime?.ToString() ?? "";
+        //        string closingTime = user.ClosingTime?.ToString() ?? "";
+        //        int Pincode = Convert.ToInt32(user.Pincode);
+        //        string state = user.State;
+        //        string city = user.City;
+        //        int id = user.LibraryId;
+
+        //        // ✅ Image Upload Handling
+        //        if (LibraryFile != null && LibraryFile.Length > 0)
+        //        {
+        //            // Agar purani image hai to delete karo
+        //            if (!string.IsNullOrEmpty(user.LibraryImagePath))
+        //            {
+        //                string oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", user.LibraryImagePath);
+        //                if (System.IO.File.Exists(oldImagePath))
+        //                {
+        //                    System.IO.File.Delete(oldImagePath);
+        //                }
+        //            }
+
+        //            // Naya image save karo
+        //            string fileName = Guid.NewGuid().ToString() + Path.GetExtension(LibraryFile.FileName);
+        //            string uploadPath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads");
+
+        //            if (!Directory.Exists(uploadPath))
+        //            {
+        //                Directory.CreateDirectory(uploadPath);
+        //            }
+
+        //            string filePath = Path.Combine(uploadPath, fileName);
+        //            using (var stream = new FileStream(filePath, FileMode.Create))
+        //            {
+        //                await LibraryFile.CopyToAsync(stream);
+        //            }
+
+        //            // Database me image ka naam save karo
+        //            user.LibraryImagePath = fileName;
+        //        }
+
+        //        // ✅ Save Library Data
+        //        var res = await _adminInterface.AddAdmin(user);
+
+        //        string type = "added admin details";
+        //        string desc = $"Superadmin added admin details for {libName}";
+        //        _activityRepository.AddNewActivity(uid, type, desc);
+
+        //        return Ok(res);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Console.WriteLine(e.ToString());
+        //        return Json(new { success = false, message = "Unknown error occurred" });
+        //    }
+        //}
 
 
         [HttpPost]
@@ -236,7 +319,7 @@ namespace library_management.Controllers
         [HttpGet]
         public async Task<IActionResult> PendingMemberships()
         {
-            string permissionType = GetUserPermission("Manage Member Approval");
+            string permissionType = GetUserPermission("Manage Members");
             if (permissionType == "CanView" || permissionType == "CanEdit" || permissionType == "FullAccess")
             {
                 try

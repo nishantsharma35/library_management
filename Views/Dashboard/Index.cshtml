@@ -400,6 +400,135 @@
 
 
     }
+
+    @if (Model.RoleId == 4)
+    {
+        <!-- Content Row -->
+        <div class="row">
+            <!-- Total members Card -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-primary shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="text-left">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                    Total Members
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalMembers</div>
+                            </div>
+                            <div class="text-right">
+                                <i class="fas fa-user fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total books Card -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="text-left">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                    Books Stock
+                                </div>
+                                <div class="h6 mb-0 font-weight-bold text-gray-800">
+                                    Total Books Stock: @Model.TotalBooks<br>
+                                    Total Books: @Model.TotalDistinctBooks
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <i class="fas fa-book fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total borrows Card -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-info shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="text-left">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                    Total Borrows
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalBorrows</div>
+                            </div>
+                            <div class="text-right">
+                                <i class="fas fa-arrow-up fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Total overdues Card -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-info shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="text-left">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                    Total OverdueBooks
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.OverdueBooks</div>
+                            </div>
+                            <div class="text-right">
+                                <i class="fas fa-user-friends fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content row -->
+        <div class="row">
+            <div class="col-xl-8 col-lg-7">
+                <div class="card shadow mb-4">
+                    <!-- Card Header with Year Filter -->
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">Monthly Borrow & Return Stats</h6>
+                        <div class="form-inline">
+                            <label for="yearSelect" class="mr-2">Year:</label>
+                            <select class="form-control" id="yearSelect" onchange="loadBorrowReturnChart(this.value)">
+                            </select>
+
+                        </div>
+                    </div>
+
+                    <!-- Graph Area -->
+                    <div class="card-body">
+                        <canvas id="borrowReturnChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-4 col-lg-5">
+                <div class="card shadow mb-4">
+                    <!-- Card Header -->
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">Fine Payment Status</h6>
+                    </div>
+
+                    <!-- Card Body -->
+                    <div class="card-body">
+                        <div class="chart-pie pt-4 pb-2">
+                            <canvas id="fineChart"></canvas>
+                        </div>
+                        <div id="fineChartLegend" class="mt-4 text-center small">
+                            <!-- Paid / Unpaid -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    }
+
 </div>
 @section Scripts {
     <script src="~/libraryjs/dashboard.js"></script>

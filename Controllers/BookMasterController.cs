@@ -13,6 +13,8 @@ using ClosedXML.Excel;
 using System.Diagnostics;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Text;
 
 namespace library_management.Controllers
 {
@@ -23,7 +25,7 @@ namespace library_management.Controllers
         private readonly PermisionHelperInterface _permission;
         private readonly IActivityRepository _activityRepository;
         private readonly libraryInterface _libraryInterface;
-        public BookMasterController(dbConnect connect, BookServiceInterface bookServiceInterface, ISidebarRepository sidebar, PermisionHelperInterface permission, IActivityRepository activityRepository,libraryInterface libraryInterface) : base(sidebar)
+        public BookMasterController(dbConnect connect, BookServiceInterface bookServiceInterface, ISidebarRepository sidebar, PermisionHelperInterface permission, IActivityRepository activityRepository, libraryInterface libraryInterface) : base(sidebar)
         {
             _context = connect;
             _bookServiceInterface = bookServiceInterface;
@@ -44,32 +46,60 @@ namespace library_management.Controllers
             return View();
         }
 
-        public async Task<IActionResult> BookList()
+        //public async Task<IActionResult> BookList()
+        //{
+        //    string permissionType = GetUserPermission("View Book");
+        //    if (permissionType == "CanView" || permissionType == "CanEdit" || permissionType == "FullAccess")
+        //    {
+        //        //var (books, bookLibraryMap) = await _bookServiceInterface.GetAllbooksData();
+        //        //ViewBag.BookLibraryMap = bookLibraryMap;
+        //        //return View(books);
+        //        var books = await _bookServiceInterface.GetAllbooksData(); //  No Extra Parameters
+        //        return View(books);
+        //    }
+        //    else
+        //    {
+        //        return RedirectToAction("UnauthorisedAccess", "Error");
+        //    }
+
+        //}
+        public async Task<IActionResult> BookList(int? libraryId)
         {
             string permissionType = GetUserPermission("View Book");
             if (permissionType == "CanView" || permissionType == "CanEdit" || permissionType == "FullAccess")
             {
-                var books = await _bookServiceInterface.GetAllbooksData(); //  No Extra Parameters
+                int roleId = _bookServiceInterface.GetLoggedInUserRoleId();
+                ViewBag.RoleId = roleId;
+
+                // Libraries for dropdown (SuperAdmin only)
+                if (roleId == 1)
+                {
+                    var librariesWithBooks = await _context.LibraryBooks
+                        .Include(lb => lb.Library)
+                        .Where(lb => lb.BookId != null)
+                        .Select(lb => lb.Library)
+                        .Distinct()
+                        .ToListAsync();
+
+                    ViewBag.Libraries = librariesWithBooks
+                        .Select(lib => new SelectListItem
+                        {
+                            Value = lib.LibraryId.ToString(),
+                            Text = lib.Libraryname
+                        }).ToList();
+                }
+
+                // Get filtered book list by library
+                var books = await _bookServiceInterface.GetAllbooksData(libraryId);
+                ViewBag.SelectedLibraryId = libraryId; // Optional: To keep dropdown selected
+
                 return View(books);
             }
             else
             {
                 return RedirectToAction("UnauthorisedAccess", "Error");
             }
-
         }
-
-
-        //public async Task<IActionResult> booklist()
-        //{
-        //    var books = await _bookServiceInterface.GetAllbooksData();
-        //    foreach (var book in books)
-        //    {
-        //        Console.WriteLine($"Book: {book.Title}, Genre: {(book.Genre != null ? book.Genre.GenreName : "NULL")}");
-        //    }
-        //    return View(books);
-
-        //}
 
 
         [HttpGet]
@@ -114,20 +144,7 @@ namespace library_management.Controllers
         }
 
 
-        //[HttpGet]
-        //public IActionResult Details(int id)
-        //{
-        //    var book = _context.Books
-        //        .Include(b => b.Genre) // Genre table ka data include karna zaroori hai
-        //        .FirstOrDefault(m => m.BookId == id);
 
-        //    if (book == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    return View(book);
-        //}
 
         [HttpGet]
         public IActionResult AddBook(int? id)
@@ -179,7 +196,7 @@ namespace library_management.Controllers
                 {
                     string type = "added book";
                     string desc = $"{userName} added new book in his library";
-                    _activityRepository.AddNewActivity(id,type, desc);
+                    _activityRepository.AddNewActivity(id, type, desc);
                     return Json(new { success = true, message = message });
                 }
 
@@ -214,81 +231,91 @@ namespace library_management.Controllers
 
 
 
-        //        [HttpPost]
-        //public async Task<IActionResult> AddBook(Book book, int stock)
-        //{
-        //    try
-        //    {
-        //        int librarianLibraryId = GetLoggedInLibrarianLibraryId();
-        //        var result = await _bookServiceInterface.AddBook(book, librarianLibraryId, stock);
-
-        //        if ((bool)result.GetType().GetProperty("success")?.GetValue(result, null))
-        //        {
-        //            TempData["SuccessMessage"] = result.GetType().GetProperty("message")?.GetValue(result, null)?.ToString();
-        //            return RedirectToAction("Index");
-        //        }
-        //        else
-        //        {
-        //            ModelState.AddModelError("", result.GetType().GetProperty("message")?.GetValue(result, null)?.ToString());
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        ModelState.AddModelError("", "An error occurred while adding the book: " + ex.Message);
-        //    }
-
-        //    return View(book);
-        //}
         [HttpPost]
-        //[ValidateAntiForgeryToken] // Protect against CSRF attacks
-        public IActionResult DeleteUser(int id)
+        //[ValidateAntiForgeryToken]
+        public IActionResult DeleteBookFromLibrary(int id)
         {
-            int userid = (int)HttpContext.Session.GetInt32("UserId");
-            string userName = _context.Members.Where(x => x.Id == id).Select(y => y.Name).FirstOrDefault();
+            int userId = (int)HttpContext.Session.GetInt32("UserId");
+            int? libraryId = GetLoggedInLibraryId();
+
+
+            if (libraryId == null)
+            {
+                return Json(new { success = false, message = "Library not found for this admin." });
+            }
+
             if (id == 0)
             {
-                return Json(new { success = false, message = "Invalid user id." });
+                return Json(new { success = false, message = "Invalid book id." });
             }
 
             try
             {
-                var book = _context.Books.Find(id);
-                if (book == null)
+                // Remove stock of the book from this admin's library
+                var libraryBook = _context.LibraryBooks
+                                          .FirstOrDefault(x => x.BookId == id && x.LibraryId == libraryId);
+
+                if (libraryBook == null)
                 {
-                    return Json(new { success = false, message = "User not found." });
+                    return Json(new { success = false, message = "Book not found in this library." });
                 }
 
-                _context.Books.Remove(book);
+                _context.LibraryBooks.Remove(libraryBook);
                 _context.SaveChanges();
 
-                string type = "added book";
-                string desc = $"{userName} added new book in his library";
-                _activityRepository.AddNewActivity(id, type, desc);
+                string bookTitle = _context.Books.Where(b => b.BookId == id).Select(b => b.Title).FirstOrDefault();
+                string desc = $"Book '{bookTitle}' was removed from library (ID: {libraryId}) by user ID {userId}.";
 
-                return Json(new { success = true, message = "user deleted successfully." });
+                _activityRepository.AddNewActivity(userId, "delete book", desc);
+
+                return Json(new { success = true, message = "Book removed from your library successfully." });
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error deleting user: " + ex.Message);
-                return Json(new { success = false, message = "Error deleting user." });
+                Console.WriteLine("Error removing book from library: " + ex.Message);
+                return Json(new { success = false, message = "Error removing book from library." });
             }
         }
 
-        //[HttpGet]
-        //public IActionResult BulkUpload()
+
+
+
+        //[HttpPost]
+        ////[ValidateAntiForgeryToken] // Protect against CSRF attacks
+        //public IActionResult DeleteUser(int id)
         //{
-        //    string permissionType = GetUserPermission("Bulk book adding");
-        //    if (permissionType == "CanEdit" || permissionType == "FullAccess")
+        //    int userid = (int)HttpContext.Session.GetInt32("UserId");
+        //    string userName = _context.Members.Where(x => x.Id == id).Select(y => y.Name).FirstOrDefault();
+        //    if (id == 0)
         //    {
-        //        return View(); // Ensure that BulkUpload.cshtml exists in Views/BookMaster
-        //    }
-        //    else
-        //    {
-        //        return RedirectToAction("UnauthorisedAccess", "Error");
+        //        return Json(new { success = false, message = "Invalid user id." });
         //    }
 
+        //    try
+        //    {
+        //        var book = _context.Books.Find(id);
+        //        if (book == null)
+        //        {
+        //            return Json(new { success = false, message = "User not found." });
+        //        }
 
+        //        _context.Books.Remove(book);
+        //        _context.SaveChanges();
+
+        //        string type = "delete book";
+        //        string desc = $"{userName} deleted book in his library";
+        //        _activityRepository.AddNewActivity(id, type, desc);
+
+        //        return Json(new { success = true, message = "user deleted successfully." });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine("Error deleting user: " + ex.Message);
+        //        return Json(new { success = false, message = "Error deleting user." });
+        //    }
         //}
+
+
 
         public IActionResult DownloadSampleFile()
         {
@@ -530,9 +557,6 @@ namespace library_management.Controllers
                         resultList.Add(importStatus);
                     }
                 }
-
-
-
                 //Output File Generation
 
                 using (var workbook = new XLWorkbook())
@@ -556,12 +580,6 @@ namespace library_management.Controllers
                     workbook.SaveAs(stream);
                 }
 
-
-
-
-
-
-
                 var fileBytes = stream.ToArray();
 
                 // Convert to Base64 to store temporarily
@@ -582,6 +600,75 @@ namespace library_management.Controllers
                 return Json(new { success = false, message = "An error occurred: " + ex.Message });
             }
         }
+
+        private int GetLoggedInLibraryId()
+        {
+            int? libraryId = HttpContext.Session.GetInt32("LibraryId");
+
+            if (libraryId == null || libraryId == 0)
+            {
+                int memberId = HttpContext.Session.GetInt32("MemberId") ?? 0; // 🔹 Logged-in Member ID le lo
+
+                // 🔹 Membership table se LibraryId fetch karo
+                libraryId = _context.Memberships
+                    .Where(m => m.MemberId == memberId)
+                    .Select(m => m.LibraryId)
+                    .FirstOrDefault(); // Agar multiple libraries hai, toh sabse pehli wala lega
+
+                if (libraryId != null && libraryId > 0)
+                {
+                    HttpContext.Session.SetInt32("LibraryId", libraryId.Value); // ✅ Session me LibraryId store karo
+                    Console.WriteLine("✅ LibraryId set from Membership Table: " + libraryId);
+                }
+                else
+                {
+                    Console.WriteLine("❌ No LibraryId found for MemberId: " + memberId);
+                }
+            }
+
+            Console.WriteLine("📌 Final LibraryId from Session: " + (libraryId ?? 0));
+            return libraryId ?? 0;
+        }
+
+
+        public async Task<IActionResult> GetBooksByLibrary(int libraryId)
+        {
+            // Fetch books along with their related genre and library using Include()
+            var books = await _context.LibraryBooks
+                .Where(lb => lb.LibraryId == libraryId)
+                .Include(lb => lb.Book)        // Include the Book details
+                .Include(lb => lb.Book.Genre)  // Include the Genre details for each book
+                .Include(lb => lb.Library)     // Include the Library details for each book
+                .ToListAsync();
+
+            var html = new StringBuilder();
+
+            foreach (var libraryBook in books)
+            {
+                var book = libraryBook.Book;  // Get the Book entity
+                var genreName = book.Genre?.GenreName ?? "-"; // Fetch Genre Name (Handle null)
+                var libraryName = libraryBook.Library?.Libraryname ?? "-"; // Fetch Library Name (Handle null)
+
+                // Build the table row for each book
+                html.AppendLine("<tr>");
+                html.AppendLine($"<td><img src='{book.bookimagepath}' class='img-fluid rounded' style='width: 50px; height: 70px;' /></td>");
+                html.AppendLine($"<td>{book.Title}</td>");
+                html.AppendLine($"<td>{book.Author ?? "-"}</td>");
+                html.AppendLine($"<td>{genreName}</td>");
+                html.AppendLine($"<td>{libraryName}</td>");
+                html.AppendLine("<td>");
+                html.AppendLine($"<a class='btn btn-info' href='/BookMaster/Details/{book.BookId}'><i class='fas fa-eye'></i></a>");
+                html.AppendLine($"<a class='btn btn-primary' href='/BookMaster/Edit/{book.BookId}'><i class='fas fa-edit'></i></a>");
+                html.AppendLine($"<button class='btn btn-danger delete-btn' data-id='{book.BookId}'><i class='fas fa-trash-alt'></i></button>");
+                html.AppendLine("</td>");
+                html.AppendLine("</tr>");
+            }
+
+            return Content(html.ToString(), "text/html");
+        }
+
+
+
 
     }
 }

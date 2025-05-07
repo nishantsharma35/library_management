@@ -46,7 +46,7 @@ public partial class Member
 
     // Navigation Property
     public virtual Library? Library { get; set; }
-
+    
 
     public virtual ICollection<Borrow> Borrows { get; set; } = new List<Borrow>();
 

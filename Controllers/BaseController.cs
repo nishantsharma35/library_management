@@ -21,6 +21,10 @@ namespace library_management.Controllers
         //}
         public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
+            // Prevent caching
+            Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate";
+            Response.Headers["Pragma"] = "no-cache";
+            Response.Headers["Expires"] = "0";
             //var httpContext = context.HttpContext;
 
             // Fetch session values

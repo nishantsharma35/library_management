@@ -84,25 +84,3 @@ $('#pendingreturn').on('submit', function (e) {
     });
 });
 
-function showToast(message, icon = 'success') {
-    Swal.fire({
-        toast: true,
-        position: 'top-end',
-        icon: icon,
-        title: message,
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-        customClass: {
-            popup: 'custom-toast-popup',
-            title: 'custom-toast-title'
-        },
-        iconColor: icon === 'success' ? '#28a745' :
-            icon === 'error' ? '#dc3545' :
-                icon === 'warning' ? '#ffc107' : '#17a2b8',
-        didOpen: (toast) => {
-            toast.addEventListener('mouseenter', Swal.stopTimer);
-            toast.addEventListener('mouseleave', Swal.resumeTimer);
-        }
-    });
-}

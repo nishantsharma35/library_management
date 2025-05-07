@@ -1,12 +1,14 @@
 ﻿@model IEnumerable<library_management.Models.Library>
+
 @{
     Layout = "/Views/Shared/_mainLayout.cshtml";
     ViewData["Title"] = "Update Library Fines";
 }
-<!-- Toastify CSS -->
-<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 
-<!-- Page Heading -->
+<!-- Toastify CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+
 <h1 class="h3 mb-4 text-gray-800">Update Library Fines</h1>
 
 <div class="card shadow mb-4">
@@ -30,7 +32,8 @@
                             <td>@library.Libraryname</td>
                             <td>₹@library.LibraryFineAmount</td>
                             <td>
-                                <form id="updatefine" method="post" action="/Fine/UpdateFine" class="d-flex align-items-center">
+                                <form class="update-fine-form d-flex align-items-center" method="post" action="/Fine/UpdateFine">
+                                    @Html.AntiForgeryToken()
                                     <input type="hidden" name="libraryId" value="@library.LibraryId" />
                                     <input type="number" name="fineAmount" value="@library.LibraryFineAmount" step="0.01" required class="form-control w-50 mr-2" />
                                     <button type="submit" class="btn btn-primary">Update</button>
@@ -44,71 +47,63 @@
     </div>
 </div>
 
-<!-- Toastify JS -->
+<!-- SweetAlert2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-
-<!-- Include DataTables JS if needed -->
+<!-- DataTables + jQuery -->
 <script>
     $(document).ready(function () {
         $('#dataTable').DataTable();
 
-    $("#updatefine").submit(function (e) {
-             e.preventDefault();
+        $(document).on("submit", ".update-fine-form", function (e) {
+            e.preventDefault();
 
-        var formData = new FormData(this);
+            var form = this;
+            var formData = new FormData(form);
 
-        $.ajax({
-            url: '/Fine/UpdateFine',   // Controller ka sahi URL
-            type: 'POST',
-            data: formData,
-            contentType: false,
-            processData: false,
-            success: function (response) {
-                if (response.success) {
-                    showToast(response.message, 'success');
-                    $('#updatefine')[0].reset(); // Form reset
-                    // Optionally: Redirect to BookList after few seconds
-                    setTimeout(function () {
-                        window.location.href = '/Fine/UpdateFine';
-                    }, 2000);
-                } else {
-                    showToast(response.message, 'error');
-                    // Optional: Show detailed validation errors
-                    if (response.errors) {
-                        console.log(response.errors);
+            $.ajax({
+                url: $(form).attr('action'),
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]', form).val()
+                },
+                success: function (response) {
+                    if (response.success) {
+                        showToast(response.message, 'success');
+                        setTimeout(function () {
+                            window.location.reload(); // Reload to reflect updated fine
+                        }, 2000);
+                    } else {
+                        showToast(response.message, 'error');
                     }
+                },
+                error: function () {
+                    showToast('Server error occurred!', 'error');
                 }
-            },
-            error: function () {
-                showToast('Server error occurred!', 'error');
-            }
+            });
         });
-    });
 
-    function showToast(message, icon = 'success') {
-        Swal.fire({
-            toast: true,
-            position: 'top-end',
-            icon: icon,
-            title: message,
-            showConfirmButton: false,
-            timer: 3000,
-            timerProgressBar: true,
-            customClass: {
-                popup: 'custom-toast-popup',
-                title: 'custom-toast-title'
-            },
-            iconColor: icon === 'success' ? '#28a745' :
-                icon === 'error' ? '#dc3545' :
-                    icon === 'warning' ? '#ffc107' : '#17a2b8',
-            didOpen: (toast) => {
-                toast.addEventListener('mouseenter', Swal.stopTimer);
-                toast.addEventListener('mouseleave', Swal.resumeTimer);
-            }
-        });
-    }
+        function showToast(message, icon = 'success') {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: icon,
+                title: message,
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                iconColor: icon === 'success' ? '#28a745' :
+                    icon === 'error' ? '#dc3545' :
+                        icon === 'warning' ? '#ffc107' : '#17a2b8',
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer);
+                    toast.addEventListener('mouseleave', Swal.resumeTimer);
+                }
+            });
+        }
     });
 </script>
-
-

@@ -4,31 +4,7 @@
 @{
     Layout = "/Views/Shared/_mainLayout.cshtml";
     ViewData["Title"] = "Borrow List";
-    // var successMessage = TempData["Success"] as string;
-    // var errorMessage = TempData["Error"] as string;
 }
-
-
-
-@* @if (!string.IsNullOrEmpty(successMessage)) *@
-@* { *@
-@*     <div class="alert alert-success alert-dismissible fade show" role="alert"> *@
-@*         @successMessage *@
-@*         <button type="button" class="close" data-dismiss="alert" aria-label="Close"> *@
-@*             <span aria-hidden="true">&times;</span> *@
-@*         </button> *@
-@*     </div> *@
-@* } *@
-
-@* @if (!string.IsNullOrEmpty(errorMessage)) *@
-@* { *@
-@*     <div class="alert alert-danger alert-dismissible fade show" role="alert"> *@
-@*         @errorMessage *@
-@*         <button type="button" class="close" data-dismiss="alert" aria-label="Close"> *@
-@*             <span aria-hidden="true">&times;</span> *@
-@*         </button> *@
-@*     </div> *@
-@* } *@
 
 <div class="card shadow mb-4">
     <div class="card-header py-3 text-center">
@@ -36,13 +12,6 @@
     </div>
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
         <a asp-controller="BorrowMaster" asp-action="UpdateLibraryFine" class="btn btn-warning">Update Fine</a>
-        @* <a href="@Url.Action("PendingBorrows", "BorrowMaster")" class="btn btn-warning mb-3"> *@
-        @*     Manage Borrows Approvals *@
-        @* </a> *@
-        @* <a href="@Url.Action("PendingReturns", "BorrowMaster")" class="btn btn-warning mb-3"> *@
-        @*     Manage Returns Approvals *@
-        @* </a> *@
-        
     </div>
 
     <div class="card-body">
@@ -84,20 +53,21 @@
 
                                     @if (item.Fine.PaymentStatus != "Paid" && (item.IsReturned || item.Status == "Returned"))
                                     {
-                                        <form id="payfine" asp-action="PayFine" asp-controller="Fine" method="post">
+                                        <!-- ✅ Fixed: Changed from id="payfine" to class="payfine-form" to allow multiple forms -->
+                                        <form class="payfine-form" method="post">
                                             <input type="hidden" name="fineId" value="@item.Fine.FineId" />
                                             <input type="number" name="payAmount" min="1" max="@(item.Fine.FineAmount - item.Fine.PaidAmount)" required />
                                             <button type="submit" class="btn btn-success">Pay Fine</button>
                                         </form>
                                     }
-                                    @if (item.Fine.PaymentStatus == "Paid") // ✅ Fully Paid, Show Receipt Button
+
+                                    @if (item.Fine.PaymentStatus == "Paid")
                                     {
                                         <br />
                                         <a href="@Url.Action("ViewFine", "Fine", new { borrowId = item.Fine.BorrowId })" class="btn btn-primary">
                                             View Receipt
                                         </a>
                                     }
-
                                 }
                                 else
                                 {
@@ -107,10 +77,6 @@
                                 @if (!item.IsReturned && item.Status != "Returned")
                                 {
                                     <button type="button" class="btn btn-primary btnReturnBook" data-borrow-id="@item.BorrowId">Return Book</button>
-                                    @* <form asp-action="ReturnBook" asp-controller="BorrowMaster" method="post"> *@
-                                    @*     <input type="hidden" name="borrowId" value="@item.BorrowId" /> *@
-                                    @*     <button type="submit" class="btn btn-primary">Return Book</button> *@
-                                    @* </form> *@
                                 }
                                 else
                                 {
@@ -122,24 +88,25 @@
                 </tbody>
             </table>
         </div>
-    </div> 
+    </div>
 </div>
 
-
-<!-- Add Bootstrap CSS in <head> section -->
+<!-- ✅ Required Scripts -->
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="~/bookjs/borrowlist.js"> </script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-<script src="~/bookjs/borrowlist.js" ></script>
+<script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+
 <script>
     $(document).ready(function () {
         console.log("Initializing DataTable...");
         if ($.fn.DataTable) {
             $('#dataTable').DataTable({
-                "paging": true,          // ✅ Pagination enabled
-                "searching": true,       // ✅ Search box enabled
-                "ordering": true,        // ✅ Sorting enabled
-                "info": true,            // ✅ Show table info
-                "lengthMenu": [5, 10, 25, 50, 100], // ✅ Entries per page
+                "paging": true,
+                "searching": true,
+                "ordering": true,
+                "info": true,
+                "lengthMenu": [5, 10, 25, 50, 100],
                 "responsive": true
             });
             console.log("✅ DataTable Initialized Successfully!");
@@ -147,8 +114,38 @@
             console.error("❌ DataTable function is not available.");
         }
     });
+
+    // ✅ Event delegation to handle dynamically loaded elements
+    $(document).on('submit', '.payfine-form', function (e) {
+        e.preventDefault(); // ✅ Prevent default form submission
+
+        var formData = new FormData(this);
+
+        $.ajax({
+            url: '/Fine/PayFine',  // ✅ Backend controller route
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function (response) {
+                if (response.success) {
+                    showToast(response.message, 'success');
+                    // ✅ Reset only the submitted form
+                    e.target.reset();
+                    // ✅ Redirect after 2 seconds
+                    setTimeout(function () {
+                        window.location.href = '/BorrowMaster/BorrowList';
+                    }, 2000);
+                } else {
+                    showToast(response.message, 'error');
+                    if (response.errors) {
+                        console.log(response.errors);
+                    }
+                }
+            },
+            error: function () {
+                showToast('Server error occurred!', 'error');
+            }
+        });
+    });
 </script>
-
-
-
-

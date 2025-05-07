@@ -1,9 +1,11 @@
 ﻿using library_management.Models;
 using library_management.repository.internalinterface;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics.Metrics;
 using System.Net.Http;
+using System.Text;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 namespace library_management.Controllers
 {
@@ -17,8 +19,9 @@ namespace library_management.Controllers
         private readonly PermisionHelperInterface _permission;
         private readonly HttpClient _httpClient;
         private readonly IActivityRepository _activityRepository;
+        private readonly BookServiceInterface _bookService;
 
-        public MemberMasterController(dbConnect context, EmailSenderInterface emailSender, ILogger<MemberMasterController> logger, ISidebarRepository sidebar, MemberMasterInterface memberMasterInterface , libraryInterface libraryInterface,PermisionHelperInterface permision, IHttpClientFactory httpClientFactory,IActivityRepository activityRepository) : base(sidebar) 
+        public MemberMasterController(dbConnect context, EmailSenderInterface emailSender, ILogger<MemberMasterController> logger, ISidebarRepository sidebar, MemberMasterInterface memberMasterInterface, libraryInterface libraryInterface, PermisionHelperInterface permision, IHttpClientFactory httpClientFactory, IActivityRepository activityRepository, BookServiceInterface bookService) : base(sidebar)
         {
             _context = context;
             _emailSender = emailSender;
@@ -28,6 +31,7 @@ namespace library_management.Controllers
             _permission = permision;
             _httpClient = httpClientFactory.CreateClient();
             _activityRepository = activityRepository;
+            _bookService = bookService;
         }
 
         public string GetUserPermission(string action)
@@ -43,56 +47,132 @@ namespace library_management.Controllers
             return View();
         }
 
-        public async Task<IActionResult> MemberList()
+        //public async Task<IActionResult> MemberList()
+        //{
+        //    string permissionType = GetUserPermission("View Member");
+        //    if (permissionType == "CanView" || permissionType == "CanEdit" || permissionType == "FullAccess")
+        //    {
+        //        try
+        //        {
+        //            int? userId = HttpContext.Session.GetInt32("UserId");
+        //            int? userRoleId = HttpContext.Session.GetInt32("UserRoleId"); // ✅ Role Check ke liye
+
+        //            if (userId == null || userId == 0)
+        //            {
+        //                ViewBag.ErrorMessage = "User ID is missing. Please log in again.";
+        //                return View("MemberList", new List<Member>());
+        //            }
+
+        //            List<Member> members;
+
+        //            if (userRoleId == 1) // ✅ Super Admin ho to sabhi members fetch karo
+        //            {
+        //                members = await _memberMasterInterface.GetAllMembersData();
+        //            }
+        //            else
+        //            {
+        //                var library = await _context.Libraries.FirstOrDefaultAsync(l => l.AdminId == userId.Value);
+        //                if (library == null)
+        //                {
+        //                    ViewBag.ErrorMessage = "No associated library found for this admin.";
+        //                    return View("MemberList", new List<Member>());
+        //                }
+
+        //                int libraryId = library.LibraryId;
+        //                members = await _memberMasterInterface.GetLibraryMembersAsync(libraryId);
+        //            }
+
+        //            return View("MemberList", members);
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            Console.WriteLine($"Error fetching members: {ex.Message}");
+        //            ViewBag.ErrorMessage = "An error occurred while fetching members.";
+        //            return View("MemberList", new List<Member>());
+        //        }
+
+        //    }
+        //    else
+        //    {
+        //        return RedirectToAction("UnauthorisedAccess", "Error");
+        //    }
+        //}
+        public async Task<IActionResult> MemberList(int? selectedLibraryId = null)
         {
-            string permissionType = GetUserPermission("View Member");
-            if (permissionType == "CanView" || permissionType == "CanEdit" || permissionType == "FullAccess")
+            int userRoleId = _bookService.GetLoggedInUserRoleId();
+
+            // Get all libraries for dropdown
+            var libraries = await _context.Libraries
+    .Select(l => new SelectListItem
+    {
+        Value = l.LibraryId.ToString(),
+        Text = l.Libraryname
+    }).ToListAsync();
+
+
+            ViewBag.Libraries = libraries;
+            ViewBag.SelectedLibraryId = selectedLibraryId;
+
+            List<MemberListViewModel> members;
+
+            if (userRoleId == 1) // Super Admin
             {
-                try
-                {
-                    int? userId = HttpContext.Session.GetInt32("UserId");
-                    int? userRoleId = HttpContext.Session.GetInt32("UserRoleId"); // ✅ Role Check ke liye
-
-                    if (userId == null || userId == 0)
-                    {
-                        ViewBag.ErrorMessage = "User ID is missing. Please log in again.";
-                        return View("MemberList", new List<Member>());
-                    }
-
-                    List<Member> members;
-
-                    if (userRoleId == 1) // ✅ Super Admin ho to sabhi members fetch karo
-                    {
-                        members = await _memberMasterInterface.GetAllMembersAsync();
-                    }
-                    else
-                    {
-                        var library = await _context.Libraries.FirstOrDefaultAsync(l => l.AdminId == userId.Value);
-                        if (library == null)
-                        {
-                            ViewBag.ErrorMessage = "No associated library found for this admin.";
-                            return View("MemberList", new List<Member>());
-                        }
-
-                        int libraryId = library.LibraryId;
-                        members = await _memberMasterInterface.GetLibraryMembersAsync(libraryId);
-                    }
-
-                    return View("MemberList", members);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error fetching members: {ex.Message}");
-                    ViewBag.ErrorMessage = "An error occurred while fetching members.";
-                    return View("MemberList", new List<Member>());
-                }
-
+                members = await _memberMasterInterface.GetMembersByLibraryId(selectedLibraryId);
             }
             else
             {
-                return RedirectToAction("UnauthorisedAccess", "Error");
+                members = await _memberMasterInterface.GetAllMembersData(userRoleId);
             }
+
+            return View("MemberList", members);
         }
+
+        //public async Task<IActionResult> MemberList()
+        //{
+        //    // Role aur permission check
+        //    string permissionType = GetUserPermission("View Member");
+        //    if (permissionType == "CanView" || permissionType == "CanEdit" || permissionType == "FullAccess")
+        //    {
+        //        try
+        //        {
+        //            int? userId = HttpContext.Session.GetInt32("UserId");
+        //            int userRoleId = _bookService.GetLoggedInUserRoleId(); // Assuming this method returns the current user's role ID
+
+
+        //            if (userId == null || userId == 0)
+        //            {
+        //                ViewBag.ErrorMessage = "User ID is missing. Please log in again.";
+        //                return View("MemberList", new List<MemberListViewModel>());
+        //            }
+
+        //            List<MemberListViewModel> members;
+
+        //            // Agar Super Admin hai, toh sab members fetch karo
+        //            if (userRoleId == 1)
+        //            {
+        //                members = await _memberMasterInterface.GetAllMembersData(userRoleId);
+        //            }
+        //            else
+        //            {
+        //                // Agar librarian hai toh apni library ke members hi dikhaye
+        //                members = await _memberMasterInterface.GetAllMembersData(userRoleId);
+        //            }
+
+        //            return View("MemberList", members);
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            Console.WriteLine($"Error fetching members: {ex.Message}");
+        //            ViewBag.ErrorMessage = "An error occurred while fetching members.";
+        //            return View("MemberList", new List<MemberListViewModel>());
+        //        }
+        //    }
+        //    else
+        //    {
+        //        return RedirectToAction("UnauthorisedAccess", "Error");
+        //    }
+        //}
+
 
         [HttpGet("/MemberMaster/states")]
         public async Task<IActionResult> GetStates()
@@ -146,7 +226,7 @@ namespace library_management.Controllers
                 return Json(new { success = false, message = "Error occurred." });
             }
         }
-       
+
         [HttpGet]
         public IActionResult Details(int id)
         {
@@ -188,7 +268,7 @@ namespace library_management.Controllers
             {
                 return RedirectToAction("UnauthorisedAccess", "Error");
             }
-           
+
         }
         [HttpPost]
         public async Task<IActionResult> AddMember(Member user)
@@ -263,6 +343,12 @@ namespace library_management.Controllers
                         string type = "admin update member profile";
                         string desc = $"admin update member profile for {libName}";
                         _activityRepository.AddNewActivity(uid, type, desc);
+
+                        return Json(new { success = true, message = "Member updated successfully." });
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = "Failed to update member." });
                     }
                 }
                 else
@@ -277,11 +363,16 @@ namespace library_management.Controllers
                         string desc = $"admin {userName} added member details for {libName}";
                         _activityRepository.AddNewActivity(uid, type, desc);
 
+                        return Json(new { success = true, message = "Member added successfully." });
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = "Failed to add member." });
                     }
                 }
 
-               
-                return Ok(res);
+
+                //return Ok(res);
             }
             catch (Exception e)
             {
@@ -339,5 +430,53 @@ namespace library_management.Controllers
                 return Json(new { success = false, message = "Error deleting user." });
             }
         }
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetMembersByLibrary(int libraryId)
+        {
+            var members = await _context.Members
+                .Where(m => m.Memberships.Any(ms => ms.LibraryId == libraryId))
+                .Include(m => m.Memberships)
+                    .ThenInclude(ms => ms.Library)
+                .ToListAsync();
+
+            var html = new StringBuilder();
+
+            foreach (var member in members)
+            {
+                html.AppendLine("<tr>");
+                html.AppendLine($"<td><img src='{member.Picture}' class='img-fluid rounded-circle' style='width: 50px; height: 50px;' /></td>");
+                html.AppendLine($"<td>{member.Name}</td>");
+                //html.AppendLine($"<td>{member.Email}</td>");
+
+                string badgeClass = member.VerificationStatus == "Pending" ? "badge-warning"
+                                  : member.VerificationStatus == "Accepted" ? "badge-success"
+                                  : "badge-danger";
+
+                html.AppendLine($"<td><span class='badge {badgeClass}'>{member.VerificationStatus}</span></td>");
+
+                var libraries = string.Join(", ", member.Memberships
+                    .Where(ms => ms.LibraryId == libraryId)
+                    .Select(ms => ms.Library.Libraryname));
+
+
+               //< a class="btn btn-warning btn-sm" href="@Url.Action("AddMember", "MemberMaster", new { id = member.Id })">
+               //                         <i class="fas fa-edit"></i> 
+               //                     //</a>                  </a>
+
+
+                html.AppendLine($"<td>{libraries}</td>");
+                html.AppendLine("<td>");
+                html.AppendLine($"<a class=\"btn btn-primary btn-sm\" href='/MemberMaster/Details/{member.Id}'><i class='fas fa-info-circle'></i></a>");
+                html.AppendLine($"<a class=\"btn btn-warning btn-sm\" href='/MemberMaster/AddMember/{member.Id}'><i class='fas fa-edit'></i></a>");
+                html.AppendLine($"<button class='btn btn-danger btn-sm delete-btn' data-id='{member.Id}'><i class='fas fa-trash-alt'></i></button>");
+                html.AppendLine("</td>");
+                html.AppendLine("</tr>");
+            }
+
+            return Content(html.ToString(), "text/html");
+        }
+
     }
 }

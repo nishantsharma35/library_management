@@ -31,50 +31,45 @@
 
     fetch(`/AdminMaster/states`)
         .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             return response.json();
         })
         .then(data => {
             const states = data.geonames;
+            const selectedState = $("#selectedState").val();
             let stateOptions = `<option value="">Select State</option>`;
             states.forEach(state => {
-                // Store name as the value and geonameId in data-id
-                stateOptions += `<option value="${state.name}" data-id="${state.geonameId}">${state.name}</option>`;
+                const selected = state.name === selectedState ? "selected" : "";
+                stateOptions += `<option value="${state.name}" data-id="${state.geonameId}" ${selected}>${state.name}</option>`;
             });
-            $("#State").html(stateOptions);
+            $("#State").html(stateOptions).trigger("change"); // Trigger change to load city if editing
         })
-        .catch(error => {
-            console.error("Error fetching states:", error);
-        });
+        .catch(error => console.error("Error fetching states:", error));
 
-    // Fetch Cities when a state is selected
+    // Load Cities
+    const selectedCity = $("#selectedCity").val();
+
     $("#State").on("change", function () {
-        const selectedStateGeonameId = $(this).find("option:selected").data("id"); // Get geonameId from data-id
+        const selectedStateGeonameId = $(this).find("option:selected").data("id");
 
         if (selectedStateGeonameId) {
             fetch(`/AdminMaster/cities/${selectedStateGeonameId}`)
                 .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     return response.json();
                 })
                 .then(data => {
                     const cities = data.geonames;
                     let cityOptions = `<option value="">Select City</option>`;
                     cities.forEach(city => {
-                        // Store city name as the value and optionally include geonameId in data-id
-                        cityOptions += `<option value="${city.name}" data-id="${city.geonameId}">${city.name}</option>`;
+                        const isSelected = city.name === selectedCity ? "selected" : "";
+                        cityOptions += `<option value="${city.name}" data-id="${city.geonameId}" ${isSelected}>${city.name}</option>`;
                     });
                     $("#City").html(cityOptions);
                 })
-                .catch(error => {
-                    console.error("Error fetching cities:", error);
-                });
+                .catch(error => console.error("Error fetching cities:", error));
         } else {
-            $("#City").html(`<option value="">Select City</option>`); // Reset city dropdown
+            $("#City").html(`<option value="">Select City</option>`);
         }
     });
 
@@ -169,7 +164,29 @@
                 });
             }, 2000);
         }
+
     });
 
-
+    function showToast(message, icon = 'success') {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: icon,
+            title: message,
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            customClass: {
+                popup: 'custom-toast-popup',
+                title: 'custom-toast-title'
+            },
+            iconColor: icon === 'success' ? '#28a745' :
+                icon === 'error' ? '#dc3545' :
+                    icon === 'warning' ? '#ffc107' : '#17a2b8',
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+    }
 });

@@ -479,6 +479,16 @@ namespace library_management.Controllers
                 // ✅ Call repository method
                 var result = await _libraryInterface.AddLibrarianAsync(librarian, adminLibraryId.Value);
 
+                //if(result == null)
+                //{
+                //    return Json(new { success = false, message ="Something went wrong." });
+                //}
+                //else
+                //{
+                //    return Json(new { success = true, message = "✅ Librarian added successfully!" });
+                //}
+
+
                 return Json(result);
             }
             catch (Exception ex)

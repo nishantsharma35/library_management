@@ -36,28 +36,87 @@ namespace library_management.repository.classes
         }
 
 
-        public async Task<List<Book>> GetAllbooksData()
+        public async Task<List<BookListViewModel>> GetAllbooksData(int? libraryId = null)
         {
             int roleId = GetLoggedInUserRoleId();
 
             if (roleId == 1)
             {
-                return await _context.Books
+                var query = _context.Books
                     .Include(b => b.Genre)
+                    .AsQueryable();
+
+                var result = await query
+                    .GroupBy(b => new
+                    {
+                        b.BookId,
+                        b.Title,
+                        b.Author,
+                        b.PublicationYear,
+                        b.bookimagepath,
+                        GenreName = b.Genre.GenreName
+                    })
+                    .Select(g => new BookListViewModel
+                    {
+                        BookId = g.Key.BookId,
+                        Title = g.Key.Title,
+                        Author = g.Key.Author,
+                        PublicationYear = g.Key.PublicationYear ?? 0,
+                        BookImagePath = g.Key.bookimagepath,
+                        GenreName = g.Key.GenreName,
+                        Libraries = string.Join(", ", _context.LibraryBooks
+                            .Where(lb => lb.BookId == g.Key.BookId)
+                            .Select(lb => lb.Library.Libraryname)
+                            .Distinct())
+                    })
                     .ToListAsync();
+
+                return result;
             }
             else
             {
-                int libraryId = GetLoggedInLibrarianLibraryId();
+                int libId = GetLoggedInLibrarianLibraryId();
 
                 return await _context.LibraryBooks
-                    .Where(lb => lb.LibraryId == libraryId)
+                    .Where(lb => lb.LibraryId == libId)
                     .Include(lb => lb.Book)
-                        .ThenInclude(b => b.Genre)
-                    .Select(lb => lb.Book)
+                    .ThenInclude(b => b.Genre)
+                    .Select(lb => new BookListViewModel
+                    {
+                        BookId = lb.Book.BookId,
+                        Title = lb.Book.Title,
+                        Author = lb.Book.Author,
+                        PublicationYear = lb.Book.PublicationYear ?? 0,
+                        BookImagePath = lb.Book.bookimagepath,
+                        GenreName = lb.Book.Genre.GenreName
+                    })
                     .ToListAsync();
             }
         }
+
+
+        //public async Task<List<Book>> GetAllbooksData()
+        //{
+        //    int roleId = GetLoggedInUserRoleId();
+
+        //    if (roleId == 1)
+        //    {
+        //        return await _context.Books
+        //            .Include(b => b.Genre)
+        //            .ToListAsync();
+        //    }
+        //    else
+        //    {
+        //        int libraryId = GetLoggedInLibrarianLibraryId();
+
+        //        return await _context.LibraryBooks
+        //            .Where(lb => lb.LibraryId == libraryId)
+        //            .Include(lb => lb.Book)
+        //                .ThenInclude(b => b.Genre)
+        //            .Select(lb => lb.Book)
+        //            .ToListAsync();
+        //    }
+        //}
 
 
         public async Task<Book> GetBookById(int id)

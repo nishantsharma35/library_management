@@ -9,15 +9,59 @@ namespace library_management.Controllers
     {
         private readonly dbConnect _context;
         private readonly EmailSenderInterface _emailSender;
-        public MemberMasterClass(dbConnect context, EmailSenderInterface emailSender)
+        private readonly BookServiceInterface _bookService;
+        public MemberMasterClass(dbConnect context, EmailSenderInterface emailSender, BookServiceInterface bookService)
         {
             _context = context;
             _emailSender = emailSender;
+            _bookService = bookService;
         }
-        public async Task<List<Member>> GetAllMembersAsync()
+        //public async Task<List<Member>> GetAllMembersAsync()
+        //{
+        //    return await _context.Members.ToListAsync();
+        //}
+        public async Task<List<MemberListViewModel>> GetAllMembersData(int roleId)
         {
-            return await _context.Members.ToListAsync();
+            if (roleId == 1) // Super Admin
+            {
+                var result = await _context.Members
+                    .Include(m => m.Memberships) // Include memberships to get the library information
+                    .ThenInclude(ms => ms.Library) // Include the associated library
+                    .Select(m => new MemberListViewModel
+                    {
+                        Id = m.Id,
+                        Name = m.Name,
+                        Email = m.Email,
+                        VerificationStatus = m.VerificationStatus,
+                        Picture = m.Picture,
+                        Libraries = string.Join(", ", m.Memberships.Select(ms => ms.Library.Libraryname)), // Collect library names from the membership
+                        RoleId = roleId
+                    })
+                    .ToListAsync();
+                return result;
+            }
+            else
+            {
+                var libId = _bookService.GetLoggedInLibrarianLibraryId();
+                var result = await _context.Members
+                    .Where(m => m.Memberships.Any(ms => ms.LibraryId == libId)) // Filter members by the logged-in librarian's library
+                    .Include(m => m.Memberships) // Include memberships
+                    .ThenInclude(ms => ms.Library) // Include the library information
+                    .Select(m => new MemberListViewModel
+                    {
+                        Id = m.Id,
+                        Name = m.Name,
+                        Email = m.Email,
+                        VerificationStatus = m.VerificationStatus,
+                        Picture = m.Picture,
+                        Libraries = string.Join(", ", m.Memberships.Where(ms => ms.LibraryId == libId).Select(ms => ms.Library.Libraryname)), // Collect library names specific to the librarian's library
+                        RoleId = roleId
+                    })
+                    .ToListAsync();
+                return result;
+            }
         }
+
 
         public async Task<object> UpdateStatus(int userId, bool status)
         {
@@ -226,6 +270,31 @@ namespace library_management.Controllers
             //.Where(x => x.Membership.LibraryId == libraryId && x.Membership.IsActive) // ✅ Sirf Active Members
             //.Select(x => x.Member)
             //.ToListAsync();
+        }
+        public async Task<List<MemberListViewModel>> GetMembersByLibraryId(int? libraryId)
+        {
+            var query = _context.Members
+                .Include(m => m.Memberships)
+                .ThenInclude(ms => ms.Library)
+                .AsQueryable();
+
+            if (libraryId.HasValue)
+            {
+                query = query.Where(m => m.Memberships.Any(ms => ms.LibraryId == libraryId.Value));
+            }
+
+            var result = await query.Select(m => new MemberListViewModel
+            {
+                Id = m.Id,
+                Name = m.Name,
+                Email = m.Email,
+                VerificationStatus = m.VerificationStatus,
+                Picture = m.Picture,
+                Libraries = string.Join(", ", m.Memberships.Select(ms => ms.Library.Libraryname)),
+                RoleId = 1 // Since only Super Admin is using this
+            }).ToListAsync();
+
+            return result;
         }
 
     }

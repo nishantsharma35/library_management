@@ -11,7 +11,7 @@ namespace library_management.repository.classes
     public class FineClass : FineInterface
     {
         private readonly dbConnect _context;
-        
+
         public FineClass(dbConnect connect)
         {
             _context = connect;
@@ -19,8 +19,12 @@ namespace library_management.repository.classes
         public async Task<Fine> GetFineByIdAsync(int fineId)
         {
             return await _context.Fines
-                            .Include(f => f.Borrow)
-                            .FirstOrDefaultAsync(f => f.FineId == fineId);
+        .Include(f => f.Borrow)
+        .ThenInclude(b => b.Member)
+        .FirstOrDefaultAsync(f => f.FineId == fineId);
+            //return await _context.Fines
+            //                .Include(f => f.Borrow)
+            //                .FirstOrDefaultAsync(f => f.FineId == fineId);
         }
         public async Task<Fine> GetFineByBorrowIdAsync(int borrowId)
         {
@@ -106,22 +110,68 @@ namespace library_management.repository.classes
         {
             using (MemoryStream stream = new MemoryStream())
             {
-                Document document = new Document();
+                Document document = new Document(PageSize.A4, 50, 50, 25, 25);
                 PdfWriter.GetInstance(document, stream);
                 document.Open();
 
-                document.Add(new Paragraph("Library Fine Receipt"));
-                document.Add(new Paragraph($"Fine ID: {fine.FineId}"));
-                document.Add(new Paragraph($"Borrow ID: {fine.BorrowId}"));
-                document.Add(new Paragraph($"Amount: ₹{fine.FineAmount}"));
-                document.Add(new Paragraph($"Paid Amount: ₹{fine.PaidAmount}"));
-                document.Add(new Paragraph($"Payment Status: {fine.PaymentStatus}"));
-                document.Add(new Paragraph($"Date: {DateTime.Now.ToString("dd-MM-yyyy HH:mm")}"));
+                // Fonts
+                var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 18);
+                var labelFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12);
+                var valueFont = FontFactory.GetFont(FontFactory.HELVETICA, 12);
+
+                // Centered Title
+                Paragraph title = new Paragraph("Library Fine Receipt", titleFont);
+                title.Alignment = Element.ALIGN_CENTER;
+                title.SpacingAfter = 20f;
+                document.Add(title);
+
+                var borrow = _context.Borrows.FirstOrDefault(b => b.BorrowId == fine.BorrowId);
+                var book = _context.Books.FirstOrDefault(b => b.BookId == borrow.BookId);
+
+                // Safe null handling
+                string memberName = fine?.Borrow?.Member?.Name ?? "N/A";
+                string bookTitle = book?.Title ?? "Unknown";
+
+                // Receipt Details - Center aligned table
+                PdfPTable table = new PdfPTable(2);
+                table.WidthPercentage = 80;
+                table.HorizontalAlignment = Element.ALIGN_CENTER;
+                table.SpacingBefore = 10f;
+                table.SpacingAfter = 10f;
+
+                // Helper method to add a row
+                void AddRow(string label, string value)
+                {
+                    PdfPCell labelCell = new PdfPCell(new Phrase(label, labelFont));
+                    PdfPCell valueCell = new PdfPCell(new Phrase(value, valueFont));
+
+                    labelCell.Border = Rectangle.NO_BORDER;
+                    valueCell.Border = Rectangle.NO_BORDER;
+
+                    table.AddCell(labelCell);
+                    table.AddCell(valueCell);
+                }
+
+                AddRow("Member Name:", memberName);
+                AddRow("Book Title:", bookTitle);
+                AddRow("Fine Amount:", $"₹{fine.FineAmount}");
+                AddRow("Paid Amount:", $"₹{fine.PaidAmount}");
+                AddRow("Payment Status:", fine.PaymentStatus);
+                AddRow("Date:", DateTime.Now.ToString("dd-MM-yyyy HH:mm"));
+
+                document.Add(table);
+
+                // Footer
+                Paragraph footer = new Paragraph("Thank you for using our Library!", valueFont);
+                footer.Alignment = Element.ALIGN_CENTER;
+                footer.SpacingBefore = 20f;
+                document.Add(footer);
 
                 document.Close();
-                return stream.ToArray(); // 📎 Convert PDF to Byte Array
+                return stream.ToArray();
             }
         }
+
 
         public async Task AddTransactionAsync(TblTransaction transaction)
         {

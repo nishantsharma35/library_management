@@ -1,8 +1,9 @@
-﻿@model IEnumerable<library_management.Models.Book>
+﻿@model IEnumerable<library_management.Models.BookListViewModel>
 
 @{
     Layout = "/Views/Shared/_mainLayout.cshtml";
     ViewData["Title"] = "Book List";
+    int roleId = ViewBag.RoleId;
 }
 
 <!-- ✅ DataTables & Bootstrap CSS -->
@@ -14,32 +15,59 @@
     <div class="card-header py-3 text-center">
         <h2 class="m-0 font-weight-bold text-primary">Book List</h2>
     </div>
+
     <div class="card-body">
+
         <div class="table-responsive">
+            @if (roleId == 1)
+            {
+                <form method="get" asp-action="BookList" asp-controller="BookMaster">
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">Select Library:</label>
+                        <div class="col-sm-6">
+                            <select class="form-control" id="LibraryDropdown" name="LibraryId">
+                                <option value="">-- Select Library --</option>
+                                @foreach (var library in ViewBag.Libraries as List<SelectListItem>)
+                                {
+                                    <option value="@library.Value">@library.Text</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            }
             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                 <thead>
                     <tr>
                         <th>Book Cover</th>
                         <th>Title</th>
                         <th>Author</th>
-                        <th>Publication Year</th>
+                        @* <th>Publication Year</th> *@
                         <th>Genre</th>
+                        @if (roleId == 1)
+                        {
+                            <th>Libraries</th>
+                        }
                         <th>Action</th>
                     </tr>
                 </thead>
-                <tbody>
-                    @foreach (var book in Model.ToList())
+                <tbody id="booksTableBody">
+                    @foreach (var book in Model)
                     {
                         <tr>
                             <td>
-                                <img src="@book.bookimagepath" alt="Book Cover" class="img-fluid rounded" style="width: 50px; height: 70px;">
+                                <img src="@book.BookImagePath" alt="Book Cover" class="img-fluid rounded" style="width: 50px; height: 70px;">
                             </td>
                             <td>@book.Title</td>
                             <td>@book.Author</td>
-                            <td>@book.PublicationYear</td>
-                            <td>@book.Genre.GenreName</td>
-                            <td>
+                            @* <td>@book.PublicationYear</td> *@
+                            <td>@book.GenreName</td>
+                            @if (roleId == 1)
+                            {
+                                <td>@(book.Libraries ?? "-")</td>
 
+                            }
+                            <td>
                                 <a class="btn btn-info" href="@Url.Action("Details", "BookMaster", new { id = book.BookId })">
                                     <i class="fas fa-eye"></i>
                                 </a>
@@ -59,22 +87,26 @@
             </table>
         </div>
     </div>
-
-    
 </div>
 
 @section Scripts {
-    @* <script src="~/libraryjs/Delete.js"></script> *@
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/libraryjs/Delete.js"></script>
+    <script>
+        $(document).ready(function () {
+            initializeDeleteButtons('@Url.Action("DeleteBookFromLibrary", "BookMaster")');
+        });
+    </script>
     <script>
         $(document).ready(function () {
             console.log("Initializing DataTable...");
             if ($.fn.DataTable) {
                 $('#dataTable').DataTable({
-                    "paging": true,          // ✅ Pagination enabled
-                    "searching": true,       // ✅ Search box enabled
-                    "ordering": true,        // ✅ Sorting enabled
-                    "info": true,            // ✅ Show table info
-                    "lengthMenu": [5, 10, 25, 50, 100], // ✅ Entries per page
+                    "paging": true,
+                    "searching": true,
+                    "ordering": true,
+                    "info": true,
+                    "lengthMenu": [5, 10, 25, 50, 100],
                     "responsive": true
                 });
                 console.log("✅ DataTable Initialized Successfully!");
@@ -83,7 +115,140 @@
             }
         });
     </script>
+    <script>
+            $('#LibraryDropdown').on('change', function () {
+            var libraryId = $(this).val();
+            $.ajax({
+                url: '/BookMaster/GetBooksByLibrary',
+                type: 'GET',
+                data: { libraryId: libraryId },
+                success: function (result) {
+                    $('#booksTableBody').html(result);
+                    // Optional: rebind buttons if needed
+                    initializeDeleteButtons('@Url.Action("DeleteBookFromLibrary", "BookMaster")');
+                },
+                error: function () {
+                    alert("Books could not be loaded.");
+                }
+            });
+        });
+    </script>
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* @model IEnumerable<library_management.Models.Book> *@
+
+@* @{ *@
+@*     Layout = "/Views/Shared/_mainLayout.cshtml"; *@
+@*     ViewData["Title"] = "Book List"; *@
+@* } *@
+
+@* <!-- ✅ DataTables & Bootstrap CSS --> *@
+@* <link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet"> *@
+@* <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css" rel="stylesheet"> *@
+@* <link href="~/assets/css/sb-admin-2.min.css" rel="stylesheet"> *@
+
+@* <div class="card shadow mb-4"> *@
+@*     <div class="card-header py-3 text-center"> *@
+@*         <h2 class="m-0 font-weight-bold text-primary">Book List</h2> *@
+@*     </div> *@
+@*     <div class="card-body"> *@
+@*         <div class="table-responsive"> *@
+@*             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0"> *@
+@*                 <thead> *@
+@*                     <tr> *@
+@*                         <th>Book Cover</th> *@
+@*                         <th>Title</th> *@
+@*                         <th>Author</th> *@
+@*                         <th>Publication Year</th> *@
+@*                         <th>Genre</th> *@
+@*                         <th>Action</th> *@
+@*                     </tr> *@
+@*                 </thead> *@
+@*                 <tbody> *@
+@*                     @foreach (var book in Model.ToList()) *@
+@*                     { *@
+@*                         <tr> *@
+@*                             <td> *@
+@*                                 <img src="@book.bookimagepath" alt="Book Cover" class="img-fluid rounded" style="width: 50px; height: 70px;"> *@
+@*                             </td> *@
+@*                             <td>@book.Title</td> *@
+@*                             <td>@book.Author</td> *@
+@*                             <td>@book.PublicationYear</td> *@
+@*                             <td>@book.Genre.GenreName</td> *@
+@*                             <td> *@
+
+@*                                 <a class="btn btn-info" href="@Url.Action("Details", "BookMaster", new { id = book.BookId })"> *@
+@*                                     <i class="fas fa-eye"></i> *@
+@*                                 </a> *@
+@*                                 @if (ViewBag.PermissionType != "canView") *@
+@*                                 { *@
+@*                                     <a class="btn btn-primary" href="@Url.Action("Addbook", "BookMaster", new { id = book.BookId })"> *@
+@*                                         <i class="fas fa-edit"></i> *@
+@*                                     </a> *@
+@*                                 } *@
+@*                                 <button class="btn btn-danger delete-btn" data-id="@book.BookId"> *@
+@*                                     <i class="fas fa-trash-alt"></i> *@
+@*                                 </button> *@
+@*                             </td> *@
+@*                         </tr> *@
+@*                     } *@
+@*                 </tbody> *@
+@*             </table> *@
+@*         </div> *@
+@*     </div> *@
+
+
+@* </div> *@
+
+@* @section Scripts { *@
+@*     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> *@
+@*     <script src="~/libraryjs/Delete.js"></script> *@
+@*     <script> *@
+
+@*         $(document).ready(function () { *@
+@*              initializeDeleteButtons('@Url.Action("DeleteBookFromLibrary", "BookMaster")'); *@
+@*         }); *@
+@*     </script> *@
+@*     <script> *@
+
+@*         $(document).ready(function () { *@
+@*             console.log("Initializing DataTable..."); *@
+@*             if ($.fn.DataTable) { *@
+@*                 $('#dataTable').DataTable({ *@
+@*                     "paging": true,          // ✅ Pagination enabled *@
+@*                     "searching": true,       // ✅ Search box enabled *@
+@*                     "ordering": true,        // ✅ Sorting enabled *@
+@*                     "info": true,            // ✅ Show table info *@
+@*                     "lengthMenu": [5, 10, 25, 50, 100], // ✅ Entries per page *@
+@*                     "responsive": true *@
+@*                 }); *@
+@*                 console.log("✅ DataTable Initialized Successfully!"); *@
+@*             } else { *@
+@*                 console.error("❌ DataTable function is not available."); *@
+@*             } *@
+@*         }); *@
+@*     </script> *@
+@* } *@
 
 
 

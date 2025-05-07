@@ -114,65 +114,82 @@ namespace library_management.Controllers
             }
         }
 
-        
+
 
 
         public IActionResult ExportLibraryAdminReport()
         {
-
             int id = (int)HttpContext.Session.GetInt32("UserId");
             string userName = _context.Members.Where(x => x.Id == id).Select(y => y.Name).FirstOrDefault();
             string libName = _context.Libraries.Where(x => x.AdminId == id).Select(y => y.Libraryname).FirstOrDefault();
 
-            // ✅ Library Admin ke liye sirf uski library ka data fetch karna hai
             int libraryId = (int)HttpContext.Session.GetInt32("LibraryId");
             var reportData = _reportService.GetLibraryAdminReport(libraryId);
-            if (reportData == null || !reportData.BorrowedBooksReport.Any())
+
+            if (reportData == null)
             {
                 throw new Exception("No data available for export.");
             }
 
-
             using (var workbook = new XLWorkbook())
             {
-                var worksheet = workbook.Worksheets.Add("LibraryAdminReports");
+                // 🔹 Sheet 1: Borrowed Books Report
+                var borrowSheet = workbook.Worksheets.Add("BorrowedBooksReport");
                 int row = 1;
 
-                // 🔹 Headers
-                worksheet.Cell(row, 1).Value = "Member Name";
-                worksheet.Cell(row, 2).Value = "Book Title";
-                worksheet.Cell(row, 3).Value = "Borrow Date";
-                worksheet.Cell(row, 4).Value = "Return Date";
-                worksheet.Cell(row, 5).Value = "Fine Amount";
+                borrowSheet.Cell(row, 1).Value = "Member Name";
+                borrowSheet.Cell(row, 2).Value = "Book Title";
+                borrowSheet.Cell(row, 3).Value = "Borrow Date";
+                borrowSheet.Cell(row, 4).Value = "Return Date";
+                borrowSheet.Cell(row, 5).Value = "Fine Amount";
                 row++;
 
-                // 🔹 Data Rows
                 foreach (var item in reportData.BorrowedBooksReport)
                 {
-                    worksheet.Cell(row, 1).Value = item.MemberName;
-                    worksheet.Cell(row, 2).Value = item.BookTitle;
-                    worksheet.Cell(row, 3).Value = item.BorrowDate.ToString("dd-MM-yyyy");
-                    worksheet.Cell(row, 4).Value = item.ActualReturnDate?.ToString("dd-MM-yyyy") ?? "N/A";
-                    worksheet.Cell(row, 5).Value = item.FineAmount;
+                    borrowSheet.Cell(row, 1).Value = item.MemberName;
+                    borrowSheet.Cell(row, 2).Value = item.BookTitle;
+                    borrowSheet.Cell(row, 3).Value = item.BorrowDate.ToString("dd-MM-yyyy");
+                    borrowSheet.Cell(row, 4).Value = item.ActualReturnDate?.ToString("dd-MM-yyyy") ?? "N/A";
+                    borrowSheet.Cell(row, 5).Value = item.FineAmount;
                     row++;
                 }
 
-                // 🔹 Auto-fit columns
-                worksheet.Columns().AdjustToContents();
+                borrowSheet.Columns().AdjustToContents();
 
+                // 🔹 Sheet 2: Library Book Stock Report
+                var stockSheet = workbook.Worksheets.Add("BookStockReport");
+                int stockRow = 1;
+
+                stockSheet.Cell(stockRow, 1).Value = "Book Title";
+                stockSheet.Cell(stockRow, 2).Value = "Available Stock";
+                stockSheet.Cell(stockRow, 3).Value = "Total Borrows";
+                stockRow++;
+
+                foreach (var book in reportData.LibraryBookReport)
+                {
+                    stockSheet.Cell(stockRow, 1).Value = book.BookTitle;
+                    stockSheet.Cell(stockRow, 2).Value = book.AvailableStock;
+                    stockSheet.Cell(stockRow, 3).Value = book.TotalBorrows;
+                    stockRow++;
+                }
+
+                stockSheet.Columns().AdjustToContents();
+
+                // 🔹 Save and return file
                 using (var stream = new MemoryStream())
                 {
                     workbook.SaveAs(stream);
                     var content = stream.ToArray();
 
                     string type = "admin exported file";
-                    string desc = $"{userName} exported the data file library {libName}";
+                    string desc = $"{userName} exported the data file of library {libName}";
                     _activityRepository.AddNewActivity(id, type, desc);
 
                     return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "LibraryAdminReports.xlsx");
                 }
             }
         }
+
         [HttpGet]
         public IActionResult ExportMemberReport()
         {

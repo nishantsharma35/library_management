@@ -1,4 +1,4 @@
-﻿@model IEnumerable<library_management.Models.Member>
+﻿@model IEnumerable<library_management.Models.MemberListViewModel>
 
 @{
     Layout = "/Views/Shared/_mainLayout.cshtml";
@@ -15,18 +15,39 @@
     </div>
     <div class="card-body">
         <div class="table-responsive">
+             @if (Model.FirstOrDefault()?.RoleId == 1)
+                        {
+            <form method="get" asp-action="MemberList" asp-controller="MemberMaster">
+                <div class="form-group row">
+                    <label class="col-sm-2 col-form-label">Select Library:</label>
+                    <div class="col-sm-6">
+                        <select class="form-control" id="LibraryDropdown" name="LibraryId">
+                            <option value="">-- Select Library --</option>
+                            @foreach (var library in ViewBag.Libraries as List<SelectListItem>)
+                            {
+                                <option value="@library.Value">@library.Text</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </form>
+            }
             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                 <thead>
                     <tr>
                         <th>Profile Image</th>
                         <th>Name</th>
-                        <th>Email</th>
-                        <th>Joining Date</th>
+                        @* <th>Email</th> *@
                         <th>Verification Status</th>
+                        @if (Model.FirstOrDefault()?.RoleId == 1)
+                        {
+                            <th>Libraries</th>
+                        }
                         <th>Action</th>
                     </tr>
                 </thead>
-                <tbody>
+
+                <tbody id="membersTableBody">
                     @foreach (var member in Model)
                     {
                         <tr class="member-row" data-status="@member.VerificationStatus">
@@ -34,13 +55,18 @@
                                 <img src="@member.Picture" alt="img" class="img-fluid rounded-circle" style="width: 50px; height: 50px;">
                             </td>
                             <td>@member.Name</td>
-                            <td>@member.Email</td>
-                            <td>@member.Joiningdate</td>
+                            @* <td>@member.Email</td> *@
                             <td>
                                 <span class="badge @(member.VerificationStatus == "Pending" ? "badge-warning" : member.VerificationStatus == "Accepted" ? "badge-success" : "badge-danger")">
                                     @member.VerificationStatus
                                 </span>
                             </td>
+
+                            @if (Model.FirstOrDefault()?.RoleId == 1)
+                            {
+                                <td>@member.Libraries</td>
+                            }
+
                             <td>
                                 @if (member.VerificationStatus == "Pending")
                                 {
@@ -49,75 +75,94 @@
                                 }
                                 else
                                 {
-                                    <a class="btn btn-primary btn-sm" href="@Url.Action("Details", "MemberMaster", new { id = member.Id })">
-                                        <i class="fas fa-info-circle"></i> Details
-                                    </a>
-                                    <a class="btn btn-warning btn-sm" href="@Url.Action("AddMember", "MemberMaster", new { id = member.Id })">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </a>
-                                    <button class="btn btn-danger btn-sm delete-btn" data-id="@member.Id">
-                                        <i class="fas fa-trash"></i> Delete
-                                    </button>
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        <a class="btn btn-primary btn-sm" href="@Url.Action("Details", "MemberMaster", new { id = member.Id })">
+                                            <i class="fas fa-info-circle"></i>
+                                        </a>
+                                        <a class="btn btn-warning btn-sm" href="@Url.Action("AddMember", "MemberMaster", new { id = member.Id })">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button class="btn btn-danger btn-sm delete-btn" data-id="@member.Id">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
                                 }
                             </td>
                         </tr>
                     }
-                   
                 </tbody>
             </table>
         </div>
     </div>
 </div>
 
-
-
-
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="~/libraryjs/Delete.js"></script>
-   
-
-  
-             
     <script>
-         var approveUrl = '@Url.Action("ApproveOrRejectUser", "MemberMaster")';
+        $(document).ready(function () {
+            initializeDeleteButtons('@Url.Action("DeleteUser", "MemberMaster")');
+        });
+    </script>
 
-         $(document).on('click', '.approve-btn', function () {
-             var memberId = $(this).data('id');
-             $.ajax({
-                 url: approveUrl,
-                 type: 'POST',
-                 data: { userId: memberId, approve: true },
-                 success: function (response) {
-                     Swal.fire("Success!", response.message, "success").then(() => location.reload());
-                 },
-                 error: function () {
-                     Swal.fire("Error!", "Something went wrong.", "error");
-                 }
-             });
-         });
+    <script>
+        var approveUrl = '@Url.Action("ApproveOrRejectUser", "MemberMaster")';
 
-         $(document).on('click', '.reject-btn', function () {
-             var memberId = $(this).data('id');
-             $.ajax({
-                 url: approveUrl,
-                 type: 'POST',
-                 data: { userId: memberId, approve: false },
-                 success: function (response) {
-                     Swal.fire("Success!", response.message, "success").then(() => location.reload());
-                 },
-                 error: function () {
-                     Swal.fire("Error!", "Something went wrong.", "error");
-                 }
-             });
-         });
+        $(document).on('click', '.approve-btn', function () {
+            var memberId = $(this).data('id');
+            $.ajax({
+                url: approveUrl,
+                type: 'POST',
+                data: { userId: memberId, approve: true },
+                success: function (response) {
+                    Swal.fire("Success!", response.message, "success").then(() => location.reload());
+                },
+                error: function () {
+                    Swal.fire("Error!", "Something went wrong.", "error");
+                }
+            });
+        });
+
+        $(document).on('click', '.reject-btn', function () {
+            var memberId = $(this).data('id');
+            $.ajax({
+                url: approveUrl,
+                type: 'POST',
+                data: { userId: memberId, approve: false },
+                success: function (response) {
+                    Swal.fire("Success!", response.message, "success").then(() => location.reload());
+                },
+                error: function () {
+                    Swal.fire("Error!", "Something went wrong.", "error");
+                }
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            // Handle Library Dropdown Change
+            $('#LibraryDropdown').on('change', function () {
+                var libraryId = $(this).val();
+                $.ajax({
+                    url: '/MemberMaster/GetMembersByLibrary',
+                    type: 'GET',
+                    data: { libraryId: libraryId },
+                    success: function (result) {
+                        // Update the table body with the new data
+                        $('#membersTableBody').html(result);
+
+                        // Rebind event handlers for newly loaded buttons (Approve, Reject, Delete, etc.)
+                        rebindActionButtons();
+                    },
+                    error: function () {
+                        alert("Members could not be loaded.");
+                    }
+                });
+            });
+
+            
+        });
     </script>
 
 
-   
-
 }
-
-
-
-

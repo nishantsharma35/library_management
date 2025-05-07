@@ -151,6 +151,21 @@
         }
     });
 
+
+
+    $(".otp-input").on("paste", function (e) {
+        e.preventDefault();
+        let pasteData = (e.originalEvent.clipboardData || window.clipboardData).getData("text").trim();
+
+        if (pasteData.length === 6 && /^\d{6}$/.test(pasteData)) { // Ensure it's a valid 6-digit OTP
+            $(".otp-input").val(""); // Clear all inputs before filling
+            $(".otp-input").each(function (index) {
+                $(this).val(pasteData[index]); // Fill each input with one digit
+            });
+            $(".otp-input").last().focus(); // Move focus to last input
+        }
+    });
+
 });
 
 

@@ -207,6 +207,75 @@ namespace library_management.Controllers
             return RedirectToAction("BorrowList", "BorrowMaster");
         }
 
+        [HttpPost]
+        public async Task<IActionResult> PayFine(int fineId, decimal payAmount)
+        {
+            int id = (int)HttpContext.Session.GetInt32("UserId");
+            string userName = _context.Members.Where(x => x.Id == id).Select(y => y.Name).FirstOrDefault();
+            string libName = _context.Libraries.Where(x => x.AdminId == id).Select(y => y.Libraryname).FirstOrDefault();
+
+            var fine = await _fineInterface.GetFineByIdAsync(fineId);
+            var borrow = await _borrowInterface.GetBorrowRecordByIdAsync(fine.BorrowId);
+            var member = borrow?.Member;
+
+            if (fine == null)
+            {
+                return Json(new { success = false, message = "Fine not found!" });
+            }
+
+            decimal remainingAmount = fine.FineAmount - fine.PaidAmount;
+            if (payAmount > remainingAmount)
+            {
+                return Json(new { success = false, message = "Payment amount exceeds remaining fine!" });
+            }
+
+            fine.PaidAmount += payAmount;
+            if (fine.PaidAmount >= fine.FineAmount)
+            {
+                fine.PaymentStatus = "Paid";
+            }
+            fine.PaymentDate = DateTime.Now;
+
+            var transaction = new TblTransaction
+            {
+                FineId = fine.FineId,
+                AmountPaid = (int)payAmount,
+                PaymentDate = DateTime.Now,
+                PaymentMode = "Cash",
+                Reference = "Manual Payment"
+            };
+
+            await _fineInterface.AddTransactionAsync(transaction);
+            await _fineInterface.UpdateFineAsync(fine);
+
+            string subject = "Fine Payment Confirmation";
+            string memberName = fine.Borrow?.Member?.Name ?? "Guest"; // Default to "Guest"
+            string body = fine.Borrow?.Member != null
+                ? $"Dear {fine.Borrow.Member.Name},\n\n" +
+                  $"You have made a payment of ₹{payAmount} towards your fine.\n\n" +
+                  $"Remaining Amount: ₹{fine.FineAmount - fine.PaidAmount}\n\n"
+                : "Dear Member,\n\nYour fine has been updated.";
+
+            if (fine.PaymentStatus == "Paid")
+            {
+                body += "Your fine has been fully paid. Thank you for using our service!";
+            }
+            else
+            {
+                body += "Please pay the remaining amount to fully clear your fine.";
+            }
+
+            string recipientEmail = fine.Borrow?.Member?.Email ?? "defaultEmail@example.com";
+
+            byte[] pdfBytes = _fineInterface.GenerateFineReceiptPdf(fine);
+            await _emailService.SendEmailWithAttachment(recipientEmail, subject, body, pdfBytes, $"Fine_Receipt_{fine.FineId}.pdf");
+
+            string type = "Pay Fine";
+            string desc = $"{userName} manually paid fine in cash at {libName}";
+            _activityRepository.AddNewActivity(id, type, desc);
+
+            return Json(new { success = true, message = "Fine payment and transaction recorded successfully!" });
+        }
 
         //[HttpPost]
         //public async Task<IActionResult> PayFine(int fineId, decimal payAmount)
@@ -372,87 +441,88 @@ namespace library_management.Controllers
 
 
 
-        [HttpPost]
-        public async Task<IActionResult> PayFine(int fineId, decimal payAmount)
-        {
-           int id = (int)HttpContext.Session.GetInt32("UserId");
-            string userName = _context.Members.Where(x => x.Id == id).Select(y => y.Name).FirstOrDefault();
-            string libName = _context.Libraries.Where(x => x.AdminId == id).Select(y => y.Libraryname).FirstOrDefault();
+        //[HttpPost]
+        //public async Task<IActionResult> PayFine(int fineId, decimal payAmount)
+        //{
+        //   int id = (int)HttpContext.Session.GetInt32("UserId");
+        //    string userName = _context.Members.Where(x => x.Id == id).Select(y => y.Name).FirstOrDefault();
+        //    string libName = _context.Libraries.Where(x => x.AdminId == id).Select(y => y.Libraryname).FirstOrDefault();
 
-            var fine = await _fineInterface.GetFineByIdAsync(fineId);
-            var borrow = await _borrowInterface.GetBorrowRecordByIdAsync(fine.BorrowId); // Ensure Borrow and Member are loaded
-            var member = borrow?.Member; // Ensure Member is not null
+        //    var fine = await _fineInterface.GetFineByIdAsync(fineId);
+        //    var borrow = await _borrowInterface.GetBorrowRecordByIdAsync(fine.BorrowId); // Ensure Borrow and Member are loaded
+        //    var member = borrow?.Member; // Ensure Member is not null
 
-            // If member is still null, log an error or handle accordingly
+        //    // If member is still null, log an error or handle accordingly
 
-            if (fine == null)
-            {
-                return Json(new { success = false, message = "Fine not found!" });
-            }
+        //    if (fine == null)
+        //    {
+        //        return Json(new { success = false, message = "Fine not found!" });
+        //    }
 
-            // Check if the payment amount is greater than the remaining fine
-            decimal remainingAmount = fine.FineAmount - fine.PaidAmount;
-            if (payAmount > remainingAmount)
-            {
-                return Json(new { success = false, message = "Payment amount exceeds remaining fine!" });
-            }
+        //    // Check if the payment amount is greater than the remaining fine
+        //    decimal remainingAmount = fine.FineAmount - fine.PaidAmount;
+        //    if (payAmount > remainingAmount)
+        //    {
+        //        return Json(new { success = false, message = "Payment amount exceeds remaining fine!" });
+        //    }
 
-            // Update paid amount and payment status based on the partial payment
-            fine.PaidAmount += payAmount;
-            if (fine.PaidAmount >= fine.FineAmount)
-            {
-                fine.PaymentStatus = "Paid";
-            }
-            fine.PaymentDate = DateTime.Now;
+        //    // Update paid amount and payment status based on the partial payment
+        //    fine.PaidAmount += payAmount;
+        //    if (fine.PaidAmount >= fine.FineAmount)
+        //    {
+        //        fine.PaymentStatus = "Paid";
+        //    }
+        //    fine.PaymentDate = DateTime.Now;
 
 
-            var transaction = new TblTransaction
-            {
-                FineId = fine.FineId,
-                AmountPaid = (int)payAmount,
-                PaymentDate = DateTime.Now,
-                PaymentMode = "Cash", // Ya aap UI se bhi bhej sakte ho
-                Reference = "Manual Payment"
-            };
+        //    var transaction = new TblTransaction
+        //    {
+        //        FineId = fine.FineId,
+        //        AmountPaid = (int)payAmount,
+        //        PaymentDate = DateTime.Now,
+        //        PaymentMode = "Cash", // Ya aap UI se bhi bhej sakte ho
+        //        Reference = "Manual Payment"
+        //    };
 
-            await _fineInterface.AddTransactionAsync(transaction);
+        //    await _fineInterface.AddTransactionAsync(transaction);
 
-            await _fineInterface.UpdateFineAsync(fine); // Update fine in DB
+        //    await _fineInterface.UpdateFineAsync(fine); // Update fine in DB
 
-            // Send email notification about the partial payment
-            string subject = "Fine Payment Confirmation";
-            string memberName = fine.Borrow?.Member?.Name ?? "Guest"; // Default to "Guest" if Member is null
+        //    // Send email notification about the partial payment
+        //    string subject = "Fine Payment Confirmation";
+        //    string memberName = fine.Borrow?.Member?.Name ?? "Guest"; // Default to "Guest" if Member is null
 
-            string body = fine.Borrow?.Member != null
-                ? $"Dear {fine.Borrow.Member.Name},\n\n" +
-                  $"You have made a payment of ₹{payAmount} towards your fine.\n\n" +
-                  $"Remaining Amount: ₹{fine.FineAmount - fine.PaidAmount}\n\n"
-                : "Dear Member,\n\nYour fine has been updated.";
+        //    string body = fine.Borrow?.Member != null
+        //        ? $"Dear {fine.Borrow.Member.Name},\n\n" +
+        //          $"You have made a payment of ₹{payAmount} towards your fine.\n\n" +
+        //          $"Remaining Amount: ₹{fine.FineAmount - fine.PaidAmount}\n\n"
+        //        : "Dear Member,\n\nYour fine has been updated.";
 
-            // If fully paid, update email body
-            if (fine.PaymentStatus == "Paid")
-            {
-                body += "Your fine has been fully paid. Thank you for using our service!";
-            }
-            else
-            {
-                body += "Please pay the remaining amount to fully clear your fine.";
-            }
+        //    // If fully paid, update email body
+        //    if (fine.PaymentStatus == "Paid")
+        //    {
+        //        body += "Your fine has been fully paid. Thank you for using our service!";
+        //    }
+        //    else
+        //    {
+        //        body += "Please pay the remaining amount to fully clear your fine.";
+        //    }
 
-            string recipientEmail = fine.Borrow?.Member?.Email ?? "defaultEmail@example.com"; // Default email if null
+        //    string recipientEmail = fine.Borrow?.Member?.Email ?? "defaultEmail@example.com"; // Default email if null
 
-            // ✅ Generate Fine Receipt PDF
-            byte[] pdfBytes = _fineInterface.GenerateFineReceiptPdf(fine);
+        //    // ✅ Generate Fine Receipt PDF
+        //    byte[] pdfBytes = _fineInterface.GenerateFineReceiptPdf(fine);
 
-            // ✅ Send Email with PDF Attachment
-            await _emailService.SendEmailWithAttachment(recipientEmail, subject, body, pdfBytes, $"Fine_Receipt_{fine.FineId}.pdf");
+        //    // ✅ Send Email with PDF Attachment
+        //    await _emailService.SendEmailWithAttachment(recipientEmail, subject, body, pdfBytes, $"Fine_Receipt_{fine.FineId}.pdf");
 
-            string type = "Pay Fine";
-            string desc = $"{userName} manually Pay fine in cash to his{libName}";
-            _activityRepository.AddNewActivity(id, type, desc);
+        //    string type = "Pay Fine";
+        //    string desc = $"{userName} manually Pay fine in cash to his{libName}";
+        //    _activityRepository.AddNewActivity(id, type, desc);
 
-            return Json(new { success = true, message = "Fine payment and transaction recorded successfully!" });
-        }
+        //    return Json(new { success = true, message = "Fine payment and transaction recorded successfully!" });
+
+        //}
 
 
         private decimal CalculateFine(Borrow borrowRecord)
@@ -496,7 +566,7 @@ namespace library_management.Controllers
             await _context.SaveChangesAsync();
 
             string type = "updated Fine";
-            string desc = $"{userName}updated {libName} library fine";
+            string desc = $"{userName} updated {libName} library fine";
             _activityRepository.AddNewActivity(id, type, desc);
 
             return Json(new { success = true, message = "Fine updated successfully!" });

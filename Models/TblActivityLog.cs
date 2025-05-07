@@ -15,5 +15,6 @@ namespace library_management.Models
         public string? ImagePath { get; set; }
 
         public DateTime? Timestamp { get; set; }
+
     }
 }

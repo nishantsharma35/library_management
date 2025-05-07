@@ -122,6 +122,15 @@ namespace library_management.repository.classes
        .Where(b => _connect.Memberships
            .Any(m => m.MemberId == b.MemberId && m.LibraryId == libraryId)) // ✅ Library filter yaha lagaya
        .ToListAsync();
+
+            //        return await _connect.Borrows
+            //.Include(b => b.Book)
+            //.Include(b => b.Member)
+            //.Include(b => b.Fine)
+            //.Where(b => b.Book.LibraryId == libraryId) // ✅ Correct filter: Book's Library
+            //.ToListAsync();
+
+
             //    var borrows=  await _connect.Borrows
             //.Where(b => b.LibraryId == libraryId) // ✅ Correct filter
             //.Include(b => b.Member)

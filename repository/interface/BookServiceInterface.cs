@@ -4,8 +4,8 @@ namespace library_management.repository.internalinterface
 {
     public interface BookServiceInterface
     {
-        Task<List<Book>> GetAllbooksData();
-
+        //Task<List<Book>> GetAllbooksData();
+        Task<List<BookListViewModel>> GetAllbooksData(int? libraryId = null);
         Task<List<Book>> GetAvailableBooksAsync();
        Task<List<Book>> GetAvailableBooksByLibraryAsync(int libraryId);
 
